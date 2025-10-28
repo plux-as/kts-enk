@@ -99,6 +99,31 @@ export const storage = {
     }
   },
 
+  async updateSession(sessionId: string, updatedSession: ChecklistSession): Promise<void> {
+    try {
+      const sessions = await this.getSessions();
+      const index = sessions.findIndex(s => s.id === sessionId);
+      if (index !== -1) {
+        sessions[index] = updatedSession;
+        await this.saveSessions(sessions);
+        console.log('Session updated:', sessionId);
+      }
+    } catch (error) {
+      console.error('Error updating session:', error);
+      throw error;
+    }
+  },
+
+  async getSessionById(sessionId: string): Promise<ChecklistSession | null> {
+    try {
+      const sessions = await this.getSessions();
+      return sessions.find(s => s.id === sessionId) || null;
+    } catch (error) {
+      console.error('Error getting session by id:', error);
+      return null;
+    }
+  },
+
   // Setup Complete Flag
   async setSetupComplete(complete: boolean): Promise<void> {
     try {

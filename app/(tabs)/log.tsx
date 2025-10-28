@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Alert,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { colors } from '@/styles/commonStyles';
@@ -34,34 +33,10 @@ export default function LogScreen() {
   };
 
   const handleViewSession = (session: ChecklistSession) => {
-    const missingCount = session.data.reduce((count, item) => {
-      return count + item.statuses.filter(s => s.status === 'missing').length;
-    }, 0);
-
-    let text = `Tropp: ${session.squadName}\n`;
-    text += `Dato: ${session.date}\n`;
-    text += `Mangler: ${missingCount}\n\n`;
-
-    session.soldiers.forEach(soldier => {
-      const soldierMissing = session.data.filter(item =>
-        item.statuses.some(s => s.soldierId === soldier.id && s.status === 'missing')
-      );
-
-      if (soldierMissing.length > 0) {
-        text += `${soldier.name}:\n`;
-        soldierMissing.forEach(item => {
-          const status = item.statuses.find(s => s.soldierId === soldier.id);
-          text += `  ✗ ${item.itemId}`;
-          if (status?.description) {
-            text += ` - ${status.description}`;
-          }
-          text += '\n';
-        });
-        text += '\n';
-      }
+    router.push({
+      pathname: '/log-detail',
+      params: { sessionId: session.id },
     });
-
-    Alert.alert('Øktdetaljer', text, [{ text: 'OK' }]);
   };
 
   if (loading) {
@@ -102,8 +77,9 @@ export default function LogScreen() {
                   onPress={() => handleViewSession(session)}
                 >
                   <View style={styles.sessionHeader}>
-                    <Text style={styles.sessionSquad}>{session.squadName}</Text>
-                    <Text style={styles.sessionDate}>{session.date}</Text>
+                    <Text style={styles.sessionTitle}>
+                      KTS {session.date} {session.time}
+                    </Text>
                   </View>
                   <View style={styles.sessionStats}>
                     <View style={styles.statItem}>
@@ -177,17 +153,12 @@ const styles = StyleSheet.create({
   sessionHeader: {
     marginBottom: 12,
   },
-  sessionSquad: {
-    fontSize: 22,
+  sessionTitle: {
+    fontSize: 24,
     fontWeight: '700',
     color: colors.text,
     marginBottom: 4,
     fontFamily: 'BigShouldersStencil_700Bold',
-  },
-  sessionDate: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   sessionStats: {
     flexDirection: 'row',

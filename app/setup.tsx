@@ -82,7 +82,7 @@ export default function SetupScreen() {
               style={styles.input}
               value={squadName}
               onChangeText={setSquadName}
-              placeholder="F.eks. Alfa Lag"
+              placeholder="F.eks. 2 Alfa"
               placeholderTextColor={colors.textSecondary}
             />
           </View>
@@ -132,7 +132,7 @@ export default function SetupScreen() {
                 style={styles.input}
                 value={soldier.role}
                 onChangeText={(value) => updateSoldier(index, 'role', value)}
-                placeholder="F.eks. Skytter"
+                placeholder="F.eks. Geværsoldat"
                 placeholderTextColor={colors.textSecondary}
               />
             </View>

@@ -46,8 +46,12 @@ export default function HomeScreen() {
     router.push('/session');
   };
 
-  const handleSettings = () => {
+  const handleEditSquad = () => {
     router.push('/settings');
+  };
+
+  const handleEditChecklist = () => {
+    router.push('/edit-checklist');
   };
 
   if (loading) {
@@ -64,7 +68,7 @@ export default function HomeScreen() {
         options={{
           title: "KTS Enkeltsoldat",
           headerRight: () => (
-            <Pressable onPress={handleSettings} style={styles.headerButton}>
+            <Pressable onPress={handleEditChecklist} style={styles.headerButton}>
               <IconSymbol name="gear" color={colors.text} size={24} />
             </Pressable>
           ),
@@ -79,7 +83,12 @@ export default function HomeScreen() {
             <Text style={styles.appTitle}>KTS Enkeltsoldat</Text>
             {squadSettings && (
               <View style={styles.squadInfo}>
-                <Text style={styles.squadName}>{squadSettings.squadName}</Text>
+                <View style={styles.squadNameRow}>
+                  <Text style={styles.squadName}>{squadSettings.squadName}</Text>
+                  <Pressable onPress={handleEditSquad} style={styles.editButton}>
+                    <IconSymbol name="pencil" color={colors.primary} size={20} />
+                  </Pressable>
+                </View>
                 <Text style={styles.squadDetail}>
                   {squadSettings.soldiers.length} soldater
                 </Text>
@@ -134,12 +143,20 @@ const styles = StyleSheet.create({
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
     elevation: 3,
   },
+  squadNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 8,
+  },
   squadName: {
     fontSize: 24,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 8,
     fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  editButton: {
+    padding: 4,
   },
   squadDetail: {
     fontSize: 18,

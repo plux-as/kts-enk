@@ -1,0 +1,569 @@
+
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Alert,
+  Modal,
+} from 'react-native';
+import { Stack, router } from 'expo-router';
+import { colors } from '@/styles/commonStyles';
+import { storage } from '@/utils/storage';
+import { ChecklistCategory, ChecklistItem } from '@/types/checklist';
+import { IconSymbol } from '@/components/IconSymbol';
+
+export default function EditChecklistScreen() {
+  const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingCategory, setEditingCategory] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [editingItem, setEditingItem] = useState<{
+    categoryId: string;
+    id: string;
+    name: string;
+  } | null>(null);
+  const [categoryName, setCategoryName] = useState('');
+  const [itemName, setItemName] = useState('');
+
+  useEffect(() => {
+    loadChecklist();
+  }, []);
+
+  const loadChecklist = async () => {
+    try {
+      const data = await storage.getChecklist();
+      setChecklist(data);
+    } catch (error) {
+      console.error('Error loading checklist:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddCategory = () => {
+    setEditingCategory({ id: '', name: '' });
+    setCategoryName('');
+  };
+
+  const handleEditCategory = (category: ChecklistCategory) => {
+    setEditingCategory({ id: category.id, name: category.name });
+    setCategoryName(category.name);
+  };
+
+  const handleSaveCategory = async () => {
+    if (!categoryName.trim()) {
+      Alert.alert('Feil', 'Vennligst skriv inn kategorinavn');
+      return;
+    }
+
+    try {
+      let updatedChecklist = [...checklist];
+
+      if (editingCategory?.id) {
+        // Edit existing category
+        const index = updatedChecklist.findIndex(c => c.id === editingCategory.id);
+        if (index !== -1) {
+          updatedChecklist[index] = {
+            ...updatedChecklist[index],
+            name: categoryName.trim(),
+          };
+        }
+      } else {
+        // Add new category
+        const newCategory: ChecklistCategory = {
+          id: `cat-${Date.now()}`,
+          name: categoryName.trim(),
+          items: [],
+        };
+        updatedChecklist.push(newCategory);
+      }
+
+      await storage.saveChecklist(updatedChecklist);
+      setChecklist(updatedChecklist);
+      setEditingCategory(null);
+      setCategoryName('');
+    } catch (error) {
+      console.error('Error saving category:', error);
+      Alert.alert('Feil', 'Kunne ikke lagre kategorien');
+    }
+  };
+
+  const handleDeleteCategory = (categoryId: string) => {
+    Alert.alert(
+      'Bekreft sletting',
+      'Er du sikker på at du vil slette denne kategorien og alle dens elementer?',
+      [
+        { text: 'Avbryt', style: 'cancel' },
+        {
+          text: 'Slett',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const updatedChecklist = checklist.filter(c => c.id !== categoryId);
+              await storage.saveChecklist(updatedChecklist);
+              setChecklist(updatedChecklist);
+            } catch (error) {
+              console.error('Error deleting category:', error);
+              Alert.alert('Feil', 'Kunne ikke slette kategorien');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleAddItem = (categoryId: string) => {
+    setEditingItem({ categoryId, id: '', name: '' });
+    setItemName('');
+  };
+
+  const handleEditItem = (categoryId: string, item: ChecklistItem) => {
+    setEditingItem({ categoryId, id: item.id, name: item.name });
+    setItemName(item.name);
+  };
+
+  const handleSaveItem = async () => {
+    if (!itemName.trim() || !editingItem) {
+      Alert.alert('Feil', 'Vennligst skriv inn elementnavn');
+      return;
+    }
+
+    try {
+      let updatedChecklist = [...checklist];
+      const categoryIndex = updatedChecklist.findIndex(c => c.id === editingItem.categoryId);
+
+      if (categoryIndex !== -1) {
+        if (editingItem.id) {
+          // Edit existing item
+          const itemIndex = updatedChecklist[categoryIndex].items.findIndex(
+            i => i.id === editingItem.id
+          );
+          if (itemIndex !== -1) {
+            updatedChecklist[categoryIndex].items[itemIndex] = {
+              ...updatedChecklist[categoryIndex].items[itemIndex],
+              name: itemName.trim(),
+            };
+          }
+        } else {
+          // Add new item
+          const newItem: ChecklistItem = {
+            id: `item-${Date.now()}`,
+            name: itemName.trim(),
+            categoryId: editingItem.categoryId,
+          };
+          updatedChecklist[categoryIndex].items.push(newItem);
+        }
+
+        await storage.saveChecklist(updatedChecklist);
+        setChecklist(updatedChecklist);
+        setEditingItem(null);
+        setItemName('');
+      }
+    } catch (error) {
+      console.error('Error saving item:', error);
+      Alert.alert('Feil', 'Kunne ikke lagre elementet');
+    }
+  };
+
+  const handleDeleteItem = (categoryId: string, itemId: string) => {
+    Alert.alert(
+      'Bekreft sletting',
+      'Er du sikker på at du vil slette dette elementet?',
+      [
+        { text: 'Avbryt', style: 'cancel' },
+        {
+          text: 'Slett',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              let updatedChecklist = [...checklist];
+              const categoryIndex = updatedChecklist.findIndex(c => c.id === categoryId);
+
+              if (categoryIndex !== -1) {
+                updatedChecklist[categoryIndex].items = updatedChecklist[
+                  categoryIndex
+                ].items.filter(i => i.id !== itemId);
+                await storage.saveChecklist(updatedChecklist);
+                setChecklist(updatedChecklist);
+              }
+            } catch (error) {
+              console.error('Error deleting item:', error);
+              Alert.alert('Feil', 'Kunne ikke slette elementet');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleResetApp = () => {
+    Alert.alert(
+      'Tilbakestill App',
+      'Er du sikker på at du vil slette alle data og starte på nytt? Dette vil fjerne alle økter, innstillinger og sjekklister.',
+      [
+        { text: 'Avbryt', style: 'cancel' },
+        {
+          text: 'Tilbakestill',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await storage.clearAll();
+              router.replace('/setup');
+            } catch (error) {
+              console.error('Error resetting app:', error);
+              Alert.alert('Feil', 'Kunne ikke tilbakestille appen');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.text}>Laster...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <>
+      <Stack.Screen
+        options={{
+          title: 'Rediger Sjekkliste',
+          headerBackTitle: 'Tilbake',
+        }}
+      />
+      <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Kategorier og Elementer</Text>
+              <Pressable style={styles.addButton} onPress={handleAddCategory}>
+                <IconSymbol name="plus.circle.fill" color={colors.primary} size={28} />
+              </Pressable>
+            </View>
+
+            {checklist.map(category => (
+              <View key={category.id} style={styles.categoryCard}>
+                <View style={styles.categoryHeader}>
+                  <Text style={styles.categoryName}>{category.name}</Text>
+                  <View style={styles.categoryActions}>
+                    <Pressable onPress={() => handleEditCategory(category)}>
+                      <IconSymbol name="pencil" color={colors.accent} size={20} />
+                    </Pressable>
+                    <Pressable onPress={() => handleDeleteCategory(category.id)}>
+                      <IconSymbol name="trash" color={colors.secondary} size={20} />
+                    </Pressable>
+                  </View>
+                </View>
+
+                <View style={styles.itemsContainer}>
+                  {category.items.map(item => (
+                    <View key={item.id} style={styles.itemRow}>
+                      <Text style={styles.itemName} numberOfLines={2}>
+                        {item.name}
+                      </Text>
+                      <View style={styles.itemActions}>
+                        <Pressable onPress={() => handleEditItem(category.id, item)}>
+                          <IconSymbol name="pencil" color={colors.accent} size={18} />
+                        </Pressable>
+                        <Pressable onPress={() => handleDeleteItem(category.id, item.id)}>
+                          <IconSymbol name="trash" color={colors.secondary} size={18} />
+                        </Pressable>
+                      </View>
+                    </View>
+                  ))}
+
+                  <Pressable
+                    style={styles.addItemButton}
+                    onPress={() => handleAddItem(category.id)}
+                  >
+                    <IconSymbol name="plus" color={colors.primary} size={20} />
+                    <Text style={styles.addItemText}>Legg til element</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+          </View>
+
+          <Pressable style={styles.resetButton} onPress={handleResetApp}>
+            <IconSymbol name="trash.fill" color={colors.secondary} size={20} />
+            <Text style={styles.resetButtonText}>Tilbakestill App</Text>
+          </Pressable>
+        </ScrollView>
+
+        {/* Category Edit Modal */}
+        <Modal
+          visible={editingCategory !== null}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setEditingCategory(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>
+                {editingCategory?.id ? 'Rediger Kategori' : 'Ny Kategori'}
+              </Text>
+              <TextInput
+                style={styles.modalInput}
+                value={categoryName}
+                onChangeText={setCategoryName}
+                placeholder="Kategorinavn"
+                placeholderTextColor={colors.textSecondary}
+              />
+              <View style={styles.modalButtons}>
+                <Pressable
+                  style={[styles.modalButton, styles.modalButtonCancel]}
+                  onPress={() => setEditingCategory(null)}
+                >
+                  <Text style={styles.modalButtonText}>Avbryt</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.modalButton, styles.modalButtonSave]}
+                  onPress={handleSaveCategory}
+                >
+                  <Text style={styles.modalButtonTextSave}>Lagre</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Item Edit Modal */}
+        <Modal
+          visible={editingItem !== null}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setEditingItem(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>
+                {editingItem?.id ? 'Rediger Element' : 'Nytt Element'}
+              </Text>
+              <TextInput
+                style={[styles.modalInput, styles.modalInputMultiline]}
+                value={itemName}
+                onChangeText={setItemName}
+                placeholder="Elementnavn"
+                placeholderTextColor={colors.textSecondary}
+                multiline
+                numberOfLines={3}
+              />
+              <View style={styles.modalButtons}>
+                <Pressable
+                  style={[styles.modalButton, styles.modalButtonCancel]}
+                  onPress={() => setEditingItem(null)}
+                >
+                  <Text style={styles.modalButtonText}>Avbryt</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.modalButton, styles.modalButtonSave]}
+                  onPress={handleSaveItem}
+                >
+                  <Text style={styles.modalButtonTextSave}>Lagre</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  text: {
+    fontSize: 18,
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_400Regular',
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  addButton: {
+    padding: 4,
+  },
+  categoryCard: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    elevation: 3,
+  },
+  categoryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: colors.primary,
+  },
+  categoryName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    flex: 1,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  categoryActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  itemsContainer: {
+    gap: 8,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: colors.background,
+    borderRadius: 8,
+  },
+  itemName: {
+    fontSize: 16,
+    color: colors.text,
+    flex: 1,
+    fontFamily: 'BigShouldersStencil_400Regular',
+  },
+  itemActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginLeft: 8,
+  },
+  addItemButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    borderStyle: 'dashed',
+    marginTop: 8,
+    gap: 8,
+  },
+  addItemText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.primary,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  resetButton: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 2,
+    borderColor: colors.secondary,
+  },
+  resetButtonText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.secondary,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 16,
+    textAlign: 'center',
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  modalInput: {
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_400Regular',
+  },
+  modalInputMultiline: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+  },
+  modalButton: {
+    flex: 1,
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: colors.background,
+  },
+  modalButtonSave: {
+    backgroundColor: colors.primary,
+  },
+  modalButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  modalButtonTextSave: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+});

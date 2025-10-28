@@ -1,0 +1,412 @@
+
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  TextInput,
+  Modal,
+  Alert,
+} from 'react-native';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { colors } from '@/styles/commonStyles';
+import { storage } from '@/utils/storage';
+import { ChecklistSession, ChecklistCategory } from '@/types/checklist';
+import { IconSymbol } from '@/components/IconSymbol';
+
+export default function LogDetailScreen() {
+  const { sessionId } = useLocalSearchParams();
+  const [session, setSession] = useState<ChecklistSession | null>(null);
+  const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingItem, setEditingItem] = useState<{
+    soldierId: string;
+    categoryId: string;
+    itemId: string;
+    description: string;
+  } | null>(null);
+  const [descriptionText, setDescriptionText] = useState('');
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const [sessions, checklistData] = await Promise.all([
+        storage.getSessions(),
+        storage.getChecklist(),
+      ]);
+
+      const foundSession = sessions.find(s => s.id === sessionId);
+      if (foundSession) {
+        setSession(foundSession);
+      }
+      setChecklist(checklistData);
+    } catch (error) {
+      console.error('Error loading session:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditDescription = (
+    soldierId: string,
+    categoryId: string,
+    itemId: string,
+    currentDescription?: string
+  ) => {
+    setEditingItem({ soldierId, categoryId, itemId, description: currentDescription || '' });
+    setDescriptionText(currentDescription || '');
+  };
+
+  const handleSaveDescription = async () => {
+    if (!editingItem || !session) return;
+
+    try {
+      const sessions = await storage.getSessions();
+      const sessionIndex = sessions.findIndex(s => s.id === session.id);
+
+      if (sessionIndex !== -1) {
+        const updatedSession = { ...sessions[sessionIndex] };
+        const dataIndex = updatedSession.data.findIndex(
+          d => d.categoryId === editingItem.categoryId && d.itemId === editingItem.itemId
+        );
+
+        if (dataIndex !== -1) {
+          const statusIndex = updatedSession.data[dataIndex].statuses.findIndex(
+            s => s.soldierId === editingItem.soldierId
+          );
+
+          if (statusIndex !== -1) {
+            updatedSession.data[dataIndex].statuses[statusIndex] = {
+              ...updatedSession.data[dataIndex].statuses[statusIndex],
+              description: descriptionText.trim(),
+            };
+          }
+        }
+
+        sessions[sessionIndex] = updatedSession;
+        await storage.saveSessions(sessions);
+        setSession(updatedSession);
+        setEditingItem(null);
+        setDescriptionText('');
+        Alert.alert('Suksess', 'Beskrivelse oppdatert');
+      }
+    } catch (error) {
+      console.error('Error saving description:', error);
+      Alert.alert('Feil', 'Kunne ikke lagre beskrivelsen');
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.text}>Laster...</Text>
+      </View>
+    );
+  }
+
+  if (!session) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.text}>Økt ikke funnet</Text>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backButtonText}>Tilbake</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  return (
+    <>
+      <Stack.Screen
+        options={{
+          title: 'Øktdetaljer',
+          headerBackTitle: 'Tilbake',
+        }}
+      />
+      <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.header}>
+            <Text style={styles.title}>KTS {session.date} {session.time}</Text>
+            <Text style={styles.subtitle}>{session.squadName}</Text>
+          </View>
+
+          {session.soldiers.map(soldier => {
+            const soldierMissing = session.data.filter(item =>
+              item.statuses.some(s => s.soldierId === soldier.id && s.status === 'missing')
+            );
+
+            if (soldierMissing.length === 0) return null;
+
+            return (
+              <View key={soldier.id} style={styles.soldierCard}>
+                <Text style={styles.soldierName}>
+                  {soldier.name}
+                  {soldier.role && ` (${soldier.role})`}
+                </Text>
+                {soldierMissing.map(item => {
+                  const category = checklist.find(c => c.id === item.categoryId);
+                  const checklistItem = category?.items.find(i => i.id === item.itemId);
+                  const status = item.statuses.find(s => s.soldierId === soldier.id);
+
+                  if (!category || !checklistItem) return null;
+
+                  return (
+                    <View key={item.itemId} style={styles.missingItem}>
+                      <View style={styles.missingItemHeader}>
+                        <IconSymbol name="xmark.circle.fill" color={colors.secondary} size={20} />
+                        <View style={styles.missingItemText}>
+                          <Text style={styles.missingItemName}>{checklistItem.name}</Text>
+                          {status?.description && (
+                            <Text style={styles.missingItemDesc}>{status.description}</Text>
+                          )}
+                        </View>
+                      </View>
+                      <Pressable
+                        style={styles.editDescButton}
+                        onPress={() =>
+                          handleEditDescription(
+                            soldier.id,
+                            item.categoryId,
+                            item.itemId,
+                            status?.description
+                          )
+                        }
+                      >
+                        <IconSymbol name="pencil" color={colors.accent} size={18} />
+                      </Pressable>
+                    </View>
+                  );
+                })}
+              </View>
+            );
+          })}
+
+          {session.soldiers.every(soldier =>
+            session.data.every(item =>
+              !item.statuses.some(s => s.soldierId === soldier.id && s.status === 'missing')
+            )
+          ) && (
+            <View style={styles.noIssuesCard}>
+              <IconSymbol name="checkmark.circle.fill" color={colors.primary} size={48} />
+              <Text style={styles.noIssuesText}>Ingen mangler registrert!</Text>
+            </View>
+          )}
+        </ScrollView>
+
+        <Modal
+          visible={editingItem !== null}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setEditingItem(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Rediger beskrivelse</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={descriptionText}
+                onChangeText={setDescriptionText}
+                placeholder="Beskriv problemet..."
+                placeholderTextColor={colors.textSecondary}
+                multiline
+                numberOfLines={4}
+              />
+              <View style={styles.modalButtons}>
+                <Pressable
+                  style={[styles.modalButton, styles.modalButtonCancel]}
+                  onPress={() => setEditingItem(null)}
+                >
+                  <Text style={styles.modalButtonText}>Avbryt</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.modalButton, styles.modalButtonSave]}
+                  onPress={handleSaveDescription}
+                >
+                  <Text style={styles.modalButtonTextSave}>Lagre</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  text: {
+    fontSize: 18,
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_400Regular',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_700Bold',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 20,
+    color: colors.textSecondary,
+    marginTop: 4,
+    fontFamily: 'BigShouldersStencil_400Regular',
+  },
+  soldierCard: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    elevation: 3,
+  },
+  soldierName: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 12,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  missingItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.textSecondary + '20',
+  },
+  missingItemHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    flex: 1,
+  },
+  missingItemText: {
+    flex: 1,
+  },
+  missingItemName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  missingItemDesc: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    marginTop: 4,
+    fontFamily: 'BigShouldersStencil_400Regular',
+  },
+  editDescButton: {
+    padding: 4,
+  },
+  noIssuesCard: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 32,
+    alignItems: 'center',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    elevation: 3,
+  },
+  noIssuesText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.primary,
+    marginTop: 16,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  backButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 20,
+  },
+  backButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 16,
+    textAlign: 'center',
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  modalInput: {
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: colors.text,
+    minHeight: 100,
+    textAlignVertical: 'top',
+    fontFamily: 'BigShouldersStencil_400Regular',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+  },
+  modalButton: {
+    flex: 1,
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: colors.background,
+  },
+  modalButtonSave: {
+    backgroundColor: colors.primary,
+  },
+  modalButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  modalButtonTextSave: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+});

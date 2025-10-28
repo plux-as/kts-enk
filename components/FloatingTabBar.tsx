@@ -44,18 +44,27 @@ export default function FloatingTabBar({
   const router = useRouter();
   const pathname = usePathname();
 
-  const activeIndex = tabs.findIndex((tab) => pathname.includes(tab.route));
-  const translateX = useSharedValue(activeIndex >= 0 ? activeIndex : 0);
+  // Find the active tab index based on the current pathname
+  const getActiveIndex = () => {
+    const index = tabs.findIndex((tab) => {
+      if (tab.route === '/(tabs)/(home)') {
+        return pathname === '/(tabs)/(home)' || pathname === '/';
+      }
+      return pathname.includes(tab.route);
+    });
+    return index >= 0 ? index : 0;
+  };
+
+  const activeIndex = getActiveIndex();
+  const translateX = useSharedValue(activeIndex);
 
   React.useEffect(() => {
-    const newIndex = tabs.findIndex((tab) => pathname.includes(tab.route));
-    if (newIndex >= 0) {
-      translateX.value = withSpring(newIndex, {
-        damping: 20,
-        stiffness: 90,
-      });
-    }
-  }, [pathname, tabs]);
+    const newIndex = getActiveIndex();
+    translateX.value = withSpring(newIndex, {
+      damping: 20,
+      stiffness: 90,
+    });
+  }, [pathname]);
 
   const animatedStyle = useAnimatedStyle(() => {
     const itemWidth = containerWidth / tabs.length;
@@ -110,7 +119,7 @@ export default function FloatingTabBar({
         />
 
         {tabs.map((tab, index) => {
-          const isActive = pathname.includes(tab.route);
+          const isActive = index === activeIndex;
           return (
             <TouchableOpacity
               key={tab.route}
