@@ -23,7 +23,7 @@ export default function SetupScreen() {
 
   const handleSquadSubmit = () => {
     if (!squadName.trim()) {
-      Alert.alert('Feil', 'Vennligst skriv inn troppsnavnet');
+      Alert.alert('Feil', 'Vennligst skriv inn lagets navn');
       return;
     }
 
@@ -73,16 +73,16 @@ export default function SetupScreen() {
     return (
       <View style={commonStyles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.title}>Oppsett av Tropp</Text>
-          <Text style={styles.subtitle}>Definer troppsdetaljer</Text>
+          <Text style={styles.title}>Oppsett av Lag</Text>
+          <Text style={styles.subtitle}>Definer lagets detaljer</Text>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Troppsnavn</Text>
+            <Text style={styles.label}>Lagsnavn</Text>
             <TextInput
               style={styles.input}
               value={squadName}
               onChangeText={setSquadName}
-              placeholder="F.eks. Alfa Tropp"
+              placeholder="F.eks. Alfa Lag"
               placeholderTextColor={colors.textSecondary}
             />
           </View>

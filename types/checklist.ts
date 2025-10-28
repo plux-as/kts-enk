@@ -37,6 +37,7 @@ export interface SessionItemData {
 export interface ChecklistSession {
   id: string;
   date: string;
+  time: string;
   timestamp: number;
   squadName: string;
   soldiers: Soldier[];
@@ -46,6 +47,7 @@ export interface ChecklistSession {
 export interface SessionSummary {
   id: string;
   date: string;
+  time: string;
   timestamp: number;
   squadName: string;
   soldierSummaries: SoldierSummary[];

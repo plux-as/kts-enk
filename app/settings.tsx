@@ -80,7 +80,7 @@ export default function SettingsScreen() {
 
   const handleSave = async () => {
     if (!squadName.trim()) {
-      Alert.alert('Feil', 'Vennligst skriv inn troppsnavnet');
+      Alert.alert('Feil', 'Vennligst skriv inn lagets navn');
       return;
     }
 
@@ -140,14 +140,14 @@ export default function SettingsScreen() {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Troppsinnstillinger</Text>
+          <Text style={styles.sectionTitle}>Lagsinnstillinger</Text>
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Troppsnavn</Text>
+            <Text style={styles.label}>Lagsnavn</Text>
             <TextInput
               style={styles.input}
               value={squadName}
               onChangeText={setSquadName}
-              placeholder="F.eks. Alfa Tropp"
+              placeholder="F.eks. Alfa Lag"
               placeholderTextColor={colors.textSecondary}
             />
           </View>

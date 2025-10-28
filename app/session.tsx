@@ -39,6 +39,7 @@ export default function SessionScreen() {
   const [editingSoldierId, setEditingSoldierId] = useState<string | null>(null);
   const [descriptionText, setDescriptionText] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -52,7 +53,7 @@ export default function SessionScreen() {
       ]);
 
       if (!settings) {
-        Alert.alert('Feil', 'Ingen troppsinnstillinger funnet');
+        Alert.alert('Feil', 'Ingen lagsinnstillinger funnet');
         router.back();
         return;
       }
@@ -81,6 +82,28 @@ export default function SessionScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getTotalItems = () => {
+    return checklist.reduce((total, cat) => total + cat.items.length, 0);
+  };
+
+  const getCurrentItemNumber = () => {
+    let count = 0;
+    for (let i = 0; i < currentCategoryIndex; i++) {
+      count += checklist[i].items.length;
+    }
+    if (currentItemIndex >= 0) {
+      count += currentItemIndex + 1;
+    }
+    return count;
+  };
+
+  const getProgressPercentage = () => {
+    if (screenType === 'summary') return 100;
+    const total = getTotalItems();
+    const current = getCurrentItemNumber();
+    return (current / total) * 100;
   };
 
   const handleNext = () => {
@@ -206,6 +229,7 @@ export default function SessionScreen() {
       return {
         id: '',
         date: '',
+        time: '',
         timestamp: 0,
         squadName: '',
         soldierSummaries: [],
@@ -241,6 +265,7 @@ export default function SessionScreen() {
     return {
       id: `session-${Date.now()}`,
       date: now.toLocaleDateString('nb-NO'),
+      time: now.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' }),
       timestamp: now.getTime(),
       squadName: squadSettings.squadName,
       soldierSummaries,
@@ -250,8 +275,8 @@ export default function SessionScreen() {
   const handleExportSummary = () => {
     const summary = generateSummary();
     let text = `KTS Oppsummering\n`;
-    text += `Tropp: ${summary.squadName}\n`;
-    text += `Dato: ${summary.date}\n\n`;
+    text += `Lag: ${summary.squadName}\n`;
+    text += `Dato: ${summary.date} ${summary.time}\n\n`;
 
     summary.soldierSummaries.forEach(ss => {
       if (ss.missingItems.length > 0) {
@@ -276,6 +301,7 @@ export default function SessionScreen() {
       const session: ChecklistSession = {
         id: summary.id,
         date: summary.date,
+        time: summary.time,
         timestamp: summary.timestamp,
         squadName: summary.squadName,
         soldiers: squadSettings?.soldiers || [],
@@ -291,14 +317,16 @@ export default function SessionScreen() {
   };
 
   const handleExit = () => {
-    Alert.alert(
-      'Avslutt økt',
-      'Er du sikker på at du vil avslutte? Data vil gå tapt.',
-      [
-        { text: 'Avbryt', style: 'cancel' },
-        { text: 'Avslutt', style: 'destructive', onPress: () => router.back() },
-      ]
-    );
+    setShowExitDialog(true);
+  };
+
+  const confirmExit = () => {
+    setShowExitDialog(false);
+    router.back();
+  };
+
+  const cancelExit = () => {
+    setShowExitDialog(false);
   };
 
   if (loading) {
@@ -313,9 +341,13 @@ export default function SessionScreen() {
     const currentCategory = checklist[currentCategoryIndex];
     return (
       <View style={styles.container}>
+        <View style={styles.progressBarContainer}>
+          <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
+        </View>
+
         <View style={styles.header}>
           <Pressable onPress={handleExit} style={styles.exitButton}>
-            <IconSymbol name="xmark" color={colors.secondary} size={24} />
+            <IconSymbol name="xmark" color={colors.text} size={24} />
           </Pressable>
         </View>
 
@@ -339,6 +371,33 @@ export default function SessionScreen() {
             <Text style={styles.navButtonTextPrimary}>Neste</Text>
           </Pressable>
         </View>
+
+        <Modal
+          visible={showExitDialog}
+          transparent
+          animationType="fade"
+          onRequestClose={cancelExit}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.exitDialogContent}>
+              <Text style={styles.exitDialogTitle}>Er du sikker på at du vil avslutte?</Text>
+              <View style={styles.exitDialogButtons}>
+                <Pressable
+                  style={[styles.exitDialogButton, styles.exitDialogButtonCancel]}
+                  onPress={cancelExit}
+                >
+                  <Text style={styles.exitDialogButtonText}>Nei, fortsett</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.exitDialogButton, styles.exitDialogButtonConfirm]}
+                  onPress={confirmExit}
+                >
+                  <Text style={styles.exitDialogButtonTextConfirm}>Ja, avslutt</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -352,9 +411,13 @@ export default function SessionScreen() {
 
     return (
       <View style={styles.container}>
+        <View style={styles.progressBarContainer}>
+          <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
+        </View>
+
         <View style={styles.header}>
           <Pressable onPress={handleExit} style={styles.exitButton}>
-            <IconSymbol name="xmark" color={colors.secondary} size={24} />
+            <IconSymbol name="xmark" color={colors.text} size={24} />
           </Pressable>
         </View>
 
@@ -472,6 +535,33 @@ export default function SessionScreen() {
             </View>
           </View>
         </Modal>
+
+        <Modal
+          visible={showExitDialog}
+          transparent
+          animationType="fade"
+          onRequestClose={cancelExit}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.exitDialogContent}>
+              <Text style={styles.exitDialogTitle}>Er du sikker på at du vil avslutte?</Text>
+              <View style={styles.exitDialogButtons}>
+                <Pressable
+                  style={[styles.exitDialogButton, styles.exitDialogButtonCancel]}
+                  onPress={cancelExit}
+                >
+                  <Text style={styles.exitDialogButtonText}>Nei, fortsett</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.exitDialogButton, styles.exitDialogButtonConfirm]}
+                  onPress={confirmExit}
+                >
+                  <Text style={styles.exitDialogButtonTextConfirm}>Ja, avslutt</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -479,6 +569,10 @@ export default function SessionScreen() {
   const summary = generateSummary();
   return (
     <View style={styles.container}>
+      <View style={styles.progressBarContainer}>
+        <View style={[styles.progressBar, { width: '100%' }]} />
+      </View>
+
       <View style={styles.header}>
         <Text style={styles.summaryHeaderTitle}>Oppsummering</Text>
       </View>
@@ -486,7 +580,7 @@ export default function SessionScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.summaryHeader}>
           <Text style={styles.summarySquad}>{summary.squadName}</Text>
-          <Text style={styles.summaryDate}>{summary.date}</Text>
+          <Text style={styles.summaryDate}>{summary.date} {summary.time}</Text>
         </View>
 
         {summary.soldierSummaries.map(ss => {
@@ -546,6 +640,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  progressBarContainer: {
+    height: 4,
+    backgroundColor: colors.textSecondary + '40',
+    width: '100%',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: colors.primary,
+  },
   header: {
     padding: 16,
     flexDirection: 'row',
@@ -587,7 +690,7 @@ const styles = StyleSheet.create({
     fontFamily: 'BigShouldersStencil_400Regular',
   },
   itemName: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
     color: colors.text,
     textAlign: 'center',
@@ -862,6 +965,49 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: colors.accent,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  exitDialogContent: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 24,
+    width: '90%',
+    maxWidth: 400,
+  },
+  exitDialogTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 24,
+    textAlign: 'center',
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  exitDialogButtons: {
+    gap: 12,
+  },
+  exitDialogButton: {
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  exitDialogButtonCancel: {
+    backgroundColor: colors.primary,
+  },
+  exitDialogButtonConfirm: {
+    backgroundColor: colors.card,
+    borderWidth: 2,
+    borderColor: colors.secondary,
+  },
+  exitDialogButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  exitDialogButtonTextConfirm: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.secondary,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
 });

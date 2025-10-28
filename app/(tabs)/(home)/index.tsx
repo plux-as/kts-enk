@@ -46,10 +46,6 @@ export default function HomeScreen() {
     router.push('/session');
   };
 
-  const handleViewLog = () => {
-    router.push('/(tabs)/log');
-  };
-
   const handleSettings = () => {
     router.push('/settings');
   };
@@ -66,7 +62,7 @@ export default function HomeScreen() {
     <>
       <Stack.Screen
         options={{
-          title: "KTS",
+          title: "KTS Enkeltsoldat",
           headerRight: () => (
             <Pressable onPress={handleSettings} style={styles.headerButton}>
               <IconSymbol name="gear" color={colors.text} size={24} />
@@ -80,7 +76,7 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
-            <Text style={styles.appTitle}>Kontroll av Tropps Soldater</Text>
+            <Text style={styles.appTitle}>KTS Enkeltsoldat</Text>
             {squadSettings && (
               <View style={styles.squadInfo}>
                 <Text style={styles.squadName}>{squadSettings.squadName}</Text>
@@ -98,13 +94,6 @@ export default function HomeScreen() {
             >
               <IconSymbol name="checkmark.circle.fill" color="#FFFFFF" size={48} />
               <Text style={styles.startButtonText}>Start KTS</Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.secondaryActions}>
-            <Pressable style={styles.secondaryButton} onPress={handleViewLog}>
-              <IconSymbol name="list.bullet" color={colors.accent} size={28} />
-              <Text style={styles.secondaryButtonText}>Logg</Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -174,27 +163,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#FFFFFF',
     marginTop: 12,
-    fontFamily: 'BigShouldersStencil_700Bold',
-  },
-  secondaryActions: {
-    marginTop: 20,
-  },
-  secondaryButton: {
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
-    elevation: 3,
-  },
-  secondaryButtonText: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.text,
-    marginLeft: 12,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   headerButton: {
