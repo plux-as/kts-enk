@@ -1,3 +1,4 @@
+
 import "react-native-reanimated";
 import React, { useEffect } from "react";
 import { useFonts } from "expo-font";
@@ -5,8 +6,7 @@ import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { SystemBars } from "react-native-edge-to-edge";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useColorScheme, Alert } from "react-native";
-import { useNetworkState } from "expo-network";
+import { useColorScheme } from "react-native";
 import {
   DarkTheme,
   DefaultTheme,
@@ -14,10 +14,12 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
-import { Button } from "@/components/button";
 import { WidgetProvider } from "@/contexts/WidgetContext";
+import {
+  BigShouldersStencil_400Regular,
+  BigShouldersStencil_700Bold,
+} from '@expo-google-fonts/big-shoulders-stencil';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
@@ -26,9 +28,10 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const networkState = useNetworkState();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    BigShouldersStencil_400Regular,
+    BigShouldersStencil_700Bold,
   });
 
   useEffect(() => {
@@ -36,18 +39,6 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
-
-  React.useEffect(() => {
-    if (
-      !networkState.isConnected &&
-      networkState.isInternetReachable === false
-    ) {
-      Alert.alert(
-        "🔌 You are offline",
-        "You can keep using the app! Your changes will be saved locally and synced when you are back online."
-      );
-    }
-  }, [networkState.isConnected, networkState.isInternetReachable]);
 
   if (!loaded) {
     return null;
@@ -57,68 +48,63 @@ export default function RootLayout() {
     ...DefaultTheme,
     dark: false,
     colors: {
-      primary: "rgb(0, 122, 255)", // System Blue
-      background: "rgb(242, 242, 247)", // Light mode background
-      card: "rgb(255, 255, 255)", // White cards/surfaces
-      text: "rgb(0, 0, 0)", // Black text for light mode
-      border: "rgb(216, 216, 220)", // Light gray for separators/borders
-      notification: "rgb(255, 59, 48)", // System Red
+      primary: "#4CAF50",
+      background: "#f0f0f0",
+      card: "#FFFFFF",
+      text: "#1e1e1e",
+      border: "#e0e0e0",
+      notification: "#F44336",
     },
   };
 
   const CustomDarkTheme: Theme = {
     ...DarkTheme,
     colors: {
-      primary: "rgb(10, 132, 255)", // System Blue (Dark Mode)
-      background: "rgb(1, 1, 1)", // True black background for OLED displays
-      card: "rgb(28, 28, 30)", // Dark card/surface color
-      text: "rgb(255, 255, 255)", // White text for dark mode
-      border: "rgb(44, 44, 46)", // Dark gray for separators/borders
-      notification: "rgb(255, 69, 58)", // System Red (Dark Mode)
+      primary: "#4CAF50",
+      background: "#1e1e1e",
+      card: "#2e2e2e",
+      text: "#f0f0f0",
+      border: "#3e3e3e",
+      notification: "#F44336",
     },
   };
+
   return (
     <>
       <StatusBar style="auto" animated />
-        <ThemeProvider
-          value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
-        >
-          <WidgetProvider>
-            <GestureHandlerRootView>
+      <ThemeProvider
+        value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
+      >
+        <WidgetProvider>
+          <GestureHandlerRootView>
             <Stack>
-              {/* Main app with tabs */}
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-
-              {/* Modal Demo Screens */}
               <Stack.Screen
-                name="modal"
+                name="setup"
+                options={{
+                  headerShown: false,
+                  presentation: "card",
+                }}
+              />
+              <Stack.Screen
+                name="session"
+                options={{
+                  presentation: "fullScreenModal",
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="settings"
                 options={{
                   presentation: "modal",
-                  title: "Standard Modal",
-                }}
-              />
-              <Stack.Screen
-                name="formsheet"
-                options={{
-                  presentation: "formSheet",
-                  title: "Form Sheet Modal",
-                  sheetGrabberVisible: true,
-                  sheetAllowedDetents: [0.5, 0.8, 1.0],
-                  sheetCornerRadius: 20,
-                }}
-              />
-              <Stack.Screen
-                name="transparent-modal"
-                options={{
-                  presentation: "transparentModal",
-                  headerShown: false,
+                  title: "Innstillinger",
                 }}
               />
             </Stack>
             <SystemBars style={"auto"} />
-            </GestureHandlerRootView>
-          </WidgetProvider>
-        </ThemeProvider>
+          </GestureHandlerRootView>
+        </WidgetProvider>
+      </ThemeProvider>
     </>
   );
 }

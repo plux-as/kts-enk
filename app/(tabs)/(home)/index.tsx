@@ -1,161 +1,203 @@
-import React from "react";
-import { Stack, Link } from "expo-router";
-import { FlatList, Pressable, StyleSheet, View, Text, Alert, Platform } from "react-native";
-import { IconSymbol } from "@/components/IconSymbol";
-import { GlassView } from "expo-glass-effect";
-import { useTheme } from "@react-navigation/native";
 
-const ICON_COLOR = "#007AFF";
+import React, { useEffect, useState } from "react";
+import { Stack, router } from "expo-router";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  Alert,
+} from "react-native";
+import { IconSymbol } from "@/components/IconSymbol";
+import { colors, commonStyles } from "@/styles/commonStyles";
+import { storage } from "@/utils/storage";
+import { SquadSettings } from "@/types/checklist";
 
 export default function HomeScreen() {
-  const theme = useTheme();
-  const modalDemos = [
-    {
-      title: "Standard Modal",
-      description: "Full screen modal presentation",
-      route: "/modal",
-      color: "#007AFF",
-    },
-    {
-      title: "Form Sheet",
-      description: "Bottom sheet with detents and grabber",
-      route: "/formsheet",
-      color: "#34C759",
-    },
-    {
-      title: "Transparent Modal",
-      description: "Overlay without obscuring background",
-      route: "/transparent-modal",
-      color: "#FF9500",
+  const [squadSettings, setSquadSettings] = useState<SquadSettings | null>(null);
+  const [isSetupComplete, setIsSetupComplete] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const setupComplete = await storage.isSetupComplete();
+      setIsSetupComplete(setupComplete);
+
+      if (!setupComplete) {
+        router.replace('/setup');
+        return;
+      }
+
+      const settings = await storage.getSquadSettings();
+      setSquadSettings(settings);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const renderModalDemo = ({ item }: { item: (typeof modalDemos)[0] }) => (
-    <GlassView style={[
-      styles.demoCard,
-      Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }
-    ]} glassEffectStyle="regular">
-      <View style={[styles.demoIcon, { backgroundColor: item.color }]}>
-        <IconSymbol name="square.grid.3x3" color="white" size={24} />
+  const handleStartSession = () => {
+    router.push('/session');
+  };
+
+  const handleViewLog = () => {
+    router.push('/(tabs)/log');
+  };
+
+  const handleSettings = () => {
+    router.push('/settings');
+  };
+
+  if (loading) {
+    return (
+      <View style={[commonStyles.container, styles.centerContent]}>
+        <Text style={commonStyles.text}>Laster...</Text>
       </View>
-      <View style={styles.demoContent}>
-        <Text style={[styles.demoTitle, { color: theme.colors.text }]}>{item.title}</Text>
-        <Text style={[styles.demoDescription, { color: theme.dark ? '#98989D' : '#666' }]}>{item.description}</Text>
-      </View>
-      <Link href={item.route as any} asChild>
-        <Pressable>
-          <GlassView style={[
-            styles.tryButton,
-            Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)' }
-          ]} glassEffectStyle="clear">
-            <Text style={[styles.tryButtonText, { color: theme.colors.primary }]}>Try It</Text>
-          </GlassView>
-        </Pressable>
-      </Link>
-    </GlassView>
-  );
-
-  const renderHeaderRight = () => (
-    <Pressable
-      onPress={() => Alert.alert("Not Implemented", "This feature is not implemented yet")}
-      style={styles.headerButtonContainer}
-    >
-      <IconSymbol name="plus" color={theme.colors.primary} />
-    </Pressable>
-  );
-
-  const renderHeaderLeft = () => (
-    <Pressable
-      onPress={() => Alert.alert("Not Implemented", "This feature is not implemented yet")}
-      style={styles.headerButtonContainer}
-    >
-      <IconSymbol
-        name="gear"
-        color={theme.colors.primary}
-      />
-    </Pressable>
-  );
+    );
+  }
 
   return (
     <>
-      {Platform.OS === 'ios' && (
-        <Stack.Screen
-          options={{
-            title: "Building the app...",
-            headerRight: renderHeaderRight,
-            headerLeft: renderHeaderLeft,
-          }}
-        />
-      )}
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <FlatList
-          data={modalDemos}
-          renderItem={renderModalDemo}
-          keyExtractor={(item) => item.route}
-          contentContainerStyle={[
-            styles.listContainer,
-            Platform.OS !== 'ios' && styles.listContainerWithTabBar
-          ]}
-          contentInsetAdjustmentBehavior="automatic"
+      <Stack.Screen
+        options={{
+          title: "KTS",
+          headerRight: () => (
+            <Pressable onPress={handleSettings} style={styles.headerButton}>
+              <IconSymbol name="gear" color={colors.text} size={24} />
+            </Pressable>
+          ),
+        }}
+      />
+      <View style={commonStyles.container}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
-        />
+        >
+          <View style={styles.header}>
+            <Text style={styles.appTitle}>Kontroll av Tropps Soldater</Text>
+            {squadSettings && (
+              <View style={styles.squadInfo}>
+                <Text style={styles.squadName}>{squadSettings.squadName}</Text>
+                <Text style={styles.squadDetail}>
+                  {squadSettings.soldiers.length} soldater
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.mainButtonContainer}>
+            <Pressable
+              style={styles.startButton}
+              onPress={handleStartSession}
+            >
+              <IconSymbol name="checkmark.circle.fill" color="#FFFFFF" size={48} />
+              <Text style={styles.startButtonText}>Start KTS</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.secondaryActions}>
+            <Pressable style={styles.secondaryButton} onPress={handleViewLog}>
+              <IconSymbol name="list.bullet" color={colors.accent} size={28} />
+              <Text style={styles.secondaryButtonText}>Logg</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
       </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    // backgroundColor handled dynamically
+  scrollContent: {
+    flexGrow: 1,
+    padding: 20,
+    paddingBottom: 100,
   },
-  listContainer: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-  },
-  listContainerWithTabBar: {
-    paddingBottom: 100, // Extra padding for floating tab bar
-  },
-  demoCard: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  demoIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
   },
-  demoContent: {
-    flex: 1,
+  header: {
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 40,
   },
-  demoTitle: {
+  appTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 20,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  squadInfo: {
+    backgroundColor: colors.card,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    width: '100%',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    elevation: 3,
+  },
+  squadName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 8,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  squadDetail: {
     fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-    // color handled dynamically
+    color: colors.textSecondary,
+    fontFamily: 'BigShouldersStencil_400Regular',
   },
-  demoDescription: {
-    fontSize: 14,
-    lineHeight: 18,
-    // color handled dynamically
+  mainButtonContainer: {
+    marginVertical: 30,
   },
-  headerButtonContainer: {
-    padding: 6,
+  startButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0px 4px 12px rgba(76, 175, 80, 0.3)',
+    elevation: 5,
   },
-  tryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
+  startButtonText: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginTop: 12,
+    fontFamily: 'BigShouldersStencil_700Bold',
   },
-  tryButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    // color handled dynamically
+  secondaryActions: {
+    marginTop: 20,
+  },
+  secondaryButton: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    elevation: 3,
+  },
+  secondaryButtonText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+    marginLeft: 12,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  headerButton: {
+    padding: 8,
   },
 });
