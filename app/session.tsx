@@ -124,6 +124,31 @@ export default function SessionScreen() {
     }
   };
 
+  const handleAllOk = () => {
+    if (screenType !== 'item' || !squadSettings) return;
+
+    const currentCategory = checklist[currentCategoryIndex];
+    const currentItem = currentCategory.items[currentItemIndex];
+
+    setSessionData(prev => {
+      const updated = [...prev];
+      const dataIndex = updated.findIndex(
+        d => d.categoryId === currentCategory.id && d.itemId === currentItem.id
+      );
+
+      if (dataIndex !== -1) {
+        updated[dataIndex].statuses = squadSettings.soldiers.map(soldier => ({
+          soldierId: soldier.id,
+          status: 'fulfilled',
+        }));
+      }
+
+      return updated;
+    });
+
+    handleNext();
+  };
+
   const handlePrevious = () => {
     if (screenType === 'item') {
       if (currentItemIndex > 0) {
@@ -479,21 +504,28 @@ export default function SessionScreen() {
           </View>
         </ScrollView>
 
-        <View style={styles.bottomButtons}>
-          <Pressable style={styles.navButton} onPress={handlePrevious}>
-            <Text style={styles.navButtonText}>Forrige</Text>
+        <View style={styles.bottomContainer}>
+          <Pressable style={styles.allOkButton} onPress={handleAllOk}>
+            <IconSymbol name="checkmark.circle.fill" color="#FFFFFF" size={24} />
+            <Text style={styles.allOkButtonText}>Alle ok</Text>
           </Pressable>
-          <Pressable
-            style={[styles.navButton, styles.navButtonPrimary]}
-            onPress={handleNext}
-          >
-            <Text style={styles.navButtonTextPrimary}>
-              {currentItemIndex === currentCategory.items.length - 1 &&
-              currentCategoryIndex === checklist.length - 1
-                ? 'Oppsummering'
-                : 'Neste'}
-            </Text>
-          </Pressable>
+
+          <View style={styles.bottomButtons}>
+            <Pressable style={styles.navButton} onPress={handlePrevious}>
+              <Text style={styles.navButtonText}>Forrige</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.navButton, styles.navButtonPrimary]}
+              onPress={handleNext}
+            >
+              <Text style={styles.navButtonTextPrimary}>
+                {currentItemIndex === currentCategory.items.length - 1 &&
+                currentCategoryIndex === checklist.length - 1
+                  ? 'Oppsummering'
+                  : 'Neste'}
+              </Text>
+            </Pressable>
+          </View>
         </View>
 
         <Modal
@@ -514,10 +546,6 @@ export default function SessionScreen() {
                 multiline
                 numberOfLines={4}
               />
-              <Pressable style={styles.voiceButton} onPress={handleVoiceInput}>
-                <IconSymbol name="mic.fill" color={colors.accent} size={24} />
-                <Text style={styles.voiceButtonText}>Talegjenkjenning</Text>
-              </Pressable>
               <View style={styles.modalButtons}>
                 <Pressable
                   style={[styles.modalButton, styles.modalButtonCancel]}
@@ -758,17 +786,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  bottomButtons: {
+  bottomContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    padding: 20,
-    gap: 12,
     backgroundColor: colors.background,
     borderTopWidth: 1,
     borderTopColor: colors.textSecondary + '40',
+    padding: 20,
+    paddingBottom: 20,
+  },
+  allOkButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 12,
+    boxShadow: '0px 4px 12px rgba(76, 175, 80, 0.3)',
+    elevation: 5,
+  },
+  allOkButtonText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  bottomButtons: {
+    flexDirection: 'row',
+    gap: 12,
   },
   navButton: {
     flex: 1,
@@ -831,21 +880,6 @@ const styles = StyleSheet.create({
     minHeight: 100,
     textAlignVertical: 'top',
     fontFamily: 'BigShouldersStencil_400Regular',
-  },
-  voiceButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 12,
-    gap: 8,
-  },
-  voiceButtonText: {
-    fontSize: 16,
-    color: colors.accent,
-    fontFamily: 'BigShouldersStencil_700Bold',
   },
   modalButtons: {
     flexDirection: 'row',

@@ -50,10 +50,6 @@ export default function HomeScreen() {
     router.push('/settings');
   };
 
-  const handleEditChecklist = () => {
-    router.push('/edit-checklist');
-  };
-
   if (loading) {
     return (
       <View style={[commonStyles.container, styles.centerContent]}>
@@ -67,11 +63,6 @@ export default function HomeScreen() {
       <Stack.Screen
         options={{
           title: "KTS Enkeltsoldat",
-          headerRight: () => (
-            <Pressable onPress={handleEditChecklist} style={styles.headerButton}>
-              <IconSymbol name="gear" color={colors.text} size={24} />
-            </Pressable>
-          ),
         }}
       />
       <View style={commonStyles.container}>
@@ -82,17 +73,13 @@ export default function HomeScreen() {
           <View style={styles.header}>
             <Text style={styles.appTitle}>KTS Enkeltsoldat</Text>
             {squadSettings && (
-              <View style={styles.squadInfo}>
-                <View style={styles.squadNameRow}>
-                  <Text style={styles.squadName}>{squadSettings.squadName}</Text>
-                  <Pressable onPress={handleEditSquad} style={styles.editButton}>
-                    <IconSymbol name="pencil" color={colors.primary} size={20} />
-                  </Pressable>
-                </View>
+              <Pressable style={styles.squadInfo} onPress={handleEditSquad}>
+                <Text style={styles.squadName}>{squadSettings.squadName}</Text>
                 <Text style={styles.squadDetail}>
                   {squadSettings.soldiers.length} soldater
                 </Text>
-              </View>
+                <Text style={styles.editLabel}>Trykk for å endre</Text>
+              </Pressable>
             )}
           </View>
 
@@ -143,25 +130,24 @@ const styles = StyleSheet.create({
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
     elevation: 3,
   },
-  squadNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 8,
-  },
   squadName: {
     fontSize: 24,
     fontWeight: '700',
     color: colors.text,
     fontFamily: 'BigShouldersStencil_700Bold',
-  },
-  editButton: {
-    padding: 4,
+    marginBottom: 4,
   },
   squadDetail: {
     fontSize: 18,
     color: colors.textSecondary,
     fontFamily: 'BigShouldersStencil_400Regular',
+    marginBottom: 8,
+  },
+  editLabel: {
+    fontSize: 14,
+    color: colors.primary,
+    fontFamily: 'BigShouldersStencil_700Bold',
+    marginTop: 4,
   },
   mainButtonContainer: {
     marginVertical: 30,
@@ -181,8 +167,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginTop: 12,
     fontFamily: 'BigShouldersStencil_700Bold',
-  },
-  headerButton: {
-    padding: 8,
   },
 });

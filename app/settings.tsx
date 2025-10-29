@@ -9,7 +9,7 @@ import {
   Pressable,
   Alert,
 } from 'react-native';
-import { router } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { colors } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
 import { Soldier, SquadSettings } from '@/types/checklist';
@@ -105,29 +105,6 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleResetApp = () => {
-    Alert.alert(
-      'Tilbakestill App',
-      'Dette vil slette alle data inkludert økter og innstillinger. Er du sikker?',
-      [
-        { text: 'Avbryt', style: 'cancel' },
-        {
-          text: 'Tilbakestill',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await storage.clearAll();
-              router.replace('/setup');
-            } catch (error) {
-              console.error('Error resetting app:', error);
-              Alert.alert('Feil', 'Kunne ikke tilbakestille appen');
-            }
-          },
-        },
-      ]
-    );
-  };
-
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
@@ -137,71 +114,77 @@ export default function SettingsScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Lagsinnstillinger</Text>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Lagsnavn</Text>
-            <TextInput
-              style={styles.input}
-              value={squadName}
-              onChangeText={setSquadName}
-              placeholder="F.eks. Alfa Lag"
-              placeholderTextColor={colors.textSecondary}
-            />
-          </View>
-        </View>
+    <>
+      <Stack.Screen
+        options={{
+          headerShown: false,
+        }}
+      />
+      <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.title}>Rediger Lag</Text>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Soldater</Text>
-            <Pressable style={styles.addButton} onPress={addSoldier}>
-              <IconSymbol name="plus.circle.fill" color={colors.primary} size={28} />
+          <View style={styles.section}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Lagsnavn</Text>
+              <TextInput
+                style={styles.input}
+                value={squadName}
+                onChangeText={setSquadName}
+                placeholder="F.eks. Alfa Lag"
+                placeholderTextColor={colors.textSecondary}
+              />
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Soldater</Text>
+            </View>
+
+            {soldiers.map((soldier, index) => (
+              <View key={soldier.id} style={styles.soldierCard}>
+                <View style={styles.soldierHeader}>
+                  <Text style={styles.soldierNumber}>Soldat {index + 1}</Text>
+                  <Pressable onPress={() => removeSoldier(index)}>
+                    <IconSymbol name="trash" color={colors.secondary} size={20} />
+                  </Pressable>
+                </View>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Navn</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={soldier.name}
+                    onChangeText={(value) => updateSoldier(index, 'name', value)}
+                    placeholder="F.eks. Ole Hansen"
+                    placeholderTextColor={colors.textSecondary}
+                  />
+                </View>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Rolle (valgfritt)</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={soldier.role}
+                    onChangeText={(value) => updateSoldier(index, 'role', value)}
+                    placeholder="F.eks. Skytter"
+                    placeholderTextColor={colors.textSecondary}
+                  />
+                </View>
+              </View>
+            ))}
+
+            <Pressable style={styles.addSoldierButton} onPress={addSoldier}>
+              <IconSymbol name="plus" color={colors.primary} size={24} />
+              <Text style={styles.addSoldierText}>Legg til soldat</Text>
             </Pressable>
           </View>
 
-          {soldiers.map((soldier, index) => (
-            <View key={soldier.id} style={styles.soldierCard}>
-              <View style={styles.soldierHeader}>
-                <Text style={styles.soldierNumber}>Soldat {index + 1}</Text>
-                <Pressable onPress={() => removeSoldier(index)}>
-                  <IconSymbol name="trash" color={colors.secondary} size={20} />
-                </Pressable>
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Navn</Text>
-                <TextInput
-                  style={styles.input}
-                  value={soldier.name}
-                  onChangeText={(value) => updateSoldier(index, 'name', value)}
-                  placeholder="F.eks. Ole Hansen"
-                  placeholderTextColor={colors.textSecondary}
-                />
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Rolle (valgfritt)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={soldier.role}
-                  onChangeText={(value) => updateSoldier(index, 'role', value)}
-                  placeholder="F.eks. Skytter"
-                  placeholderTextColor={colors.textSecondary}
-                />
-              </View>
-            </View>
-          ))}
-        </View>
-
-        <Pressable style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Lagre Endringer</Text>
-        </Pressable>
-
-        <Pressable style={styles.resetButton} onPress={handleResetApp}>
-          <Text style={styles.resetButtonText}>Tilbakestill App</Text>
-        </Pressable>
-      </ScrollView>
-    </View>
+          <Pressable style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>Lagre Endringer</Text>
+          </Pressable>
+        </ScrollView>
+      </View>
+    </>
   );
 }
 
@@ -216,7 +199,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 100,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 24,
+    fontFamily: 'BigShouldersStencil_700Bold',
   },
   text: {
     fontSize: 18,
@@ -236,11 +226,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 16,
     fontFamily: 'BigShouldersStencil_700Bold',
-  },
-  addButton: {
-    padding: 4,
   },
   inputContainer: {
     marginBottom: 16,
@@ -282,6 +268,24 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
+  addSoldierButton: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    borderStyle: 'dashed',
+  },
+  addSoldierText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.primary,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
   saveButton: {
     backgroundColor: colors.primary,
     borderRadius: 12,
@@ -295,20 +299,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: '#FFFFFF',
-    fontFamily: 'BigShouldersStencil_700Bold',
-  },
-  resetButton: {
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.secondary,
-  },
-  resetButtonText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.secondary,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
 });

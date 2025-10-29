@@ -16,7 +16,12 @@ export default function TabLayout() {
     {
       route: '/(tabs)/log',
       label: 'Logg',
-      icon: 'list.bullet',
+      icon: 'history',
+    },
+    {
+      route: '/(tabs)/app-settings',
+      label: 'Innstillinger',
+      icon: 'gear',
     },
   ];
 
@@ -36,8 +41,16 @@ export default function TabLayout() {
             name="log"
             options={{
               title: 'Logg',
-              tabBarIcon: ({ color }) => <Icon name="list.bullet" color={color} />,
+              tabBarIcon: ({ color }) => <Icon name="clock.fill" color={color} />,
               tabBarLabel: ({ color }) => <Label color={color}>Logg</Label>,
+            }}
+          />
+          <NativeTabs.Screen
+            name="app-settings"
+            options={{
+              title: 'Innstillinger',
+              tabBarIcon: ({ color }) => <Icon name="gear" color={color} />,
+              tabBarLabel: ({ color }) => <Label color={color}>Innstillinger</Label>,
             }}
           />
         </NativeTabs>
@@ -50,6 +63,7 @@ export default function TabLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(home)" />
         <Stack.Screen name="log" />
+        <Stack.Screen name="app-settings" />
       </Stack>
       <FloatingTabBar tabs={tabs} />
     </>

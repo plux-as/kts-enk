@@ -223,6 +223,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
+    minHeight: 56,
+    justifyContent: 'center',
   },
   primaryButton: {
     backgroundColor: colors.primary,
@@ -232,6 +234,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
     boxShadow: '0px 4px 12px rgba(76, 175, 80, 0.3)',
     elevation: 5,
+    minHeight: 56,
+    justifyContent: 'center',
   },
   primaryButtonText: {
     fontSize: 22,

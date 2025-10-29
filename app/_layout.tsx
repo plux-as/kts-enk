@@ -97,7 +97,21 @@ export default function RootLayout() {
                 name="settings"
                 options={{
                   presentation: "modal",
-                  title: "Innstillinger",
+                  title: "Rediger Lag",
+                }}
+              />
+              <Stack.Screen
+                name="edit-checklist"
+                options={{
+                  presentation: "modal",
+                  title: "Rediger Sjekkliste",
+                }}
+              />
+              <Stack.Screen
+                name="log-detail"
+                options={{
+                  presentation: "modal",
+                  title: "Øktdetaljer",
                 }}
               />
             </Stack>

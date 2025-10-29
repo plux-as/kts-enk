@@ -46,13 +46,20 @@ export default function FloatingTabBar({
 
   // Find the active tab index based on the current pathname
   const getActiveIndex = () => {
-    const index = tabs.findIndex((tab) => {
+    // Check for exact matches first
+    for (let i = 0; i < tabs.length; i++) {
+      const tab = tabs[i];
       if (tab.route === '/(tabs)/(home)') {
-        return pathname === '/(tabs)/(home)' || pathname === '/';
+        if (pathname === '/(tabs)/(home)' || pathname === '/' || pathname.startsWith('/(tabs)/(home)')) {
+          return i;
+        }
+      } else if (pathname === tab.route || pathname.startsWith(tab.route + '/')) {
+        return i;
       }
-      return pathname.includes(tab.route);
-    });
-    return index >= 0 ? index : 0;
+    }
+    
+    // Default to first tab if no match
+    return 0;
   };
 
   const activeIndex = getActiveIndex();

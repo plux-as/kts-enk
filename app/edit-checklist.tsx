@@ -66,7 +66,6 @@ export default function EditChecklistScreen() {
       let updatedChecklist = [...checklist];
 
       if (editingCategory?.id) {
-        // Edit existing category
         const index = updatedChecklist.findIndex(c => c.id === editingCategory.id);
         if (index !== -1) {
           updatedChecklist[index] = {
@@ -75,7 +74,6 @@ export default function EditChecklistScreen() {
           };
         }
       } else {
-        // Add new category
         const newCategory: ChecklistCategory = {
           id: `cat-${Date.now()}`,
           name: categoryName.trim(),
@@ -140,7 +138,6 @@ export default function EditChecklistScreen() {
 
       if (categoryIndex !== -1) {
         if (editingItem.id) {
-          // Edit existing item
           const itemIndex = updatedChecklist[categoryIndex].items.findIndex(
             i => i.id === editingItem.id
           );
@@ -151,7 +148,6 @@ export default function EditChecklistScreen() {
             };
           }
         } else {
-          // Add new item
           const newItem: ChecklistItem = {
             id: `item-${Date.now()}`,
             name: itemName.trim(),
@@ -195,29 +191,6 @@ export default function EditChecklistScreen() {
             } catch (error) {
               console.error('Error deleting item:', error);
               Alert.alert('Feil', 'Kunne ikke slette elementet');
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleResetApp = () => {
-    Alert.alert(
-      'Tilbakestill App',
-      'Er du sikker på at du vil slette alle data og starte på nytt? Dette vil fjerne alle økter, innstillinger og sjekklister.',
-      [
-        { text: 'Avbryt', style: 'cancel' },
-        {
-          text: 'Tilbakestill',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await storage.clearAll();
-              router.replace('/setup');
-            } catch (error) {
-              console.error('Error resetting app:', error);
-              Alert.alert('Feil', 'Kunne ikke tilbakestille appen');
             }
           },
         },
@@ -293,14 +266,8 @@ export default function EditChecklistScreen() {
               </View>
             ))}
           </View>
-
-          <Pressable style={styles.resetButton} onPress={handleResetApp}>
-            <IconSymbol name="trash.fill" color={colors.secondary} size={20} />
-            <Text style={styles.resetButtonText}>Tilbakestill App</Text>
-          </Pressable>
         </ScrollView>
 
-        {/* Category Edit Modal */}
         <Modal
           visible={editingCategory !== null}
           transparent
@@ -337,7 +304,6 @@ export default function EditChecklistScreen() {
           </View>
         </Modal>
 
-        {/* Item Edit Modal */}
         <Modal
           visible={editingItem !== null}
           transparent
@@ -391,7 +357,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
   text: {
     fontSize: 18,
@@ -484,23 +450,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: colors.primary,
-    fontFamily: 'BigShouldersStencil_700Bold',
-  },
-  resetButton: {
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    borderWidth: 2,
-    borderColor: colors.secondary,
-  },
-  resetButtonText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.secondary,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   modalOverlay: {

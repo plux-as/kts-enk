@@ -1,7 +1,8 @@
 
-import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { StyleSheet, ViewStyle, TextStyle, useColorScheme } from 'react-native';
 
-export const colors = {
+// Light mode colors
+const lightColors = {
   background: '#f0f0f0',
   text: '#1e1e1e',
   textSecondary: '#666666',
@@ -11,6 +12,21 @@ export const colors = {
   card: '#FFFFFF',
   highlight: '#FFEB3B',
 };
+
+// Dark mode colors
+const darkColors = {
+  background: '#1e1e1e',
+  text: '#f0f0f0',
+  textSecondary: '#999999',
+  primary: '#4CAF50',
+  secondary: '#F44336',
+  accent: '#2196F3',
+  card: '#2e2e2e',
+  highlight: '#FFEB3B',
+};
+
+// Export light colors as default for now
+export const colors = lightColors;
 
 export const buttonStyles = StyleSheet.create({
   primaryButton: {

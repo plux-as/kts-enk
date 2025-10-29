@@ -101,6 +101,46 @@ export default function LogDetailScreen() {
     }
   };
 
+  const handleMarkAsOk = async (
+    soldierId: string,
+    categoryId: string,
+    itemId: string
+  ) => {
+    if (!session) return;
+
+    try {
+      const sessions = await storage.getSessions();
+      const sessionIndex = sessions.findIndex(s => s.id === session.id);
+
+      if (sessionIndex !== -1) {
+        const updatedSession = { ...sessions[sessionIndex] };
+        const dataIndex = updatedSession.data.findIndex(
+          d => d.categoryId === categoryId && d.itemId === itemId
+        );
+
+        if (dataIndex !== -1) {
+          const statusIndex = updatedSession.data[dataIndex].statuses.findIndex(
+            s => s.soldierId === soldierId
+          );
+
+          if (statusIndex !== -1) {
+            updatedSession.data[dataIndex].statuses[statusIndex] = {
+              ...updatedSession.data[dataIndex].statuses[statusIndex],
+              status: 'fulfilled',
+            };
+          }
+        }
+
+        sessions[sessionIndex] = updatedSession;
+        await storage.saveSessions(sessions);
+        setSession(updatedSession);
+      }
+    } catch (error) {
+      console.error('Error marking as ok:', error);
+      Alert.alert('Feil', 'Kunne ikke oppdatere status');
+    }
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
@@ -166,19 +206,29 @@ export default function LogDetailScreen() {
                           )}
                         </View>
                       </View>
-                      <Pressable
-                        style={styles.editDescButton}
-                        onPress={() =>
-                          handleEditDescription(
-                            soldier.id,
-                            item.categoryId,
-                            item.itemId,
-                            status?.description
-                          )
-                        }
-                      >
-                        <IconSymbol name="pencil" color={colors.accent} size={18} />
-                      </Pressable>
+                      <View style={styles.itemActions}>
+                        <Pressable
+                          style={styles.actionButton}
+                          onPress={() =>
+                            handleMarkAsOk(soldier.id, item.categoryId, item.itemId)
+                          }
+                        >
+                          <IconSymbol name="checkmark.circle.fill" color={colors.primary} size={20} />
+                        </Pressable>
+                        <Pressable
+                          style={styles.actionButton}
+                          onPress={() =>
+                            handleEditDescription(
+                              soldier.id,
+                              item.categoryId,
+                              item.itemId,
+                              status?.description
+                            )
+                          }
+                        >
+                          <IconSymbol name="pencil" color={colors.accent} size={18} />
+                        </Pressable>
+                      </View>
                     </View>
                   );
                 })}
@@ -318,7 +368,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontFamily: 'BigShouldersStencil_400Regular',
   },
-  editDescButton: {
+  itemActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
     padding: 4,
   },
   noIssuesCard: {
