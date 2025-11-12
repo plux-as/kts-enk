@@ -29,7 +29,7 @@ export default function TabLayout() {
     return (
       <>
         <NativeTabs>
-          <NativeTabs.Screen
+          <NativeTabs.Trigger
             name="(home)"
             options={{
               title: 'Hjem',
@@ -37,7 +37,7 @@ export default function TabLayout() {
               tabBarLabel: ({ color }) => <Label color={color}>Hjem</Label>,
             }}
           />
-          <NativeTabs.Screen
+          <NativeTabs.Trigger
             name="log"
             options={{
               title: 'Logg',
@@ -45,7 +45,7 @@ export default function TabLayout() {
               tabBarLabel: ({ color }) => <Label color={color}>Logg</Label>,
             }}
           />
-          <NativeTabs.Screen
+          <NativeTabs.Trigger
             name="app-settings"
             options={{
               title: 'Innstillinger',

@@ -110,11 +110,11 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 40,
     marginBottom: 40,
   },
   appTitle: {
-    fontSize: 32,
+    fontSize: 40,
     fontWeight: '800',
     color: colors.text,
     textAlign: 'center',
