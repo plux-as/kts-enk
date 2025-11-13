@@ -150,7 +150,7 @@ export default function LogDetailScreen() {
             headerShown: false,
           }}
         />
-        <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
           <View style={commonStyles.modalNavBar}>
             <View style={{ width: 24 }} />
             <Text style={commonStyles.modalNavBarTitle}>Detaljer og utbedringer</Text>
@@ -174,7 +174,7 @@ export default function LogDetailScreen() {
             headerShown: false,
           }}
         />
-        <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
           <View style={commonStyles.modalNavBar}>
             <View style={{ width: 24 }} />
             <Text style={commonStyles.modalNavBarTitle}>Detaljer og utbedringer</Text>
@@ -200,7 +200,7 @@ export default function LogDetailScreen() {
           headerShown: false,
         }}
       />
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
         <View style={commonStyles.modalNavBar}>
           <View style={{ width: 24 }} />
           <Text style={commonStyles.modalNavBarTitle}>Detaljer og utbedringer</Text>
@@ -335,7 +335,7 @@ export default function LogDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  fullScreenModal: {
     flex: 1,
     backgroundColor: colors.background,
   },

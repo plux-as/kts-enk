@@ -78,27 +78,31 @@ export default function RootLayout() {
                 options={{
                   presentation: "fullScreenModal",
                   headerShown: false,
+                  animation: "slide_from_bottom",
                 }}
               />
               <Stack.Screen
                 name="settings"
                 options={{
-                  presentation: "modal",
+                  presentation: "fullScreenModal",
                   headerShown: false,
+                  animation: "slide_from_bottom",
                 }}
               />
               <Stack.Screen
                 name="edit-checklist"
                 options={{
-                  presentation: "modal",
+                  presentation: "fullScreenModal",
                   headerShown: false,
+                  animation: "slide_from_bottom",
                 }}
               />
               <Stack.Screen
                 name="log-detail"
                 options={{
-                  presentation: "modal",
+                  presentation: "fullScreenModal",
                   headerShown: false,
+                  animation: "slide_from_bottom",
                 }}
               />
             </Stack>

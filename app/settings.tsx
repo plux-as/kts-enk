@@ -113,7 +113,7 @@ export default function SettingsScreen() {
             headerShown: false,
           }}
         />
-        <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
           <View style={commonStyles.modalNavBar}>
             <View style={{ width: 24 }} />
             <Text style={commonStyles.modalNavBarTitle}>Rediger Lag</Text>
@@ -136,7 +136,7 @@ export default function SettingsScreen() {
           headerShown: false,
         }}
       />
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
         <View style={commonStyles.modalNavBar}>
           <View style={{ width: 24 }} />
           <Text style={commonStyles.modalNavBarTitle}>Rediger Lag</Text>
@@ -210,7 +210,7 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  fullScreenModal: {
     flex: 1,
     backgroundColor: colors.background,
   },

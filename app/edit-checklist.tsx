@@ -212,7 +212,7 @@ export default function EditChecklistScreen() {
             headerShown: false,
           }}
         />
-        <View style={[styles.container, styles.centerContent, { paddingTop: insets.top }]}>
+        <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
           <View style={commonStyles.modalNavBar}>
             <View style={{ width: 24 }} />
             <Text style={commonStyles.modalNavBarTitle}>Rediger KTS-liste</Text>
@@ -235,7 +235,7 @@ export default function EditChecklistScreen() {
           headerShown: false,
         }}
       />
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
         <View style={commonStyles.modalNavBar}>
           <View style={{ width: 24 }} />
           <Text style={commonStyles.modalNavBarTitle}>Rediger KTS-liste</Text>
@@ -387,7 +387,7 @@ export default function EditChecklistScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  fullScreenModal: {
     flex: 1,
     backgroundColor: colors.background,
   },
