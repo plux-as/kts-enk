@@ -14,6 +14,7 @@ import { colors } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
 import { Soldier, SquadSettings } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SettingsScreen() {
   const [squadName, setSquadName] = useState('');
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 18,
     color: colors.text,
-    fontFamily: 'BigShouldersStencil_400Regular',
+    fontFamily: 'System',
   },
   section: {
     marginBottom: 32,
@@ -245,7 +246,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     borderWidth: 1,
     borderColor: colors.textSecondary + '40',
-    fontFamily: 'BigShouldersStencil_400Regular',
+    fontFamily: 'System',
   },
   soldierCard: {
     backgroundColor: colors.card,

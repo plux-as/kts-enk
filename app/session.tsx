@@ -25,7 +25,7 @@ import {
   MissingItem,
 } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
-import * as Speech from 'expo-speech';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type ScreenType = 'category' | 'item' | 'summary';
 
@@ -39,8 +39,8 @@ export default function SessionScreen() {
   const [loading, setLoading] = useState(true);
   const [editingSoldierId, setEditingSoldierId] = useState<string | null>(null);
   const [descriptionText, setDescriptionText] = useState('');
-  const [isListening, setIsListening] = useState(false);
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [showAllChecked, setShowAllChecked] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -147,7 +147,12 @@ export default function SessionScreen() {
       return updated;
     });
 
-    handleNext();
+    // Show all checked briefly
+    setShowAllChecked(true);
+    setTimeout(() => {
+      setShowAllChecked(false);
+      handleNext();
+    }, 300);
   };
 
   const handlePrevious = () => {
@@ -236,14 +241,6 @@ export default function SessionScreen() {
 
     setEditingSoldierId(null);
     setDescriptionText('');
-  };
-
-  const handleVoiceInput = () => {
-    Alert.alert(
-      'Talegjenkjenning',
-      'Talegjenkjenning er ikke tilgjengelig i denne versjonen. Vennligst skriv inn tekst manuelt.',
-      [{ text: 'OK' }]
-    );
   };
 
   const handleShowSummary = () => {
@@ -380,14 +377,16 @@ export default function SessionScreen() {
     const currentCategory = checklist[currentCategoryIndex];
     return (
       <View style={styles.container}>
-        <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
-        </View>
-
-        <View style={styles.header}>
-          <Pressable onPress={handleExit} style={styles.exitButton}>
+        <SafeAreaView edges={['top']} style={styles.navBar}>
+          <Pressable onPress={handleExit} style={styles.navBarButton}>
             <IconSymbol name="xmark" color={colors.text} size={24} />
           </Pressable>
+          <Text style={styles.navBarTitle}>KTS</Text>
+          <View style={styles.navBarButton} />
+        </SafeAreaView>
+
+        <View style={styles.progressBarContainer}>
+          <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
         </View>
 
         <View style={styles.content}>
@@ -450,14 +449,16 @@ export default function SessionScreen() {
 
     return (
       <View style={styles.container}>
-        <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
-        </View>
-
-        <View style={styles.header}>
-          <Pressable onPress={handleExit} style={styles.exitButton}>
+        <SafeAreaView edges={['top']} style={styles.navBar}>
+          <Pressable onPress={handleExit} style={styles.navBarButton}>
             <IconSymbol name="xmark" color={colors.text} size={24} />
           </Pressable>
+          <Text style={styles.navBarTitle}>KTS</Text>
+          <View style={styles.navBarButton} />
+        </SafeAreaView>
+
+        <View style={styles.progressBarContainer}>
+          <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -467,6 +468,7 @@ export default function SessionScreen() {
           <View style={styles.soldiersList}>
             {squadSettings?.soldiers.map(soldier => {
               const status = currentData?.statuses.find(s => s.soldierId === soldier.id);
+              const isChecked = showAllChecked || status?.status === 'fulfilled';
               return (
                 <View key={soldier.id} style={styles.soldierItem}>
                   <View style={styles.soldierInfo}>
@@ -479,13 +481,13 @@ export default function SessionScreen() {
                     <Pressable
                       style={[
                         styles.statusButton,
-                        status?.status === 'fulfilled' && styles.statusButtonActive,
+                        isChecked && styles.statusButtonActive,
                       ]}
                       onPress={() => handleStatusChange(soldier.id, 'fulfilled')}
                     >
                       <IconSymbol
                         name="checkmark"
-                        color={status?.status === 'fulfilled' ? '#FFFFFF' : colors.primary}
+                        color={isChecked ? '#FFFFFF' : colors.primary}
                         size={24}
                       />
                     </Pressable>
@@ -611,16 +613,19 @@ export default function SessionScreen() {
   const summary = generateSummary();
   return (
     <View style={styles.container}>
+      <SafeAreaView edges={['top']} style={styles.navBar}>
+        <View style={styles.navBarButton} />
+        <Text style={styles.navBarTitle}>KTS</Text>
+        <View style={styles.navBarButton} />
+      </SafeAreaView>
+
       <View style={styles.progressBarContainer}>
         <View style={[styles.progressBar, { width: '100%' }]} />
       </View>
 
-      <View style={styles.summaryTopHeader}>
-        <Text style={styles.summaryHeaderTitle}>Oppsummering</Text>
-      </View>
-
       <ScrollView contentContainerStyle={styles.summaryScrollContent}>
         <View style={styles.summaryHeader}>
+          <Text style={styles.summaryTitle}>Oppsummering</Text>
           <Text style={styles.summarySquad}>{summary.squadName}</Text>
           <Text style={styles.summaryDate}>{summary.date} {summary.time}</Text>
         </View>
@@ -682,25 +687,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  navBar: {
+    backgroundColor: colors.background,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.textSecondary + '20',
+  },
+  navBarButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  navBarTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
   progressBarContainer: {
     height: 4,
     backgroundColor: colors.textSecondary + '40',
     width: '100%',
-    marginTop: 16,
   },
   progressBar: {
     height: '100%',
     backgroundColor: colors.primary,
-  },
-  header: {
-    padding: 16,
-    paddingTop: 24,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  exitButton: {
-    padding: 8,
   },
   content: {
     flex: 1,
@@ -720,7 +736,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 12,
-    fontFamily: 'BigShouldersStencil_400Regular',
+    fontFamily: 'System',
   },
   scrollContent: {
     padding: 20,
@@ -731,7 +747,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 8,
-    fontFamily: 'BigShouldersStencil_400Regular',
+    fontFamily: 'System',
   },
   itemName: {
     fontSize: 28,
@@ -767,7 +783,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textSecondary,
     marginTop: 2,
-    fontFamily: 'BigShouldersStencil_400Regular',
+    fontFamily: 'System',
   },
   soldierActions: {
     flexDirection: 'row',
@@ -834,6 +850,7 @@ const styles = StyleSheet.create({
   bottomButtons: {
     flexDirection: 'row',
     gap: 12,
+    marginBottom: 20,
   },
   navButton: {
     flex: 1,
@@ -863,7 +880,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 18,
     color: colors.text,
-    fontFamily: 'BigShouldersStencil_400Regular',
+    fontFamily: 'System',
   },
   modalOverlay: {
     flex: 1,
@@ -896,7 +913,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     minHeight: 100,
     textAlignVertical: 'top',
-    fontFamily: 'BigShouldersStencil_400Regular',
+    fontFamily: 'System',
   },
   modalButtons: {
     flexDirection: 'row',
@@ -927,18 +944,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
-  summaryTopHeader: {
-    padding: 20,
-    paddingTop: 32,
-    paddingBottom: 16,
-    alignItems: 'center',
-  },
-  summaryHeaderTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: colors.text,
-    fontFamily: 'BigShouldersStencil_700Bold',
-  },
   summaryScrollContent: {
     padding: 20,
     paddingBottom: 140,
@@ -946,6 +951,13 @@ const styles = StyleSheet.create({
   summaryHeader: {
     alignItems: 'center',
     marginBottom: 24,
+  },
+  summaryTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_700Bold',
+    marginBottom: 8,
   },
   summarySquad: {
     fontSize: 24,
@@ -957,7 +969,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.textSecondary,
     marginTop: 4,
-    fontFamily: 'BigShouldersStencil_400Regular',
+    fontFamily: 'System',
   },
   summaryCard: {
     backgroundColor: colors.card,
@@ -993,7 +1005,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textSecondary,
     marginTop: 2,
-    fontFamily: 'BigShouldersStencil_400Regular',
+    fontFamily: 'System',
   },
   noIssuesCard: {
     backgroundColor: colors.card,

@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 32,
-    fontFamily: 'BigShouldersStencil_400Regular',
+    fontFamily: 'System',
   },
   inputContainer: {
     marginBottom: 20,
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     borderWidth: 1,
     borderColor: colors.textSecondary + '40',
-    fontFamily: 'BigShouldersStencil_400Regular',
+    fontFamily: 'System',
   },
   soldierCard: {
     backgroundColor: colors.card,
