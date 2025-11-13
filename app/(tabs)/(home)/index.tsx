@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { router, useFocusEffect } from "expo-router";
+import { Stack, router } from "expo-router";
 import {
   View,
   Text,
@@ -13,7 +13,6 @@ import { IconSymbol } from "@/components/IconSymbol";
 import { colors, commonStyles } from "@/styles/commonStyles";
 import { storage } from "@/utils/storage";
 import { SquadSettings } from "@/types/checklist";
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const [squadSettings, setSquadSettings] = useState<SquadSettings | null>(null);
@@ -23,12 +22,6 @@ export default function HomeScreen() {
   useEffect(() => {
     loadData();
   }, []);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      loadData();
-    }, [])
-  );
 
   const loadData = async () => {
     try {
@@ -66,59 +59,46 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={commonStyles.container}>
-      <SafeAreaView edges={['top']} style={styles.headerContainer}>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Start</Text>
-        </View>
-      </SafeAreaView>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.header}>
-          <Text style={styles.appTitle}>KTS Enkeltsoldat</Text>
-          {squadSettings && (
-            <Pressable style={styles.squadInfo} onPress={handleEditSquad}>
-              <Text style={styles.squadName}>{squadSettings.squadName}</Text>
-              <Text style={styles.squadDetail}>
-                {squadSettings.soldiers.length} soldater
-              </Text>
-              <Text style={styles.editLabel}>Trykk for å endre</Text>
-            </Pressable>
-          )}
-        </View>
+    <>
+      <Stack.Screen
+        options={{
+          title: "KTS Enkeltsoldat",
+        }}
+      />
+      <View style={commonStyles.container}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <Text style={styles.appTitle}>KTS Enkeltsoldat</Text>
+            {squadSettings && (
+              <Pressable style={styles.squadInfo} onPress={handleEditSquad}>
+                <Text style={styles.squadName}>{squadSettings.squadName}</Text>
+                <Text style={styles.squadDetail}>
+                  {squadSettings.soldiers.length} soldater
+                </Text>
+                <Text style={styles.editLabel}>Trykk for å endre</Text>
+              </Pressable>
+            )}
+          </View>
 
-        <View style={styles.mainButtonContainer}>
-          <Pressable
-            style={styles.startButton}
-            onPress={handleStartSession}
-          >
-            <IconSymbol name="checkmark.circle.fill" color="#FFFFFF" size={48} />
-            <Text style={styles.startButtonText}>Start KTS</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-    </View>
+          <View style={styles.mainButtonContainer}>
+            <Pressable
+              style={styles.startButton}
+              onPress={handleStartSession}
+            >
+              <IconSymbol name="checkmark.circle.fill" color="#FFFFFF" size={48} />
+              <Text style={styles.startButtonText}>Start KTS</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  headerContainer: {
-    backgroundColor: colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.textSecondary + '20',
-  },
-  headerContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: colors.text,
-    fontFamily: 'BigShouldersStencil_700Bold',
-  },
   scrollContent: {
     flexGrow: 1,
     padding: 20,
@@ -130,7 +110,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 40,
     marginBottom: 40,
   },
   appTitle: {
@@ -160,7 +140,7 @@ const styles = StyleSheet.create({
   squadDetail: {
     fontSize: 18,
     color: colors.textSecondary,
-    fontFamily: 'System',
+    fontFamily: 'BigShouldersStencil_400Regular',
     marginBottom: 8,
   },
   editLabel: {

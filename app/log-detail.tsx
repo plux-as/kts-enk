@@ -164,17 +164,8 @@ export default function LogDetailScreen() {
     <>
       <Stack.Screen
         options={{
-          headerShown: true,
-          headerTitle: 'Øktdetaljer',
-          headerBackVisible: true,
-          headerStyle: {
-            backgroundColor: colors.background,
-          },
-          headerTintColor: colors.text,
-          headerTitleStyle: {
-            fontFamily: 'BigShouldersStencil_700Bold',
-            fontSize: 24,
-          },
+          title: 'Øktdetaljer',
+          headerBackTitle: 'Tilbake',
         }}
       />
       <View style={styles.container}>
@@ -313,7 +304,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 18,
     color: colors.text,
-    fontFamily: 'System',
+    fontFamily: 'BigShouldersStencil_400Regular',
   },
   header: {
     alignItems: 'center',
@@ -330,7 +321,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: colors.textSecondary,
     marginTop: 4,
-    fontFamily: 'System',
+    fontFamily: 'BigShouldersStencil_400Regular',
   },
   soldierCard: {
     backgroundColor: colors.card,
@@ -375,7 +366,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textSecondary,
     marginTop: 4,
-    fontFamily: 'System',
+    fontFamily: 'BigShouldersStencil_400Regular',
   },
   itemActions: {
     flexDirection: 'row',
@@ -442,7 +433,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     minHeight: 100,
     textAlignVertical: 'top',
-    fontFamily: 'System',
+    fontFamily: 'BigShouldersStencil_400Regular',
   },
   modalButtons: {
     flexDirection: 'row',

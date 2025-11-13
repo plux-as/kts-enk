@@ -7,12 +7,11 @@ import {
   ScrollView,
   Pressable,
 } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { colors } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
 import { ChecklistSession } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LogScreen() {
   const [sessions, setSessions] = useState<ChecklistSession[]>([]);
@@ -21,12 +20,6 @@ export default function LogScreen() {
   useEffect(() => {
     loadSessions();
   }, []);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      loadSessions();
-    }, [])
-  );
 
   const loadSessions = async () => {
     try {
@@ -55,58 +48,63 @@ export default function LogScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <SafeAreaView edges={['top']} style={styles.headerContainer}>
-        <View style={styles.headerContent}>
+    <>
+      <Stack.Screen
+        options={{
+          title: 'Logg',
+        }}
+      />
+      <View style={styles.container}>
+        <View style={styles.headerContainer}>
           <Text style={styles.headerTitle}>Logg</Text>
         </View>
-      </SafeAreaView>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {sessions.length === 0 ? (
-          <View style={styles.emptyState}>
-            <IconSymbol name="list.bullet" color={colors.textSecondary} size={64} />
-            <Text style={styles.emptyText}>Ingen økter registrert</Text>
-            <Text style={styles.emptySubtext}>
-              Start en ny KTS-økt fra hjemmeskjermen
-            </Text>
-          </View>
-        ) : (
-          sessions.map(session => {
-            const missingCount = session.data.reduce((count, item) => {
-              return count + item.statuses.filter(s => s.status === 'missing').length;
-            }, 0);
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {sessions.length === 0 ? (
+            <View style={styles.emptyState}>
+              <IconSymbol name="list.bullet" color={colors.textSecondary} size={64} />
+              <Text style={styles.emptyText}>Ingen økter registrert</Text>
+              <Text style={styles.emptySubtext}>
+                Start en ny KTS-økt fra hjemmeskjermen
+              </Text>
+            </View>
+          ) : (
+            sessions.map(session => {
+              const missingCount = session.data.reduce((count, item) => {
+                return count + item.statuses.filter(s => s.status === 'missing').length;
+              }, 0);
 
-            return (
-              <Pressable
-                key={session.id}
-                style={styles.sessionCard}
-                onPress={() => handleViewSession(session)}
-              >
-                <View style={styles.sessionHeader}>
-                  <Text style={styles.sessionTitle}>
-                    KTS {session.date} {session.time}
-                  </Text>
-                </View>
-                <View style={styles.sessionStats}>
-                  <View style={styles.statItem}>
-                    <IconSymbol name="person.fill" color={colors.accent} size={20} />
-                    <Text style={styles.statText}>{session.soldiers.length} soldater</Text>
+              return (
+                <Pressable
+                  key={session.id}
+                  style={styles.sessionCard}
+                  onPress={() => handleViewSession(session)}
+                >
+                  <View style={styles.sessionHeader}>
+                    <Text style={styles.sessionTitle}>
+                      KTS {session.date} {session.time}
+                    </Text>
                   </View>
-                  <View style={styles.statItem}>
-                    <IconSymbol
-                      name={missingCount > 0 ? "xmark.circle.fill" : "checkmark.circle.fill"}
-                      color={missingCount > 0 ? colors.secondary : colors.primary}
-                      size={20}
-                    />
-                    <Text style={styles.statText}>{missingCount} mangler</Text>
+                  <View style={styles.sessionStats}>
+                    <View style={styles.statItem}>
+                      <IconSymbol name="person.fill" color={colors.accent} size={20} />
+                      <Text style={styles.statText}>{session.soldiers.length} soldater</Text>
+                    </View>
+                    <View style={styles.statItem}>
+                      <IconSymbol
+                        name="xmark.circle.fill"
+                        color={missingCount > 0 ? colors.secondary : colors.primary}
+                        size={20}
+                      />
+                      <Text style={styles.statText}>{missingCount} mangler</Text>
+                    </View>
                   </View>
-                </View>
-              </Pressable>
-            );
-          })
-        )}
-      </ScrollView>
-    </View>
+                </Pressable>
+              );
+            })
+          )}
+        </ScrollView>
+      </View>
+    </>
   );
 }
 
@@ -120,13 +118,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerContainer: {
-    backgroundColor: colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.textSecondary + '20',
-  },
-  headerContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    padding: 20,
+    paddingTop: 32,
+    paddingBottom: 16,
   },
   headerTitle: {
     fontSize: 32,
@@ -136,13 +130,13 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingTop: 20,
+    paddingTop: 0,
     paddingBottom: 100,
   },
   text: {
     fontSize: 18,
     color: colors.text,
-    fontFamily: 'System',
+    fontFamily: 'BigShouldersStencil_400Regular',
   },
   emptyState: {
     alignItems: 'center',
@@ -161,7 +155,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 8,
     textAlign: 'center',
-    fontFamily: 'System',
+    fontFamily: 'BigShouldersStencil_400Regular',
   },
   sessionCard: {
     backgroundColor: colors.card,
@@ -193,6 +187,6 @@ const styles = StyleSheet.create({
   statText: {
     fontSize: 16,
     color: colors.text,
-    fontFamily: 'System',
+    fontFamily: 'BigShouldersStencil_400Regular',
   },
 });

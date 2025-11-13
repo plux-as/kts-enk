@@ -15,7 +15,6 @@ import { colors } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
 import { ChecklistCategory, ChecklistItem } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function EditChecklistScreen() {
   const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
@@ -215,17 +214,8 @@ export default function EditChecklistScreen() {
     <>
       <Stack.Screen
         options={{
-          headerShown: true,
-          headerTitle: 'Rediger Sjekkliste',
-          headerBackVisible: true,
-          headerStyle: {
-            backgroundColor: colors.background,
-          },
-          headerTintColor: colors.text,
-          headerTitleStyle: {
-            fontFamily: 'BigShouldersStencil_700Bold',
-            fontSize: 24,
-          },
+          title: 'Rediger Sjekkliste',
+          headerBackTitle: 'Tilbake',
         }}
       />
       <View style={styles.container}>
@@ -382,7 +372,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 18,
     color: colors.text,
-    fontFamily: 'System',
+    fontFamily: 'BigShouldersStencil_400Regular',
   },
   section: {
     marginBottom: 32,
@@ -443,7 +433,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
     flex: 1,
-    fontFamily: 'System',
+    fontFamily: 'BigShouldersStencil_400Regular',
   },
   itemActions: {
     flexDirection: 'row',
@@ -534,7 +524,7 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     color: colors.text,
-    fontFamily: 'System',
+    fontFamily: 'BigShouldersStencil_400Regular',
   },
   modalInputMultiline: {
     minHeight: 80,

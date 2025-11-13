@@ -8,11 +8,10 @@ import {
   Pressable,
   Alert,
 } from 'react-native';
-import { router } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { colors } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
 import { IconSymbol } from '@/components/IconSymbol';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AppSettingsScreen() {
   const handleEditChecklist = () => {
@@ -43,41 +42,45 @@ export default function AppSettingsScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <SafeAreaView edges={['top']} style={styles.headerContainer}>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Innstillinger</Text>
-        </View>
-      </SafeAreaView>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Pressable style={styles.optionCard} onPress={handleEditChecklist}>
-          <View style={styles.optionIcon}>
-            <IconSymbol name="pencil.and.list.clipboard" color={colors.primary} size={32} />
-          </View>
-          <View style={styles.optionContent}>
-            <Text style={styles.optionTitle}>Rediger sjekkliste</Text>
-            <Text style={styles.optionDescription}>
-              Legg til, rediger eller slett kategorier og sjekkliste-elementer
-            </Text>
-          </View>
-          <IconSymbol name="chevron.right" color={colors.textSecondary} size={24} />
-        </Pressable>
+    <>
+      <Stack.Screen
+        options={{
+          title: 'Innstillinger',
+        }}
+      />
+      <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.title}>Appinnstillinger</Text>
 
-        <View style={styles.spacer} />
+          <Pressable style={styles.optionCard} onPress={handleEditChecklist}>
+            <View style={styles.optionIcon}>
+              <IconSymbol name="pencil.and.list.clipboard" color={colors.primary} size={32} />
+            </View>
+            <View style={styles.optionContent}>
+              <Text style={styles.optionTitle}>Rediger sjekkliste</Text>
+              <Text style={styles.optionDescription}>
+                Legg til, rediger eller slett kategorier og sjekkliste-elementer
+              </Text>
+            </View>
+            <IconSymbol name="chevron.right" color={colors.textSecondary} size={24} />
+          </Pressable>
 
-        <Pressable style={styles.resetCard} onPress={handleResetApp}>
-          <View style={styles.resetIcon}>
-            <IconSymbol name="trash.fill" color={colors.secondary} size={32} />
-          </View>
-          <View style={styles.resetContent}>
-            <Text style={styles.resetTitle}>Tilbakestill app</Text>
-            <Text style={styles.resetDescription}>
-              Slett alle data og start på nytt
-            </Text>
-          </View>
-        </Pressable>
-      </ScrollView>
-    </View>
+          <View style={styles.spacer} />
+
+          <Pressable style={styles.resetCard} onPress={handleResetApp}>
+            <View style={styles.resetIcon}>
+              <IconSymbol name="trash.fill" color={colors.secondary} size={32} />
+            </View>
+            <View style={styles.resetContent}>
+              <Text style={styles.resetTitle}>Tilbakestill app</Text>
+              <Text style={styles.resetDescription}>
+                Slett alle data og start på nytt
+              </Text>
+            </View>
+          </Pressable>
+        </ScrollView>
+      </View>
+    </>
   );
 }
 
@@ -86,24 +89,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  headerContainer: {
-    backgroundColor: colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.textSecondary + '20',
-  },
-  headerContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: colors.text,
-    fontFamily: 'BigShouldersStencil_700Bold',
-  },
   scrollContent: {
     padding: 20,
     paddingBottom: 100,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 24,
+    fontFamily: 'BigShouldersStencil_700Bold',
   },
   optionCard: {
     backgroundColor: colors.card,
@@ -137,7 +132,7 @@ const styles = StyleSheet.create({
   optionDescription: {
     fontSize: 16,
     color: colors.textSecondary,
-    fontFamily: 'System',
+    fontFamily: 'BigShouldersStencil_400Regular',
   },
   spacer: {
     height: 32,
@@ -173,6 +168,6 @@ const styles = StyleSheet.create({
   resetDescription: {
     fontSize: 16,
     color: colors.textSecondary,
-    fontFamily: 'System',
+    fontFamily: 'BigShouldersStencil_400Regular',
   },
 });
