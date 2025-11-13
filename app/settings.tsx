@@ -96,9 +96,7 @@ export default function SettingsScreen() {
         soldiers,
       };
       await storage.saveSquadSettings(settings);
-      Alert.alert('Suksess', 'Innstillinger lagret', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      router.back();
     } catch (error) {
       console.error('Error saving settings:', error);
       Alert.alert('Feil', 'Kunne ikke lagre innstillingene');
@@ -188,7 +186,7 @@ export default function SettingsScreen() {
           </View>
 
           <Pressable style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>Lagre Endringer</Text>
+            <Text style={styles.saveButtonText}>Ferdig</Text>
           </Pressable>
         </ScrollView>
       </View>
@@ -295,6 +293,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     boxShadow: '0px 4px 12px rgba(76, 175, 80, 0.3)',
     elevation: 5,
+    minHeight: 56,
+    justifyContent: 'center',
   },
   saveButtonText: {
     fontSize: 22,

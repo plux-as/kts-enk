@@ -9,6 +9,7 @@ import {
   Alert,
   TextInput,
   Modal,
+  Clipboard,
 } from 'react-native';
 import { router } from 'expo-router';
 import { colors } from '@/styles/commonStyles';
@@ -317,7 +318,20 @@ export default function SessionScreen() {
       }
     });
 
-    Alert.alert('Eksporter', text, [{ text: 'OK' }]);
+    Alert.alert(
+      'Eksporter',
+      text,
+      [
+        {
+          text: 'Kopier tekst',
+          onPress: () => {
+            Clipboard.setString(text);
+            Alert.alert('Kopiert', 'Kopiert. Du kan nå lime inn teksten der du ønsker');
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const handleFinish = async () => {
@@ -601,11 +615,11 @@ export default function SessionScreen() {
         <View style={[styles.progressBar, { width: '100%' }]} />
       </View>
 
-      <View style={styles.header}>
+      <View style={styles.summaryTopHeader}>
         <Text style={styles.summaryHeaderTitle}>Oppsummering</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.summaryScrollContent}>
         <View style={styles.summaryHeader}>
           <Text style={styles.summarySquad}>{summary.squadName}</Text>
           <Text style={styles.summaryDate}>{summary.date} {summary.time}</Text>
@@ -643,7 +657,7 @@ export default function SessionScreen() {
         )}
       </ScrollView>
 
-      <View style={styles.bottomButtons}>
+      <View style={styles.summaryBottomButtons}>
         <Pressable style={styles.exportButton} onPress={handleExportSummary}>
           <IconSymbol name="square.and.arrow.up" color={colors.accent} size={20} />
           <Text style={styles.exportButtonText}>Eksporter</Text>
@@ -672,6 +686,7 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: colors.textSecondary + '40',
     width: '100%',
+    marginTop: 16,
   },
   progressBar: {
     height: '100%',
@@ -679,6 +694,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 16,
+    paddingTop: 24,
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
@@ -708,7 +724,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 120,
+    paddingBottom: 240,
   },
   itemCategory: {
     fontSize: 20,
@@ -795,7 +811,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.textSecondary + '40',
     padding: 20,
-    paddingBottom: 20,
+    paddingBottom: 32,
   },
   allOkButton: {
     backgroundColor: colors.primary,
@@ -862,6 +878,7 @@ const styles = StyleSheet.create({
     padding: 24,
     width: '100%',
     maxWidth: 400,
+    maxHeight: '80%',
   },
   modalTitle: {
     fontSize: 24,
@@ -910,11 +927,21 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
+  summaryTopHeader: {
+    padding: 20,
+    paddingTop: 32,
+    paddingBottom: 16,
+    alignItems: 'center',
+  },
   summaryHeaderTitle: {
     fontSize: 28,
     fontWeight: '800',
     color: colors.text,
     fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  summaryScrollContent: {
+    padding: 20,
+    paddingBottom: 140,
   },
   summaryHeader: {
     alignItems: 'center',
@@ -982,6 +1009,19 @@ const styles = StyleSheet.create({
     color: colors.primary,
     marginTop: 16,
     fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  summaryBottomButtons: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.background,
+    borderTopWidth: 1,
+    borderTopColor: colors.textSecondary + '40',
+    padding: 20,
+    paddingBottom: 32,
+    flexDirection: 'row',
+    gap: 12,
   },
   exportButton: {
     flex: 1,

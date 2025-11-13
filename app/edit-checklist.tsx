@@ -198,6 +198,10 @@ export default function EditChecklistScreen() {
     );
   };
 
+  const handleFinish = () => {
+    router.back();
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
@@ -219,9 +223,6 @@ export default function EditChecklistScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Kategorier og Elementer</Text>
-              <Pressable style={styles.addButton} onPress={handleAddCategory}>
-                <IconSymbol name="plus.circle.fill" color={colors.primary} size={28} />
-              </Pressable>
             </View>
 
             {checklist.map(category => (
@@ -265,7 +266,16 @@ export default function EditChecklistScreen() {
                 </View>
               </View>
             ))}
+
+            <Pressable style={styles.addCategoryButton} onPress={handleAddCategory}>
+              <IconSymbol name="plus" color={colors.primary} size={24} />
+              <Text style={styles.addCategoryText}>Legg til kategori</Text>
+            </Pressable>
           </View>
+
+          <Pressable style={styles.finishButton} onPress={handleFinish}>
+            <Text style={styles.finishButtonText}>Ferdig</Text>
+          </Pressable>
         </ScrollView>
 
         <Modal
@@ -379,9 +389,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
-  addButton: {
-    padding: 4,
-  },
   categoryCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
@@ -450,6 +457,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: colors.primary,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  addCategoryButton: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    borderStyle: 'dashed',
+    marginTop: 8,
+  },
+  addCategoryText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.primary,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  finishButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 12,
+    boxShadow: '0px 4px 12px rgba(76, 175, 80, 0.3)',
+    elevation: 5,
+    minHeight: 56,
+    justifyContent: 'center',
+  },
+  finishButtonText: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   modalOverlay: {

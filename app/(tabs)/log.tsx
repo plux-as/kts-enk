@@ -55,6 +55,9 @@ export default function LogScreen() {
         }}
       />
       <View style={styles.container}>
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerTitle}>Logg</Text>
+        </View>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {sessions.length === 0 ? (
             <View style={styles.emptyState}>
@@ -114,8 +117,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  headerContainer: {
+    padding: 20,
+    paddingTop: 32,
+    paddingBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
   scrollContent: {
     padding: 20,
+    paddingTop: 0,
     paddingBottom: 100,
   },
   text: {
