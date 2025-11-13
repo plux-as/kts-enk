@@ -1,16 +1,17 @@
+
 {
   "expo": {
     "name": "KTS Enkelt",
     "slug": "KTS Enkelt",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/natively-dark.png",
+    "icon": "./assets/images/cee50603-3984-474d-8f81-0af72a74d36d.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/natively-dark.png",
+      "image": "./assets/images/cee50603-3984-474d-8f81-0af72a74d36d.png",
       "resizeMode": "contain",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#1D1D1E"
     },
     "ios": {
       "supportsTablet": true,
@@ -21,8 +22,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/natively-dark.png",
-        "backgroundColor": "#000000"
+        "foregroundImage": "./assets/images/cee50603-3984-474d-8f81-0af72a74d36d.png",
+        "backgroundColor": "#1D1D1E"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.Natively"

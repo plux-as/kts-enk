@@ -138,7 +138,9 @@ export default function SetupScreen() {
             </View>
           </View>
         ))}
+      </ScrollView>
 
+      <View style={styles.stickyButtonContainer}>
         <View style={styles.buttonRow}>
           <Pressable
             style={[styles.button, styles.secondaryButton]}
@@ -153,7 +155,7 @@ export default function SetupScreen() {
             <Text style={styles.primaryButtonText}>Fullfør</Text>
           </Pressable>
         </View>
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -162,7 +164,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
     paddingTop: 60,
-    paddingBottom: 40,
+    paddingBottom: 140,
   },
   title: {
     fontSize: 32,
@@ -212,10 +214,20 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
+  stickyButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.background,
+    borderTopWidth: 1,
+    borderTopColor: colors.textSecondary + '40',
+    padding: 20,
+    paddingBottom: 40,
+  },
   buttonRow: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 20,
   },
   button: {
     flex: 1,
@@ -230,7 +242,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
-    marginTop: 20,
     boxShadow: '0px 4px 12px rgba(188, 241, 53, 0.3)',
     elevation: 5,
     minHeight: 56,

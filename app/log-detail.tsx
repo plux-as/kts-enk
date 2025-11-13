@@ -171,11 +171,11 @@ export default function LogDetailScreen() {
       />
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={commonStyles.modalNavBar}>
-          <Pressable onPress={() => router.back()}>
-            <IconSymbol name="chevron.left" color={colors.text} size={24} />
-          </Pressable>
-          <Text style={commonStyles.modalNavBarTitle}>Øktdetaljer</Text>
           <View style={{ width: 24 }} />
+          <Text style={commonStyles.modalNavBarTitle}>Øktdetaljer</Text>
+          <Pressable onPress={() => router.back()}>
+            <IconSymbol name="xmark" color={colors.error} size={24} />
+          </Pressable>
         </View>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
@@ -206,7 +206,9 @@ export default function LogDetailScreen() {
                   return (
                     <View key={item.itemId} style={styles.missingItem}>
                       <View style={styles.missingItemHeader}>
-                        <IconSymbol name="xmark.circle.fill" color={colors.error} size={20} />
+                        <View style={styles.missingItemIconContainer}>
+                          <IconSymbol name="xmark" color={colors.error} size={20} />
+                        </View>
                         <View style={styles.missingItemText}>
                           <Text style={[styles.missingItemName, { fontFamily: bodyFont }]}>{checklistItem.name}</Text>
                           {status?.description && (
@@ -363,6 +365,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 8,
     flex: 1,
+  },
+  missingItemIconContainer: {
+    paddingTop: 2,
   },
   missingItemText: {
     flex: 1,

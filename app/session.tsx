@@ -390,18 +390,20 @@ export default function SessionScreen() {
           </Text>
         </View>
 
-        <View style={styles.bottomButtons}>
-          {currentCategoryIndex > 0 && (
-            <Pressable style={styles.navButton} onPress={handlePrevious}>
-              <Text style={styles.navButtonText}>Forrige</Text>
+        <View style={styles.stickyBottomButtons}>
+          <View style={styles.bottomButtons}>
+            {currentCategoryIndex > 0 && (
+              <Pressable style={styles.navButton} onPress={handlePrevious}>
+                <Text style={styles.navButtonText}>Forrige</Text>
+              </Pressable>
+            )}
+            <Pressable
+              style={[styles.navButton, styles.navButtonPrimary]}
+              onPress={handleNext}
+            >
+              <Text style={styles.navButtonTextPrimary}>Neste</Text>
             </Pressable>
-          )}
-          <Pressable
-            style={[styles.navButton, styles.navButtonPrimary]}
-            onPress={handleNext}
-          >
-            <Text style={styles.navButtonTextPrimary}>Neste</Text>
-          </Pressable>
+          </View>
         </View>
 
         <Modal
@@ -641,7 +643,9 @@ export default function SessionScreen() {
               </Text>
               {ss.missingItems.map((item, index) => (
                 <View key={index} style={styles.summaryItem}>
-                  <IconSymbol name="xmark.circle.fill" color={colors.error} size={20} />
+                  <View style={styles.summaryItemIconContainer}>
+                    <IconSymbol name="xmark" color={colors.error} size={20} />
+                  </View>
                   <View style={styles.summaryItemText}>
                     <Text style={[styles.summaryItemName, { fontFamily: bodyFont }]}>{item.itemName}</Text>
                     {item.description && (
@@ -717,6 +721,17 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 12,
+  },
+  stickyBottomButtons: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.background,
+    borderTopWidth: 1,
+    borderTopColor: colors.textSecondary + '40',
+    padding: 20,
+    paddingBottom: 40,
   },
   scrollContent: {
     padding: 20,
@@ -976,6 +991,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 8,
     gap: 8,
+  },
+  summaryItemIconContainer: {
+    paddingTop: 2,
   },
   summaryItemText: {
     flex: 1,

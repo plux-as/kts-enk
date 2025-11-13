@@ -8,6 +8,8 @@ import {
   Pressable,
   Alert,
   Modal,
+  Linking,
+  Image,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
@@ -44,6 +46,14 @@ export default function AppSettingsScreen() {
         },
       ]
     );
+  };
+
+  const handleOpenWebsite = () => {
+    Linking.openURL('https://3charlie.no');
+  };
+
+  const handleOpenEmail = () => {
+    Linking.openURL('mailto:3charlie@3charlie.no');
   };
 
   return (
@@ -101,24 +111,42 @@ export default function AppSettingsScreen() {
 
         <Modal
           visible={showAboutModal}
-          transparent
+          transparent={false}
           animationType="slide"
           onRequestClose={() => setShowAboutModal(false)}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Om appen</Text>
-                <Pressable onPress={() => setShowAboutModal(false)}>
-                  <IconSymbol name="xmark" color={colors.error} size={24} />
-                </Pressable>
-              </View>
-              <ScrollView style={styles.modalScroll}>
-                <Text style={[styles.aboutText, { fontFamily: bodyFont }]}>
-                  Appen utveksler ikke data med en server eller eksterne tjenester, og kan gjerne brukes i flymodus eller uten dekning. Alle data knyttet til appen lagres kun lokalt på din enhet. Appen er utviklet av 3charlie.no. Tilbakemeldinger og forslag kan sendes til 3charlie@3charlie.no.
-                </Text>
-              </ScrollView>
+          <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
+            <View style={commonStyles.modalNavBar}>
+              <View style={{ width: 24 }} />
+              <Text style={commonStyles.modalNavBarTitle}>Om appen</Text>
+              <Pressable onPress={() => setShowAboutModal(false)}>
+                <IconSymbol name="xmark" color={colors.error} size={24} />
+              </Pressable>
             </View>
+            <ScrollView contentContainerStyle={styles.aboutModalContent}>
+              <Image
+                source={require('@/assets/images/cee50603-3984-474d-8f81-0af72a74d36d.png')}
+                style={styles.aboutLogo}
+                resizeMode="contain"
+              />
+              <Text style={[styles.aboutText, { fontFamily: bodyFont }]}>
+                Appen utveksler ikke data med en server eller eksterne tjenester, og kan gjerne brukes i flymodus eller uten dekning. Alle data knyttet til appen lagres kun lokalt på din enhet.
+              </Text>
+              <Text style={[styles.aboutText, { fontFamily: bodyFont, marginTop: 16 }]}>
+                Appen er utviklet av{' '}
+                <Text style={styles.linkText} onPress={handleOpenWebsite}>
+                  3charlie.no
+                </Text>
+                .
+              </Text>
+              <Text style={[styles.aboutText, { fontFamily: bodyFont, marginTop: 16 }]}>
+                Tilbakemeldinger og forslag kan sendes til{' '}
+                <Text style={styles.linkText} onPress={handleOpenEmail}>
+                  3charlie@3charlie.no
+                </Text>
+                .
+              </Text>
+            </ScrollView>
           </View>
         </Modal>
       </View>
@@ -203,36 +231,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textSecondary,
   },
-  modalOverlay: {
+  fullScreenModal: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'flex-end',
+    backgroundColor: colors.background,
   },
-  modalContent: {
-    backgroundColor: colors.backgroundSecondary,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
-    maxHeight: '80%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  aboutModalContent: {
+    padding: 20,
+    paddingBottom: 40,
     alignItems: 'center',
-    marginBottom: 20,
   },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.text,
-    fontFamily: 'BigShouldersStencil_700Bold',
-  },
-  modalScroll: {
-    maxHeight: 400,
+  aboutLogo: {
+    width: 200,
+    height: 200,
+    marginBottom: 32,
   },
   aboutText: {
     fontSize: 16,
     color: colors.textSecondary,
     lineHeight: 24,
+    textAlign: 'center',
+  },
+  linkText: {
+    color: colors.primary,
+    textDecorationLine: 'underline',
   },
 });

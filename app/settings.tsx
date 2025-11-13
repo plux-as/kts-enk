@@ -122,11 +122,11 @@ export default function SettingsScreen() {
       />
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={commonStyles.modalNavBar}>
-          <Pressable onPress={() => router.back()}>
-            <IconSymbol name="chevron.left" color={colors.text} size={24} />
-          </Pressable>
-          <Text style={commonStyles.modalNavBarTitle}>Rediger Lag</Text>
           <View style={{ width: 24 }} />
+          <Text style={commonStyles.modalNavBarTitle}>Rediger Lag</Text>
+          <Pressable onPress={() => router.back()}>
+            <IconSymbol name="xmark" color={colors.error} size={24} />
+          </Pressable>
         </View>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.section}>
