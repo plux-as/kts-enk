@@ -114,7 +114,7 @@ export default function LogScreen() {
                     </View>
                     <View style={styles.statItem}>
                       <IconSymbol
-                        name={missingCount > 0 ? "xmark.circle.fill" : "checkmark.circle.fill"}
+                        name={missingCount > 0 ? "xmark" : "checkmark.circle.fill"}
                         color={missingCount > 0 ? colors.error : colors.primary}
                         size={20}
                       />

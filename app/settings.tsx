@@ -118,6 +118,7 @@ export default function SettingsScreen() {
       <Stack.Screen
         options={{
           headerShown: false,
+          presentation: 'fullScreenModal',
         }}
       />
       <View style={[styles.container, { paddingTop: insets.top }]}>

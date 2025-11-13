@@ -95,7 +95,6 @@ export default function LogDetailScreen() {
         setSession(updatedSession);
         setEditingItem(null);
         setDescriptionText('');
-        Alert.alert('Suksess', 'Beskrivelse oppdatert');
       }
     } catch (error) {
       console.error('Error saving description:', error);
@@ -167,6 +166,7 @@ export default function LogDetailScreen() {
       <Stack.Screen
         options={{
           headerShown: false,
+          presentation: 'fullScreenModal',
         }}
       />
       <View style={[styles.container, { paddingTop: insets.top }]}>

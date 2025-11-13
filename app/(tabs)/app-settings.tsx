@@ -73,7 +73,7 @@ export default function AppSettingsScreen() {
               <IconSymbol name="pencil.and.list.clipboard" color={colors.primary} size={32} />
             </View>
             <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>Rediger sjekkliste</Text>
+              <Text style={styles.optionTitle}>Rediger KTS-liste</Text>
               <Text style={[styles.optionDescription, { fontFamily: bodyFont }]}>
                 Legg til, rediger eller slett kategorier og sjekkliste-elementer
               </Text>

@@ -8,6 +8,7 @@ import {
   Pressable,
   ScrollView,
   Alert,
+  Image,
 } from "react-native";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors, commonStyles, bodyFont } from "@/styles/commonStyles";
@@ -86,11 +87,15 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.mainButtonContainer}>
+            <Image
+              source={require('@/assets/images/f54512be-2d40-4d54-93d7-66c0b49c0292.png')}
+              style={styles.startIcon}
+              resizeMode="contain"
+            />
             <Pressable
               style={styles.startButton}
               onPress={handleStartSession}
             >
-              <IconSymbol name="checkmark.circle.fill" color="#000" size={48} />
               <Text style={styles.startButtonText}>Start KTS</Text>
             </Pressable>
           </View>
@@ -153,6 +158,12 @@ const styles = StyleSheet.create({
   },
   mainButtonContainer: {
     marginVertical: 30,
+    alignItems: 'center',
+  },
+  startIcon: {
+    width: 120,
+    height: 120,
+    marginBottom: 24,
   },
   startButton: {
     backgroundColor: colors.primary,
@@ -162,12 +173,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     boxShadow: '0px 4px 12px rgba(188, 241, 53, 0.3)',
     elevation: 5,
+    width: '100%',
   },
   startButtonText: {
     fontSize: 32,
     fontWeight: '800',
     color: '#000',
-    marginTop: 12,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
 });

@@ -217,12 +217,13 @@ export default function EditChecklistScreen() {
       <Stack.Screen
         options={{
           headerShown: false,
+          presentation: 'fullScreenModal',
         }}
       />
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={commonStyles.modalNavBar}>
           <View style={{ width: 24 }} />
-          <Text style={commonStyles.modalNavBarTitle}>Rediger Sjekkliste</Text>
+          <Text style={commonStyles.modalNavBarTitle}>Rediger KTS-liste</Text>
           <Pressable onPress={() => router.back()}>
             <IconSymbol name="xmark" color={colors.error} size={24} />
           </Pressable>
