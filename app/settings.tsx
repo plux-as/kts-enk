@@ -10,15 +10,17 @@ import {
   Alert,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
-import { colors } from '@/styles/commonStyles';
+import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
 import { Soldier, SquadSettings } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function SettingsScreen() {
   const [squadName, setSquadName] = useState('');
   const [soldiers, setSoldiers] = useState<Soldier[]>([]);
   const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadSettings();
@@ -105,8 +107,8 @@ export default function SettingsScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <Text style={styles.text}>Laster...</Text>
+      <View style={[styles.container, styles.centerContent, { paddingTop: insets.top }]}>
+        <Text style={[styles.text, { fontFamily: bodyFont }]}>Laster...</Text>
       </View>
     );
   }
@@ -115,26 +117,23 @@ export default function SettingsScreen() {
     <>
       <Stack.Screen
         options={{
-          headerShown: true,
-          headerTitle: 'Rediger Lag',
-          headerBackVisible: true,
-          headerStyle: {
-            backgroundColor: colors.background,
-          },
-          headerTintColor: colors.text,
-          headerTitleStyle: {
-            fontFamily: 'BigShouldersStencil_700Bold',
-            fontSize: 24,
-          },
+          headerShown: false,
         }}
       />
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={commonStyles.modalNavBar}>
+          <Pressable onPress={() => router.back()}>
+            <IconSymbol name="chevron.left" color={colors.text} size={24} />
+          </Pressable>
+          <Text style={commonStyles.modalNavBarTitle}>Rediger Lag</Text>
+          <View style={{ width: 24 }} />
+        </View>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.section}>
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Lagsnavn</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { fontFamily: bodyFont }]}
                 value={squadName}
                 onChangeText={setSquadName}
                 placeholder="F.eks. Alfa Lag"
@@ -153,13 +152,13 @@ export default function SettingsScreen() {
                 <View style={styles.soldierHeader}>
                   <Text style={styles.soldierNumber}>Soldat {index + 1}</Text>
                   <Pressable onPress={() => removeSoldier(index)}>
-                    <IconSymbol name="trash" color={colors.secondary} size={20} />
+                    <IconSymbol name="trash" color={colors.error} size={20} />
                   </Pressable>
                 </View>
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Navn</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { fontFamily: bodyFont }]}
                     value={soldier.name}
                     onChangeText={(value) => updateSoldier(index, 'name', value)}
                     placeholder="F.eks. Ole Hansen"
@@ -169,7 +168,7 @@ export default function SettingsScreen() {
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Rolle (valgfritt)</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { fontFamily: bodyFont }]}
                     value={soldier.role}
                     onChangeText={(value) => updateSoldier(index, 'role', value)}
                     placeholder="F.eks. Skytter"
@@ -210,7 +209,6 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 18,
     color: colors.text,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   section: {
     marginBottom: 32,
@@ -244,15 +242,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.text,
     borderWidth: 1,
-    borderColor: colors.textSecondary + '40',
-    fontFamily: 'BigShouldersStencil_400Regular',
+    borderColor: colors.inputBorder,
   },
   soldierCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
   },
   soldierHeader: {
@@ -291,7 +288,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     marginBottom: 12,
-    boxShadow: '0px 4px 12px rgba(76, 175, 80, 0.3)',
+    boxShadow: '0px 4px 12px rgba(188, 241, 53, 0.3)',
     elevation: 5,
     minHeight: 56,
     justifyContent: 'center',
@@ -299,7 +296,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#000',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
 });

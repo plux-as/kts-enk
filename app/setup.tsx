@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { colors, commonStyles } from '@/styles/commonStyles';
+import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
 import { Soldier } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
@@ -74,12 +74,12 @@ export default function SetupScreen() {
       <View style={commonStyles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.title}>Oppsett av Lag</Text>
-          <Text style={styles.subtitle}>Definer lagets detaljer</Text>
+          <Text style={[styles.subtitle, { fontFamily: bodyFont }]}>Definer lagets detaljer</Text>
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Lagsnavn</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { fontFamily: bodyFont }]}
               value={squadName}
               onChangeText={setSquadName}
               placeholder="F.eks. 2 Alfa"
@@ -90,7 +90,7 @@ export default function SetupScreen() {
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Antall Soldater</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { fontFamily: bodyFont }]}
               value={numberOfSoldiers}
               onChangeText={setNumberOfSoldiers}
               placeholder="F.eks. 8"
@@ -111,7 +111,7 @@ export default function SetupScreen() {
     <View style={commonStyles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>Soldater</Text>
-        <Text style={styles.subtitle}>Definer navn og rolle for hver soldat</Text>
+        <Text style={[styles.subtitle, { fontFamily: bodyFont }]}>Definer navn og rolle for hver soldat</Text>
 
         {soldiers.map((soldier, index) => (
           <View key={soldier.id} style={styles.soldierCard}>
@@ -119,7 +119,7 @@ export default function SetupScreen() {
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Navn</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { fontFamily: bodyFont }]}
                 value={soldier.name}
                 onChangeText={(value) => updateSoldier(index, 'name', value)}
                 placeholder="F.eks. Ole Hansen"
@@ -129,7 +129,7 @@ export default function SetupScreen() {
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Rolle (valgfritt)</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { fontFamily: bodyFont }]}
                 value={soldier.role}
                 onChangeText={(value) => updateSoldier(index, 'role', value)}
                 placeholder="F.eks. Geværsoldat"
@@ -177,7 +177,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 32,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   inputContainer: {
     marginBottom: 20,
@@ -196,15 +195,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.text,
     borderWidth: 1,
-    borderColor: colors.textSecondary + '40',
-    fontFamily: 'BigShouldersStencil_400Regular',
+    borderColor: colors.inputBorder,
   },
   soldierCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
   },
   soldierNumber: {
@@ -233,7 +231,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     marginTop: 20,
-    boxShadow: '0px 4px 12px rgba(76, 175, 80, 0.3)',
+    boxShadow: '0px 4px 12px rgba(188, 241, 53, 0.3)',
     elevation: 5,
     minHeight: 56,
     justifyContent: 'center',
@@ -241,18 +239,18 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#000',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   secondaryButton: {
     backgroundColor: colors.card,
     borderWidth: 2,
-    borderColor: colors.textSecondary,
+    borderColor: colors.primary,
   },
   secondaryButtonText: {
     fontSize: 22,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.primary,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
 });

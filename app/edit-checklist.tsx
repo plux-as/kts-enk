@@ -11,10 +11,11 @@ import {
   Modal,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
-import { colors } from '@/styles/commonStyles';
+import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
 import { ChecklistCategory, ChecklistItem } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function EditChecklistScreen() {
   const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
@@ -30,6 +31,7 @@ export default function EditChecklistScreen() {
   } | null>(null);
   const [categoryName, setCategoryName] = useState('');
   const [itemName, setItemName] = useState('');
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadChecklist();
@@ -204,8 +206,8 @@ export default function EditChecklistScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <Text style={styles.text}>Laster...</Text>
+      <View style={[styles.container, styles.centerContent, { paddingTop: insets.top }]}>
+        <Text style={[styles.text, { fontFamily: bodyFont }]}>Laster...</Text>
       </View>
     );
   }
@@ -214,17 +216,19 @@ export default function EditChecklistScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Rediger Sjekkliste',
-          headerBackTitle: 'Tilbake',
+          headerShown: false,
         }}
       />
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={commonStyles.modalNavBar}>
+          <Pressable onPress={() => router.back()}>
+            <IconSymbol name="chevron.left" color={colors.text} size={24} />
+          </Pressable>
+          <Text style={commonStyles.modalNavBarTitle}>Rediger Sjekkliste</Text>
+          <View style={{ width: 24 }} />
+        </View>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Kategorier og Elementer</Text>
-            </View>
-
             {checklist.map(category => (
               <View key={category.id} style={styles.categoryCard}>
                 <View style={styles.categoryHeader}>
@@ -234,7 +238,7 @@ export default function EditChecklistScreen() {
                       <IconSymbol name="pencil" color={colors.accent} size={20} />
                     </Pressable>
                     <Pressable onPress={() => handleDeleteCategory(category.id)}>
-                      <IconSymbol name="trash" color={colors.secondary} size={20} />
+                      <IconSymbol name="trash" color={colors.error} size={20} />
                     </Pressable>
                   </View>
                 </View>
@@ -242,7 +246,7 @@ export default function EditChecklistScreen() {
                 <View style={styles.itemsContainer}>
                   {category.items.map(item => (
                     <View key={item.id} style={styles.itemRow}>
-                      <Text style={styles.itemName} numberOfLines={2}>
+                      <Text style={[styles.itemName, { fontFamily: bodyFont }]} numberOfLines={2}>
                         {item.name}
                       </Text>
                       <View style={styles.itemActions}>
@@ -250,7 +254,7 @@ export default function EditChecklistScreen() {
                           <IconSymbol name="pencil" color={colors.accent} size={18} />
                         </Pressable>
                         <Pressable onPress={() => handleDeleteItem(category.id, item.id)}>
-                          <IconSymbol name="trash" color={colors.secondary} size={18} />
+                          <IconSymbol name="trash" color={colors.error} size={18} />
                         </Pressable>
                       </View>
                     </View>
@@ -286,11 +290,16 @@ export default function EditChecklistScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>
-                {editingCategory?.id ? 'Rediger Kategori' : 'Ny Kategori'}
-              </Text>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  {editingCategory?.id ? 'Rediger Kategori' : 'Ny Kategori'}
+                </Text>
+                <Pressable onPress={() => setEditingCategory(null)}>
+                  <IconSymbol name="xmark" color={colors.error} size={24} />
+                </Pressable>
+              </View>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { fontFamily: bodyFont }]}
                 value={categoryName}
                 onChangeText={setCategoryName}
                 placeholder="Kategorinavn"
@@ -322,11 +331,16 @@ export default function EditChecklistScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>
-                {editingItem?.id ? 'Rediger Element' : 'Nytt Element'}
-              </Text>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  {editingItem?.id ? 'Rediger Element' : 'Nytt Element'}
+                </Text>
+                <Pressable onPress={() => setEditingItem(null)}>
+                  <IconSymbol name="xmark" color={colors.error} size={24} />
+                </Pressable>
+              </View>
               <TextInput
-                style={[styles.modalInput, styles.modalInputMultiline]}
+                style={[styles.modalInput, styles.modalInputMultiline, { fontFamily: bodyFont }]}
                 value={itemName}
                 onChangeText={setItemName}
                 placeholder="Elementnavn"
@@ -372,29 +386,16 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 18,
     color: colors.text,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   section: {
     marginBottom: 32,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.text,
-    fontFamily: 'BigShouldersStencil_700Bold',
   },
   categoryCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
   },
   categoryHeader: {
@@ -433,7 +434,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
     flex: 1,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   itemActions: {
     flexDirection: 'row',
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
     marginBottom: 12,
-    boxShadow: '0px 4px 12px rgba(76, 175, 80, 0.3)',
+    boxShadow: '0px 4px 12px rgba(188, 241, 53, 0.3)',
     elevation: 5,
     minHeight: 56,
     justifyContent: 'center',
@@ -493,29 +493,33 @@ const styles = StyleSheet.create({
   finishButtonText: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#000',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContent: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 16,
     padding: 24,
     width: '100%',
     maxWidth: 400,
   },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   modalTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 16,
-    textAlign: 'center',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   modalInput: {
@@ -524,7 +528,8 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     color: colors.text,
-    fontFamily: 'BigShouldersStencil_400Regular',
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
   },
   modalInputMultiline: {
     minHeight: 80,
@@ -540,9 +545,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
+    minHeight: 48,
+    justifyContent: 'center',
   },
   modalButtonCancel: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.card,
+    borderWidth: 2,
+    borderColor: colors.primary,
   },
   modalButtonSave: {
     backgroundColor: colors.primary,
@@ -550,13 +559,13 @@ const styles = StyleSheet.create({
   modalButtonText: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.primary,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   modalButtonTextSave: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#000',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
 });

@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { Stack, router } from "expo-router";
+import { Stack, router, useFocusEffect } from "expo-router";
 import {
   View,
   Text,
@@ -10,14 +10,16 @@ import {
   Alert,
 } from "react-native";
 import { IconSymbol } from "@/components/IconSymbol";
-import { colors, commonStyles } from "@/styles/commonStyles";
+import { colors, commonStyles, bodyFont } from "@/styles/commonStyles";
 import { storage } from "@/utils/storage";
 import { SquadSettings } from "@/types/checklist";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const [squadSettings, setSquadSettings] = useState<SquadSettings | null>(null);
   const [isSetupComplete, setIsSetupComplete] = useState(false);
   const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadData();
@@ -53,7 +55,7 @@ export default function HomeScreen() {
   if (loading) {
     return (
       <View style={[commonStyles.container, styles.centerContent]}>
-        <Text style={commonStyles.text}>Laster...</Text>
+        <Text style={[commonStyles.text, { fontFamily: bodyFont }]}>Laster...</Text>
       </View>
     );
   }
@@ -62,10 +64,10 @@ export default function HomeScreen() {
     <>
       <Stack.Screen
         options={{
-          title: "KTS Enkeltsoldat",
+          headerShown: false,
         }}
       />
-      <View style={commonStyles.container}>
+      <View style={[commonStyles.container, { paddingTop: insets.top }]}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -88,7 +90,7 @@ export default function HomeScreen() {
               style={styles.startButton}
               onPress={handleStartSession}
             >
-              <IconSymbol name="checkmark.circle.fill" color="#FFFFFF" size={48} />
+              <IconSymbol name="checkmark.circle.fill" color="#000" size={48} />
               <Text style={styles.startButtonText}>Start KTS</Text>
             </Pressable>
           </View>
@@ -127,7 +129,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     width: '100%',
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
   },
   squadName: {
@@ -140,7 +142,7 @@ const styles = StyleSheet.create({
   squadDetail: {
     fontSize: 18,
     color: colors.textSecondary,
-    fontFamily: 'BigShouldersStencil_400Regular',
+    fontFamily: bodyFont,
     marginBottom: 8,
   },
   editLabel: {
@@ -158,13 +160,13 @@ const styles = StyleSheet.create({
     padding: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0px 4px 12px rgba(76, 175, 80, 0.3)',
+    boxShadow: '0px 4px 12px rgba(188, 241, 53, 0.3)',
     elevation: 5,
   },
   startButtonText: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#000',
     marginTop: 12,
     fontFamily: 'BigShouldersStencil_700Bold',
   },

@@ -1,32 +1,28 @@
 
-import { StyleSheet, ViewStyle, TextStyle, useColorScheme } from 'react-native';
+import { StyleSheet, ViewStyle, TextStyle, Platform } from 'react-native';
 
-// Light mode colors
-const lightColors = {
-  background: '#f0f0f0',
-  text: '#1e1e1e',
-  textSecondary: '#666666',
-  primary: '#4CAF50',
-  secondary: '#F44336',
-  accent: '#2196F3',
-  card: '#FFFFFF',
-  highlight: '#FFEB3B',
+// Dark theme colors (used in both light and dark mode as requested)
+export const colors = {
+  background: '#1D1D1E',
+  backgroundSecondary: '#0F0F0F',
+  backgroundTertiary: '#000',
+  text: '#fff',
+  textSecondary: '#ccc',
+  primary: '#BCF135',
+  secondary: '#FF9999',
+  accent: '#BCF135',
+  card: '#0F0F0F',
+  checkmark: '#0F0F0F',
+  inputBorder: '#444',
+  error: '#FF9999',
 };
 
-// Dark mode colors
-const darkColors = {
-  background: '#1e1e1e',
-  text: '#f0f0f0',
-  textSecondary: '#999999',
-  primary: '#4CAF50',
-  secondary: '#F44336',
-  accent: '#2196F3',
-  card: '#2e2e2e',
-  highlight: '#FFEB3B',
-};
-
-// Export light colors as default for now
-export const colors = lightColors;
+// System fonts for body text
+export const bodyFont = Platform.select({
+  ios: 'System',
+  android: 'Roboto',
+  default: 'System',
+});
 
 export const buttonStyles = StyleSheet.create({
   primaryButton: {
@@ -35,7 +31,9 @@ export const buttonStyles = StyleSheet.create({
     width: '100%',
   },
   secondaryButton: {
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.card,
+    borderWidth: 2,
+    borderColor: colors.primary,
     alignSelf: 'center',
     width: '100%',
   },
@@ -80,7 +78,7 @@ export const commonStyles = StyleSheet.create({
     marginBottom: 8,
     lineHeight: 26,
     textAlign: 'center',
-    fontFamily: 'BigShouldersStencil_400Regular',
+    fontFamily: bodyFont,
   },
   section: {
     width: '100%',
@@ -98,12 +96,39 @@ export const commonStyles = StyleSheet.create({
     padding: 16,
     marginVertical: 8,
     width: '100%',
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
   },
   icon: {
     width: 60,
     height: 60,
     tintColor: colors.text,
+  },
+  navBar: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 12,
+    backgroundColor: colors.background,
+  },
+  navBarTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  modalNavBar: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 12,
+    backgroundColor: colors.backgroundSecondary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  modalNavBarTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_700Bold',
   },
 });

@@ -10,13 +10,13 @@ export default function TabLayout() {
   const tabs: TabBarItem[] = [
     {
       route: '/(tabs)/(home)',
-      label: 'Hjem',
+      label: 'Start',
       icon: 'house.fill',
     },
     {
       route: '/(tabs)/log',
       label: 'Logg',
-      icon: 'history',
+      icon: 'clock.fill',
     },
     {
       route: '/(tabs)/app-settings',
@@ -32,9 +32,9 @@ export default function TabLayout() {
           <NativeTabs.Trigger
             name="(home)"
             options={{
-              title: 'Hjem',
+              title: 'Start',
               tabBarIcon: ({ color }) => <Icon name="house.fill" color={color} />,
-              tabBarLabel: ({ color }) => <Label color={color}>Hjem</Label>,
+              tabBarLabel: ({ color }) => <Label color={color}>Start</Label>,
             }}
           />
           <NativeTabs.Trigger

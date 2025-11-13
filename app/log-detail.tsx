@@ -11,10 +11,11 @@ import {
   Alert,
 } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { colors } from '@/styles/commonStyles';
+import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
 import { ChecklistSession, ChecklistCategory } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function LogDetailScreen() {
   const { sessionId } = useLocalSearchParams();
@@ -28,6 +29,7 @@ export default function LogDetailScreen() {
     description: string;
   } | null>(null);
   const [descriptionText, setDescriptionText] = useState('');
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadData();
@@ -143,16 +145,16 @@ export default function LogDetailScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <Text style={styles.text}>Laster...</Text>
+      <View style={[styles.container, styles.centerContent, { paddingTop: insets.top }]}>
+        <Text style={[styles.text, { fontFamily: bodyFont }]}>Laster...</Text>
       </View>
     );
   }
 
   if (!session) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <Text style={styles.text}>Økt ikke funnet</Text>
+      <View style={[styles.container, styles.centerContent, { paddingTop: insets.top }]}>
+        <Text style={[styles.text, { fontFamily: bodyFont }]}>Økt ikke funnet</Text>
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <Text style={styles.backButtonText}>Tilbake</Text>
         </Pressable>
@@ -164,15 +166,21 @@ export default function LogDetailScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Øktdetaljer',
-          headerBackTitle: 'Tilbake',
+          headerShown: false,
         }}
       />
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={commonStyles.modalNavBar}>
+          <Pressable onPress={() => router.back()}>
+            <IconSymbol name="chevron.left" color={colors.text} size={24} />
+          </Pressable>
+          <Text style={commonStyles.modalNavBarTitle}>Øktdetaljer</Text>
+          <View style={{ width: 24 }} />
+        </View>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
             <Text style={styles.title}>KTS {session.date} {session.time}</Text>
-            <Text style={styles.subtitle}>{session.squadName}</Text>
+            <Text style={[styles.subtitle, { fontFamily: bodyFont }]}>{session.squadName}</Text>
           </View>
 
           {session.soldiers.map(soldier => {
@@ -198,11 +206,11 @@ export default function LogDetailScreen() {
                   return (
                     <View key={item.itemId} style={styles.missingItem}>
                       <View style={styles.missingItemHeader}>
-                        <IconSymbol name="xmark.circle.fill" color={colors.secondary} size={20} />
+                        <IconSymbol name="xmark.circle.fill" color={colors.error} size={20} />
                         <View style={styles.missingItemText}>
-                          <Text style={styles.missingItemName}>{checklistItem.name}</Text>
+                          <Text style={[styles.missingItemName, { fontFamily: bodyFont }]}>{checklistItem.name}</Text>
                           {status?.description && (
-                            <Text style={styles.missingItemDesc}>{status.description}</Text>
+                            <Text style={[styles.missingItemDesc, { fontFamily: bodyFont }]}>{status.description}</Text>
                           )}
                         </View>
                       </View>
@@ -213,7 +221,7 @@ export default function LogDetailScreen() {
                             handleMarkAsOk(soldier.id, item.categoryId, item.itemId)
                           }
                         >
-                          <IconSymbol name="checkmark.circle.fill" color={colors.primary} size={32} />
+                          <IconSymbol name="checkmark.circle.fill" color={colors.primary} size={36} />
                         </Pressable>
                         <Pressable
                           style={styles.actionButton}
@@ -226,7 +234,7 @@ export default function LogDetailScreen() {
                             )
                           }
                         >
-                          <IconSymbol name="pencil" color={colors.accent} size={18} />
+                          <IconSymbol name="pencil" color={colors.accent} size={20} />
                         </Pressable>
                       </View>
                     </View>
@@ -256,9 +264,14 @@ export default function LogDetailScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Rediger beskrivelse</Text>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Rediger beskrivelse</Text>
+                <Pressable onPress={() => setEditingItem(null)}>
+                  <IconSymbol name="xmark" color={colors.error} size={24} />
+                </Pressable>
+              </View>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { fontFamily: bodyFont }]}
                 value={descriptionText}
                 onChangeText={setDescriptionText}
                 placeholder="Beskriv problemet..."
@@ -304,7 +317,6 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 18,
     color: colors.text,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   header: {
     alignItems: 'center',
@@ -321,14 +333,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: colors.textSecondary,
     marginTop: 4,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   soldierCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
   },
   soldierName: {
@@ -360,13 +371,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: colors.text,
-    fontFamily: 'BigShouldersStencil_700Bold',
   },
   missingItemDesc: {
     fontSize: 16,
     color: colors.textSecondary,
     marginTop: 4,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   itemActions: {
     flexDirection: 'row',
@@ -381,7 +390,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 32,
     alignItems: 'center',
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
   },
   noIssuesText: {
@@ -400,29 +409,33 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#000',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContent: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 16,
     padding: 24,
     width: '100%',
     maxWidth: 400,
   },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   modalTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 16,
-    textAlign: 'center',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   modalInput: {
@@ -433,7 +446,8 @@ const styles = StyleSheet.create({
     color: colors.text,
     minHeight: 100,
     textAlignVertical: 'top',
-    fontFamily: 'BigShouldersStencil_400Regular',
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -445,9 +459,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
+    minHeight: 48,
+    justifyContent: 'center',
   },
   modalButtonCancel: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.card,
+    borderWidth: 2,
+    borderColor: colors.primary,
   },
   modalButtonSave: {
     backgroundColor: colors.primary,
@@ -455,13 +473,13 @@ const styles = StyleSheet.create({
   modalButtonText: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.primary,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   modalButtonTextSave: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#000',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
 });

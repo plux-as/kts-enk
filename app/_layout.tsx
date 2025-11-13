@@ -19,6 +19,7 @@ import {
   BigShouldersStencil_400Regular,
   BigShouldersStencil_700Bold,
 } from '@expo-google-fonts/big-shoulders-stencil';
+import { colors } from '@/styles/commonStyles';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -44,37 +45,23 @@ export default function RootLayout() {
     return null;
   }
 
-  const CustomDefaultTheme: Theme = {
-    ...DefaultTheme,
-    dark: false,
-    colors: {
-      primary: "#4CAF50",
-      background: "#f0f0f0",
-      card: "#FFFFFF",
-      text: "#1e1e1e",
-      border: "#e0e0e0",
-      notification: "#F44336",
-    },
-  };
-
+  // Always use dark theme as requested
   const CustomDarkTheme: Theme = {
     ...DarkTheme,
     colors: {
-      primary: "#4CAF50",
-      background: "#1e1e1e",
-      card: "#2e2e2e",
-      text: "#f0f0f0",
-      border: "#3e3e3e",
-      notification: "#F44336",
+      primary: colors.primary,
+      background: colors.background,
+      card: colors.card,
+      text: colors.text,
+      border: colors.inputBorder,
+      notification: colors.error,
     },
   };
 
   return (
     <>
-      <StatusBar style="auto" animated />
-      <ThemeProvider
-        value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
-      >
+      <StatusBar style="light" animated />
+      <ThemeProvider value={CustomDarkTheme}>
         <WidgetProvider>
           <GestureHandlerRootView>
             <Stack>
@@ -97,25 +84,25 @@ export default function RootLayout() {
                 name="settings"
                 options={{
                   presentation: "modal",
-                  title: "Rediger Lag",
+                  headerShown: false,
                 }}
               />
               <Stack.Screen
                 name="edit-checklist"
                 options={{
                   presentation: "modal",
-                  title: "Rediger Sjekkliste",
+                  headerShown: false,
                 }}
               />
               <Stack.Screen
                 name="log-detail"
                 options={{
                   presentation: "modal",
-                  title: "Øktdetaljer",
+                  headerShown: false,
                 }}
               />
             </Stack>
-            <SystemBars style={"auto"} />
+            <SystemBars style={"light"} />
           </GestureHandlerRootView>
         </WidgetProvider>
       </ThemeProvider>

@@ -6,30 +6,43 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
+  RefreshControl,
 } from 'react-native';
-import { Stack, router } from 'expo-router';
-import { colors } from '@/styles/commonStyles';
+import { Stack, router, useFocusEffect } from 'expo-router';
+import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
 import { ChecklistSession } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function LogScreen() {
   const [sessions, setSessions] = useState<ChecklistSession[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const insets = useSafeAreaInsets();
 
-  useEffect(() => {
-    loadSessions();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadSessions();
+    }, [])
+  );
 
   const loadSessions = async () => {
     try {
       const data = await storage.getSessions();
       setSessions(data);
+      console.log('Sessions loaded:', data.length);
     } catch (error) {
       console.error('Error loading sessions:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadSessions();
   };
 
   const handleViewSession = (session: ChecklistSession) => {
@@ -42,7 +55,7 @@ export default function LogScreen() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <Text style={styles.text}>Laster...</Text>
+        <Text style={[styles.text, { fontFamily: bodyFont }]}>Laster...</Text>
       </View>
     );
   }
@@ -51,19 +64,29 @@ export default function LogScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Logg',
+          headerShown: false,
         }}
       />
-      <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerTitle}>Logg</Text>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={commonStyles.navBar}>
+          <Text style={commonStyles.navBarTitle}>Logg</Text>
         </View>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
+        >
           {sessions.length === 0 ? (
             <View style={styles.emptyState}>
               <IconSymbol name="list.bullet" color={colors.textSecondary} size={64} />
               <Text style={styles.emptyText}>Ingen økter registrert</Text>
-              <Text style={styles.emptySubtext}>
+              <Text style={[styles.emptySubtext, { fontFamily: bodyFont }]}>
                 Start en ny KTS-økt fra hjemmeskjermen
               </Text>
             </View>
@@ -87,15 +110,15 @@ export default function LogScreen() {
                   <View style={styles.sessionStats}>
                     <View style={styles.statItem}>
                       <IconSymbol name="person.fill" color={colors.accent} size={20} />
-                      <Text style={styles.statText}>{session.soldiers.length} soldater</Text>
+                      <Text style={[styles.statText, { fontFamily: bodyFont }]}>{session.soldiers.length} soldater</Text>
                     </View>
                     <View style={styles.statItem}>
                       <IconSymbol
-                        name="xmark.circle.fill"
-                        color={missingCount > 0 ? colors.secondary : colors.primary}
+                        name={missingCount > 0 ? "xmark.circle.fill" : "checkmark.circle.fill"}
+                        color={missingCount > 0 ? colors.error : colors.primary}
                         size={20}
                       />
-                      <Text style={styles.statText}>{missingCount} mangler</Text>
+                      <Text style={[styles.statText, { fontFamily: bodyFont }]}>{missingCount} mangler</Text>
                     </View>
                   </View>
                 </Pressable>
@@ -117,17 +140,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerContainer: {
-    padding: 20,
-    paddingTop: 32,
-    paddingBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: colors.text,
-    fontFamily: 'BigShouldersStencil_700Bold',
-  },
   scrollContent: {
     padding: 20,
     paddingTop: 0,
@@ -136,7 +148,6 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 18,
     color: colors.text,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   emptyState: {
     alignItems: 'center',
@@ -155,14 +166,13 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 8,
     textAlign: 'center',
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   sessionCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
   },
   sessionHeader: {
@@ -187,6 +197,5 @@ const styles = StyleSheet.create({
   statText: {
     fontSize: 16,
     color: colors.text,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
 });

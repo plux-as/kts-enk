@@ -9,10 +9,9 @@ import {
   Alert,
   TextInput,
   Modal,
-  Clipboard,
 } from 'react-native';
 import { router } from 'expo-router';
-import { colors } from '@/styles/commonStyles';
+import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
 import {
   ChecklistCategory,
@@ -25,7 +24,8 @@ import {
   MissingItem,
 } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
-import * as Speech from 'expo-speech';
+import * as Clipboard from 'expo-clipboard';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ScreenType = 'category' | 'item' | 'summary';
 
@@ -39,8 +39,9 @@ export default function SessionScreen() {
   const [loading, setLoading] = useState(true);
   const [editingSoldierId, setEditingSoldierId] = useState<string | null>(null);
   const [descriptionText, setDescriptionText] = useState('');
-  const [isListening, setIsListening] = useState(false);
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [showAllOkAnimation, setShowAllOkAnimation] = useState(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadData();
@@ -125,7 +126,7 @@ export default function SessionScreen() {
     }
   };
 
-  const handleAllOk = () => {
+  const handleAllOk = async () => {
     if (screenType !== 'item' || !squadSettings) return;
 
     const currentCategory = checklist[currentCategoryIndex];
@@ -147,6 +148,11 @@ export default function SessionScreen() {
       return updated;
     });
 
+    // Show animation briefly
+    setShowAllOkAnimation(true);
+    await new Promise(resolve => setTimeout(resolve, 300));
+    setShowAllOkAnimation(false);
+    
     handleNext();
   };
 
@@ -238,14 +244,6 @@ export default function SessionScreen() {
     setDescriptionText('');
   };
 
-  const handleVoiceInput = () => {
-    Alert.alert(
-      'Talegjenkjenning',
-      'Talegjenkjenning er ikke tilgjengelig i denne versjonen. Vennligst skriv inn tekst manuelt.',
-      [{ text: 'OK' }]
-    );
-  };
-
   const handleShowSummary = () => {
     setScreenType('summary');
   };
@@ -298,7 +296,7 @@ export default function SessionScreen() {
     };
   };
 
-  const handleExportSummary = () => {
+  const handleExportSummary = async () => {
     const summary = generateSummary();
     let text = `KTS Oppsummering\n`;
     text += `Lag: ${summary.squadName}\n`;
@@ -318,20 +316,13 @@ export default function SessionScreen() {
       }
     });
 
-    Alert.alert(
-      'Eksporter',
-      text,
-      [
-        {
-          text: 'Kopier tekst',
-          onPress: () => {
-            Clipboard.setString(text);
-            Alert.alert('Kopiert', 'Kopiert. Du kan nå lime inn teksten der du ønsker');
-          },
-        },
-      ],
-      { cancelable: true }
-    );
+    try {
+      await Clipboard.setStringAsync(text);
+      Alert.alert('Kopiert', 'Kopiert. Du kan nå lime inn teksten der du ønsker');
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      Alert.alert('Feil', 'Kunne ikke kopiere til utklippstavlen');
+    }
   };
 
   const handleFinish = async () => {
@@ -370,8 +361,8 @@ export default function SessionScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <Text style={styles.text}>Laster...</Text>
+      <View style={[styles.container, styles.centerContent, { paddingTop: insets.top }]}>
+        <Text style={[styles.text, { fontFamily: bodyFont }]}>Laster...</Text>
       </View>
     );
   }
@@ -379,20 +370,22 @@ export default function SessionScreen() {
   if (screenType === 'category') {
     const currentCategory = checklist[currentCategoryIndex];
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={commonStyles.modalNavBar}>
+          <View style={{ width: 24 }} />
+          <Text style={commonStyles.modalNavBarTitle}>KTS</Text>
+          <Pressable onPress={handleExit} style={styles.exitButton}>
+            <IconSymbol name="xmark" color={colors.error} size={24} />
+          </Pressable>
+        </View>
+
         <View style={styles.progressBarContainer}>
           <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
         </View>
 
-        <View style={styles.header}>
-          <Pressable onPress={handleExit} style={styles.exitButton}>
-            <IconSymbol name="xmark" color={colors.text} size={24} />
-          </Pressable>
-        </View>
-
         <View style={styles.content}>
           <Text style={styles.categoryTitle}>{currentCategory.name}</Text>
-          <Text style={styles.categorySubtitle}>
+          <Text style={[styles.categorySubtitle, { fontFamily: bodyFont }]}>
             Kategori {currentCategoryIndex + 1} av {checklist.length}
           </Text>
         </View>
@@ -449,43 +442,47 @@ export default function SessionScreen() {
     );
 
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={commonStyles.modalNavBar}>
+          <View style={{ width: 24 }} />
+          <Text style={commonStyles.modalNavBarTitle}>KTS</Text>
+          <Pressable onPress={handleExit} style={styles.exitButton}>
+            <IconSymbol name="xmark" color={colors.error} size={24} />
+          </Pressable>
+        </View>
+
         <View style={styles.progressBarContainer}>
           <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
         </View>
 
-        <View style={styles.header}>
-          <Pressable onPress={handleExit} style={styles.exitButton}>
-            <IconSymbol name="xmark" color={colors.text} size={24} />
-          </Pressable>
-        </View>
-
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.itemCategory}>{currentCategory.name}</Text>
+          <Text style={[styles.itemCategory, { fontFamily: bodyFont }]}>{currentCategory.name}</Text>
           <Text style={styles.itemName}>{currentItem.name}</Text>
 
           <View style={styles.soldiersList}>
             {squadSettings?.soldiers.map(soldier => {
               const status = currentData?.statuses.find(s => s.soldierId === soldier.id);
+              const isChecked = showAllOkAnimation || status?.status === 'fulfilled';
+              
               return (
                 <View key={soldier.id} style={styles.soldierItem}>
                   <View style={styles.soldierInfo}>
                     <Text style={styles.soldierName}>{soldier.name}</Text>
                     {soldier.role && (
-                      <Text style={styles.soldierRole}>{soldier.role}</Text>
+                      <Text style={[styles.soldierRole, { fontFamily: bodyFont }]}>{soldier.role}</Text>
                     )}
                   </View>
                   <View style={styles.soldierActions}>
                     <Pressable
                       style={[
                         styles.statusButton,
-                        status?.status === 'fulfilled' && styles.statusButtonActive,
+                        isChecked && styles.statusButtonActive,
                       ]}
                       onPress={() => handleStatusChange(soldier.id, 'fulfilled')}
                     >
                       <IconSymbol
                         name="checkmark"
-                        color={status?.status === 'fulfilled' ? '#FFFFFF' : colors.primary}
+                        color={isChecked ? colors.checkmark : colors.primary}
                         size={24}
                       />
                     </Pressable>
@@ -499,7 +496,7 @@ export default function SessionScreen() {
                     >
                       <IconSymbol
                         name="xmark"
-                        color={status?.status === 'missing' ? '#FFFFFF' : colors.secondary}
+                        color={status?.status === 'missing' ? colors.checkmark : colors.error}
                         size={24}
                       />
                     </Pressable>
@@ -520,7 +517,7 @@ export default function SessionScreen() {
 
         <View style={styles.bottomContainer}>
           <Pressable style={styles.allOkButton} onPress={handleAllOk}>
-            <IconSymbol name="checkmark.circle.fill" color="#FFFFFF" size={24} />
+            <IconSymbol name="checkmark.circle.fill" color="#000" size={24} />
             <Text style={styles.allOkButtonText}>Alle ok</Text>
           </Pressable>
 
@@ -550,9 +547,14 @@ export default function SessionScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Legg til beskrivelse</Text>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Legg til beskrivelse</Text>
+                <Pressable onPress={() => setEditingSoldierId(null)}>
+                  <IconSymbol name="xmark" color={colors.error} size={24} />
+                </Pressable>
+              </View>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { fontFamily: bodyFont }]}
                 value={descriptionText}
                 onChangeText={setDescriptionText}
                 placeholder="Beskriv problemet..."
@@ -610,19 +612,22 @@ export default function SessionScreen() {
 
   const summary = generateSummary();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={commonStyles.modalNavBar}>
+        <View style={{ width: 24 }} />
+        <Text style={commonStyles.modalNavBarTitle}>KTS</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
       <View style={styles.progressBarContainer}>
         <View style={[styles.progressBar, { width: '100%' }]} />
       </View>
 
-      <View style={styles.summaryTopHeader}>
-        <Text style={styles.summaryHeaderTitle}>Oppsummering</Text>
-      </View>
-
       <ScrollView contentContainerStyle={styles.summaryScrollContent}>
         <View style={styles.summaryHeader}>
+          <Text style={styles.summaryTitle}>Oppsummering</Text>
           <Text style={styles.summarySquad}>{summary.squadName}</Text>
-          <Text style={styles.summaryDate}>{summary.date} {summary.time}</Text>
+          <Text style={[styles.summaryDate, { fontFamily: bodyFont }]}>{summary.date} {summary.time}</Text>
         </View>
 
         {summary.soldierSummaries.map(ss => {
@@ -636,11 +641,11 @@ export default function SessionScreen() {
               </Text>
               {ss.missingItems.map((item, index) => (
                 <View key={index} style={styles.summaryItem}>
-                  <IconSymbol name="xmark.circle.fill" color={colors.secondary} size={20} />
+                  <IconSymbol name="xmark.circle.fill" color={colors.error} size={20} />
                   <View style={styles.summaryItemText}>
-                    <Text style={styles.summaryItemName}>{item.itemName}</Text>
+                    <Text style={[styles.summaryItemName, { fontFamily: bodyFont }]}>{item.itemName}</Text>
                     {item.description && (
-                      <Text style={styles.summaryItemDesc}>{item.description}</Text>
+                      <Text style={[styles.summaryItemDesc, { fontFamily: bodyFont }]}>{item.description}</Text>
                     )}
                   </View>
                 </View>
@@ -686,21 +691,13 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: colors.textSecondary + '40',
     width: '100%',
-    marginTop: 16,
   },
   progressBar: {
     height: '100%',
     backgroundColor: colors.primary,
   },
-  header: {
-    padding: 16,
-    paddingTop: 24,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
   exitButton: {
-    padding: 8,
+    padding: 4,
   },
   content: {
     flex: 1,
@@ -720,18 +717,16 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 12,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 240,
+    paddingBottom: 260,
   },
   itemCategory: {
     fontSize: 20,
     color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 8,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   itemName: {
     fontSize: 28,
@@ -751,7 +746,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
   },
   soldierInfo: {
@@ -767,7 +762,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textSecondary,
     marginTop: 2,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   soldierActions: {
     flexDirection: 'row',
@@ -788,11 +782,11 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   statusButtonMissing: {
-    borderColor: colors.secondary,
+    borderColor: colors.error,
   },
   statusButtonMissingActive: {
-    backgroundColor: colors.secondary,
-    borderColor: colors.secondary,
+    backgroundColor: colors.error,
+    borderColor: colors.error,
   },
   descButton: {
     width: 48,
@@ -811,7 +805,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.textSecondary + '40',
     padding: 20,
-    paddingBottom: 32,
+    paddingBottom: 40,
   },
   allOkButton: {
     backgroundColor: colors.primary,
@@ -822,13 +816,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     marginBottom: 12,
-    boxShadow: '0px 4px 12px rgba(76, 175, 80, 0.3)',
+    boxShadow: '0px 4px 12px rgba(188, 241, 53, 0.3)',
     elevation: 5,
   },
   allOkButtonText: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#000',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   bottomButtons: {
@@ -842,7 +836,9 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.textSecondary,
+    borderColor: colors.primary,
+    minHeight: 56,
+    justifyContent: 'center',
   },
   navButtonPrimary: {
     backgroundColor: colors.primary,
@@ -851,41 +847,43 @@ const styles = StyleSheet.create({
   navButtonText: {
     fontSize: 20,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.primary,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   navButtonTextPrimary: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#000',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   text: {
     fontSize: 18,
     color: colors.text,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContent: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 16,
     padding: 24,
     width: '100%',
     maxWidth: 400,
-    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   modalTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 16,
-    textAlign: 'center',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   modalInput: {
@@ -896,7 +894,8 @@ const styles = StyleSheet.create({
     color: colors.text,
     minHeight: 100,
     textAlignVertical: 'top',
-    fontFamily: 'BigShouldersStencil_400Regular',
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -908,9 +907,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
+    minHeight: 48,
+    justifyContent: 'center',
   },
   modalButtonCancel: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.card,
+    borderWidth: 2,
+    borderColor: colors.primary,
   },
   modalButtonSave: {
     backgroundColor: colors.primary,
@@ -918,25 +921,13 @@ const styles = StyleSheet.create({
   modalButtonText: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.primary,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   modalButtonTextSave: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
-    fontFamily: 'BigShouldersStencil_700Bold',
-  },
-  summaryTopHeader: {
-    padding: 20,
-    paddingTop: 32,
-    paddingBottom: 16,
-    alignItems: 'center',
-  },
-  summaryHeaderTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: colors.text,
+    color: '#000',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   summaryScrollContent: {
@@ -946,6 +937,13 @@ const styles = StyleSheet.create({
   summaryHeader: {
     alignItems: 'center',
     marginBottom: 24,
+  },
+  summaryTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_700Bold',
+    marginBottom: 12,
   },
   summarySquad: {
     fontSize: 24,
@@ -957,14 +955,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.textSecondary,
     marginTop: 4,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   summaryCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
   },
   summarySoldierName: {
@@ -987,20 +984,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: colors.text,
-    fontFamily: 'BigShouldersStencil_700Bold',
   },
   summaryItemDesc: {
     fontSize: 16,
     color: colors.textSecondary,
     marginTop: 2,
-    fontFamily: 'BigShouldersStencil_400Regular',
   },
   noIssuesCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
     padding: 32,
     alignItems: 'center',
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
   },
   noIssuesText: {
@@ -1019,7 +1014,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.textSecondary + '40',
     padding: 20,
-    paddingBottom: 32,
+    paddingBottom: 40,
     flexDirection: 'row',
     gap: 12,
   },
@@ -1034,6 +1029,7 @@ const styles = StyleSheet.create({
     gap: 8,
     borderWidth: 2,
     borderColor: colors.accent,
+    minHeight: 56,
   },
   exportButtonText: {
     fontSize: 18,
@@ -1042,7 +1038,7 @@ const styles = StyleSheet.create({
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   exitDialogContent: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 16,
     padding: 24,
     width: '90%',
@@ -1063,6 +1059,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
+    minHeight: 56,
+    justifyContent: 'center',
   },
   exitDialogButtonCancel: {
     backgroundColor: colors.primary,
@@ -1070,18 +1068,18 @@ const styles = StyleSheet.create({
   exitDialogButtonConfirm: {
     backgroundColor: colors.card,
     borderWidth: 2,
-    borderColor: colors.secondary,
+    borderColor: colors.error,
   },
   exitDialogButtonText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#000',
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   exitDialogButtonTextConfirm: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.secondary,
+    color: colors.error,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
 });
