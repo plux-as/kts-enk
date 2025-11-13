@@ -119,6 +119,7 @@ export default function SettingsScreen() {
         options={{
           headerShown: false,
           presentation: 'fullScreenModal',
+          gestureEnabled: false,
         }}
       />
       <View style={[styles.container, { paddingTop: insets.top }]}>

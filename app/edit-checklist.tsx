@@ -218,6 +218,7 @@ export default function EditChecklistScreen() {
         options={{
           headerShown: false,
           presentation: 'fullScreenModal',
+          gestureEnabled: false,
         }}
       />
       <View style={[styles.container, { paddingTop: insets.top }]}>

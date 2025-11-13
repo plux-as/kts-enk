@@ -167,12 +167,13 @@ export default function LogDetailScreen() {
         options={{
           headerShown: false,
           presentation: 'fullScreenModal',
+          gestureEnabled: false,
         }}
       />
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={commonStyles.modalNavBar}>
           <View style={{ width: 24 }} />
-          <Text style={commonStyles.modalNavBarTitle}>Øktdetaljer</Text>
+          <Text style={commonStyles.modalNavBarTitle}>Detaljer og utbedringer</Text>
           <Pressable onPress={() => router.back()}>
             <IconSymbol name="xmark" color={colors.error} size={24} />
           </Pressable>

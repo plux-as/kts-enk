@@ -87,15 +87,15 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.mainButtonContainer}>
-            <Image
-              source={require('@/assets/images/f54512be-2d40-4d54-93d7-66c0b49c0292.png')}
-              style={styles.startIcon}
-              resizeMode="contain"
-            />
             <Pressable
               style={styles.startButton}
               onPress={handleStartSession}
             >
+              <Image
+                source={require('@/assets/images/f54512be-2d40-4d54-93d7-66c0b49c0292.png')}
+                style={styles.startIcon}
+                resizeMode="contain"
+              />
               <Text style={styles.startButtonText}>Start KTS</Text>
             </Pressable>
           </View>
@@ -160,11 +160,6 @@ const styles = StyleSheet.create({
     marginVertical: 30,
     alignItems: 'center',
   },
-  startIcon: {
-    width: 120,
-    height: 120,
-    marginBottom: 24,
-  },
   startButton: {
     backgroundColor: colors.primary,
     borderRadius: 16,
@@ -174,6 +169,11 @@ const styles = StyleSheet.create({
     boxShadow: '0px 4px 12px rgba(188, 241, 53, 0.3)',
     elevation: 5,
     width: '100%',
+  },
+  startIcon: {
+    width: 80,
+    height: 80,
+    marginBottom: 16,
   },
   startButtonText: {
     fontSize: 32,
