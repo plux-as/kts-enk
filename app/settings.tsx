@@ -117,13 +117,21 @@ export default function SettingsScreen() {
     <>
       <Stack.Screen
         options={{
-          headerShown: false,
+          headerShown: true,
+          headerTitle: 'Rediger Lag',
+          headerBackVisible: true,
+          headerStyle: {
+            backgroundColor: colors.background,
+          },
+          headerTintColor: colors.text,
+          headerTitleStyle: {
+            fontFamily: 'BigShouldersStencil_700Bold',
+            fontSize: 24,
+          },
         }}
       />
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.title}>Rediger Lag</Text>
-
           <View style={styles.section}>
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Lagsnavn</Text>
@@ -200,13 +208,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
     paddingBottom: 100,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: 24,
-    fontFamily: 'BigShouldersStencil_700Bold',
   },
   text: {
     fontSize: 18,
