@@ -144,20 +144,52 @@ export default function LogDetailScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centerContent, { paddingTop: insets.top }]}>
-        <Text style={[styles.text, { fontFamily: bodyFont }]}>Laster...</Text>
-      </View>
+      <>
+        <Stack.Screen
+          options={{
+            headerShown: false,
+          }}
+        />
+        <View style={[styles.container, { paddingTop: insets.top }]}>
+          <View style={commonStyles.modalNavBar}>
+            <View style={{ width: 24 }} />
+            <Text style={commonStyles.modalNavBarTitle}>Detaljer og utbedringer</Text>
+            <Pressable onPress={() => router.back()}>
+              <IconSymbol name="xmark" color={colors.error} size={24} />
+            </Pressable>
+          </View>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={[styles.text, { fontFamily: bodyFont }]}>Laster...</Text>
+          </View>
+        </View>
+      </>
     );
   }
 
   if (!session) {
     return (
-      <View style={[styles.container, styles.centerContent, { paddingTop: insets.top }]}>
-        <Text style={[styles.text, { fontFamily: bodyFont }]}>Økt ikke funnet</Text>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Tilbake</Text>
-        </Pressable>
-      </View>
+      <>
+        <Stack.Screen
+          options={{
+            headerShown: false,
+          }}
+        />
+        <View style={[styles.container, { paddingTop: insets.top }]}>
+          <View style={commonStyles.modalNavBar}>
+            <View style={{ width: 24 }} />
+            <Text style={commonStyles.modalNavBarTitle}>Detaljer og utbedringer</Text>
+            <Pressable onPress={() => router.back()}>
+              <IconSymbol name="xmark" color={colors.error} size={24} />
+            </Pressable>
+          </View>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={[styles.text, { fontFamily: bodyFont }]}>Økt ikke funnet</Text>
+            <Pressable style={styles.backButton} onPress={() => router.back()}>
+              <Text style={styles.backButtonText}>Tilbake</Text>
+            </Pressable>
+          </View>
+        </View>
+      </>
     );
   }
 
@@ -166,8 +198,6 @@ export default function LogDetailScreen() {
       <Stack.Screen
         options={{
           headerShown: false,
-          presentation: 'fullScreenModal',
-          gestureEnabled: false,
         }}
       />
       <View style={[styles.container, { paddingTop: insets.top }]}>

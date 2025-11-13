@@ -206,9 +206,25 @@ export default function EditChecklistScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centerContent, { paddingTop: insets.top }]}>
-        <Text style={[styles.text, { fontFamily: bodyFont }]}>Laster...</Text>
-      </View>
+      <>
+        <Stack.Screen
+          options={{
+            headerShown: false,
+          }}
+        />
+        <View style={[styles.container, styles.centerContent, { paddingTop: insets.top }]}>
+          <View style={commonStyles.modalNavBar}>
+            <View style={{ width: 24 }} />
+            <Text style={commonStyles.modalNavBarTitle}>Rediger KTS-liste</Text>
+            <Pressable onPress={() => router.back()}>
+              <IconSymbol name="xmark" color={colors.error} size={24} />
+            </Pressable>
+          </View>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={[styles.text, { fontFamily: bodyFont }]}>Laster...</Text>
+          </View>
+        </View>
+      </>
     );
   }
 
@@ -217,8 +233,6 @@ export default function EditChecklistScreen() {
       <Stack.Screen
         options={{
           headerShown: false,
-          presentation: 'fullScreenModal',
-          gestureEnabled: false,
         }}
       />
       <View style={[styles.container, { paddingTop: insets.top }]}>
