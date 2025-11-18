@@ -9,6 +9,7 @@ import {
   Alert,
   TextInput,
   Modal,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
@@ -318,7 +319,7 @@ export default function SessionScreen() {
     let text = `KTS Oppsummering\n`;
     text += `Lag: ${summary.squadName}\n`;
     text += `Dato: ${summary.date} ${summary.time}\n`;
-    text += `Tid brukt: ${summary.duration}\n\n`;
+    text += `Varighet: ${summary.duration}\n\n`;
 
     summary.soldierSummaries.forEach(ss => {
       if (ss.missingItems.length > 0) {
@@ -654,7 +655,10 @@ export default function SessionScreen() {
           <Text style={styles.summaryTitle}>Oppsummering</Text>
           <Text style={styles.summarySquad}>{summary.squadName}</Text>
           <Text style={[styles.summaryDate, { fontFamily: bodyFont }]}>{summary.date} {summary.time}</Text>
-          <Text style={[styles.summaryDuration, { fontFamily: bodyFont }]}>Tid brukt: {summary.duration}</Text>
+          <View style={styles.summaryDurationContainer}>
+            <IconSymbol name="stopwatch.fill" color={colors.textSecondary} size={20} />
+            <Text style={[styles.summaryDuration, { fontFamily: bodyFont }]}>{summary.duration}</Text>
+          </View>
         </View>
 
         {summary.soldierSummaries.map(ss => {
@@ -685,7 +689,11 @@ export default function SessionScreen() {
 
         {!hasMissingItems && (
           <View style={styles.noIssuesCard}>
-            <IconSymbol name="figure.fencing" color={colors.primary} size={48} />
+            <Image
+              source={require('@/assets/images/f54512be-2d40-4d54-93d7-66c0b49c0292.png')}
+              style={styles.noIssuesIcon}
+              resizeMode="contain"
+            />
             <Text style={styles.noIssuesText}>Bravo zulu. Ingen feil eller mangler.</Text>
           </View>
         )}
@@ -1010,10 +1018,15 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 4,
   },
+  summaryDurationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+  },
   summaryDuration: {
     fontSize: 16,
     color: colors.textSecondary,
-    marginTop: 4,
   },
   summaryCard: {
     backgroundColor: colors.card,
@@ -1060,11 +1073,15 @@ const styles = StyleSheet.create({
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
   },
+  noIssuesIcon: {
+    width: 80,
+    height: 80,
+    marginBottom: 16,
+  },
   noIssuesText: {
     fontSize: 24,
     fontWeight: '700',
     color: colors.primary,
-    marginTop: 16,
     fontFamily: 'BigShouldersStencil_700Bold',
     textAlign: 'center',
   },

@@ -106,17 +106,18 @@ export default function LogScreen() {
                     <Text style={styles.sessionTitle}>
                       KTS {session.date} {session.time}
                     </Text>
-                    {session.duration && (
-                      <Text style={[styles.sessionDuration, { fontFamily: bodyFont }]}>
-                        {session.duration}
-                      </Text>
-                    )}
                   </View>
                   <View style={styles.sessionStats}>
                     <View style={styles.statItem}>
                       <IconSymbol name="person.fill" color={colors.accent} size={20} />
                       <Text style={[styles.statText, { fontFamily: bodyFont }]}>{session.soldiers.length} soldater</Text>
                     </View>
+                    {session.duration && (
+                      <View style={styles.statItem}>
+                        <IconSymbol name="stopwatch.fill" color={colors.accent} size={20} />
+                        <Text style={[styles.statText, { fontFamily: bodyFont }]}>{session.duration}</Text>
+                      </View>
+                    )}
                     <View style={styles.statItem}>
                       <IconSymbol
                         name={missingCount > 0 ? "xmark" : "checkmark.circle.fill"}
@@ -187,13 +188,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 4,
     fontFamily: 'BigShouldersStencil_700Bold',
-  },
-  sessionDuration: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginTop: 2,
   },
   sessionStats: {
     flexDirection: 'row',

@@ -9,6 +9,7 @@ import {
   TextInput,
   Modal,
   Alert,
+  Image,
 } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
@@ -193,6 +194,12 @@ export default function LogDetailScreen() {
     );
   }
 
+  const hasMissingItems = session.soldiers.some(soldier =>
+    session.data.some(item =>
+      item.statuses.some(s => s.soldierId === soldier.id && s.status === 'missing')
+    )
+  );
+
   return (
     <>
       <Stack.Screen
@@ -213,7 +220,10 @@ export default function LogDetailScreen() {
             <Text style={styles.title}>KTS {session.date} {session.time}</Text>
             <Text style={[styles.subtitle, { fontFamily: bodyFont }]}>{session.squadName}</Text>
             {session.duration && (
-              <Text style={[styles.duration, { fontFamily: bodyFont }]}>{session.duration}</Text>
+              <View style={styles.durationContainer}>
+                <IconSymbol name="stopwatch.fill" color={colors.textSecondary} size={20} />
+                <Text style={[styles.duration, { fontFamily: bodyFont }]}>{session.duration}</Text>
+              </View>
             )}
           </View>
 
@@ -280,13 +290,13 @@ export default function LogDetailScreen() {
             );
           })}
 
-          {session.soldiers.every(soldier =>
-            session.data.every(item =>
-              !item.statuses.some(s => s.soldierId === soldier.id && s.status === 'missing')
-            )
-          ) && (
+          {!hasMissingItems && (
             <View style={styles.noIssuesCard}>
-              <IconSymbol name="figure.fencing" color={colors.primary} size={48} />
+              <Image
+                source={require('@/assets/images/f54512be-2d40-4d54-93d7-66c0b49c0292.png')}
+                style={styles.noIssuesIcon}
+                resizeMode="contain"
+              />
               <Text style={styles.noIssuesText}>Bravo zulu. Ingen feil eller mangler.</Text>
             </View>
           )}
@@ -370,10 +380,15 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 4,
   },
+  durationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+  },
   duration: {
-    fontSize: 14,
+    fontSize: 16,
     color: colors.textSecondary,
-    marginTop: 4,
   },
   soldierCard: {
     backgroundColor: colors.card,
@@ -437,11 +452,15 @@ const styles = StyleSheet.create({
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
   },
+  noIssuesIcon: {
+    width: 80,
+    height: 80,
+    marginBottom: 16,
+  },
   noIssuesText: {
     fontSize: 24,
     fontWeight: '700',
     color: colors.primary,
-    marginTop: 16,
     fontFamily: 'BigShouldersStencil_700Bold',
     textAlign: 'center',
   },

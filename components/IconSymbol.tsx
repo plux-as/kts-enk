@@ -67,6 +67,7 @@ const MAPPING = {
   "folder": "folder-open",
   "doc.fill": "insert-drive-file",
   "doc": "insert-drive-file",
+  "doc.on.doc": "content-copy",
 
   // Media & Content
   "photo.fill": "image",
@@ -135,6 +136,8 @@ const MAPPING = {
   "calendar": "event",
   "timer": "timer",
   "history": "history",
+  "stopwatch": "timer",
+  "stopwatch.fill": "timer",
 
   // User & Profile
   "person": "person",
@@ -167,6 +170,14 @@ const MAPPING = {
   // Lists & Bullets
   "list.bullet": "list",
   "list.bullet.circle": "list-alt",
+
+  // Security & Protection
+  "shield": "shield",
+  "shield.fill": "shield",
+  "shield.lefthalf.filled": "shield",
+
+  // Sports & Activities
+  "figure.fencing": "sports-kabaddi",
 } as Partial<
   Record<
     import("expo-symbols").SymbolViewProps["name"],
