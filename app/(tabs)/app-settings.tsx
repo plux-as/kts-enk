@@ -133,6 +133,9 @@ export default function AppSettingsScreen() {
                 Appen utveksler ikke data med en server eller eksterne tjenester, og kan gjerne brukes i flymodus eller uten dekning. Alle data knyttet til appen lagres kun lokalt på din enhet.
               </Text>
               <Text style={[styles.aboutText, { fontFamily: bodyFont, marginTop: 16 }]}>
+                Appens hensikt er å gjøre det lettere å følge opp feil og mangler i etterkant av utført KTS. Loggen gir deg oversikt over tidligere gjennomføringer og her dokumenteres og utbedres tidligere feil og mangler. Du kan tilpasse sjekklisten etter lagets behov ved å legge til eller fjerne kategorier og elementer.
+              </Text>
+              <Text style={[styles.aboutText, { fontFamily: bodyFont, marginTop: 16 }]}>
                 Appen er utviklet av{' '}
                 <Text style={styles.linkText} onPress={handleOpenWebsite}>
                   3charlie.no

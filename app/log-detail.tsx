@@ -212,6 +212,9 @@ export default function LogDetailScreen() {
           <View style={styles.header}>
             <Text style={styles.title}>KTS {session.date} {session.time}</Text>
             <Text style={[styles.subtitle, { fontFamily: bodyFont }]}>{session.squadName}</Text>
+            {session.duration && (
+              <Text style={[styles.duration, { fontFamily: bodyFont }]}>{session.duration}</Text>
+            )}
           </View>
 
           {session.soldiers.map(soldier => {
@@ -283,8 +286,8 @@ export default function LogDetailScreen() {
             )
           ) && (
             <View style={styles.noIssuesCard}>
-              <IconSymbol name="checkmark.circle.fill" color={colors.primary} size={48} />
-              <Text style={styles.noIssuesText}>Ingen mangler registrert!</Text>
+              <IconSymbol name="figure.fencing" color={colors.primary} size={48} />
+              <Text style={styles.noIssuesText}>Bravo zulu. Ingen feil eller mangler.</Text>
             </View>
           )}
         </ScrollView>
@@ -367,6 +370,11 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 4,
   },
+  duration: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
   soldierCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
@@ -435,6 +443,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
     marginTop: 16,
     fontFamily: 'BigShouldersStencil_700Bold',
+    textAlign: 'center',
   },
   backButton: {
     backgroundColor: colors.primary,

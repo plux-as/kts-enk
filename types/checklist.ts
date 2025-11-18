@@ -39,6 +39,9 @@ export interface ChecklistSession {
   date: string;
   time: string;
   timestamp: number;
+  startTimestamp?: number;
+  endTimestamp?: number;
+  duration?: string;
   squadName: string;
   soldiers: Soldier[];
   data: SessionItemData[];
@@ -49,6 +52,7 @@ export interface SessionSummary {
   date: string;
   time: string;
   timestamp: number;
+  duration?: string;
   squadName: string;
   soldierSummaries: SoldierSummary[];
 }

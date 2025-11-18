@@ -41,6 +41,7 @@ export default function SessionScreen() {
   const [descriptionText, setDescriptionText] = useState('');
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [showAllOkAnimation, setShowAllOkAnimation] = useState(false);
+  const [startTimestamp, setStartTimestamp] = useState<number>(Date.now());
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -84,6 +85,13 @@ export default function SessionScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatDuration = (milliseconds: number): string => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   const getTotalItems = () => {
@@ -148,7 +156,6 @@ export default function SessionScreen() {
       return updated;
     });
 
-    // Show animation briefly
     setShowAllOkAnimation(true);
     await new Promise(resolve => setTimeout(resolve, 300));
     setShowAllOkAnimation(false);
@@ -255,6 +262,7 @@ export default function SessionScreen() {
         date: '',
         time: '',
         timestamp: 0,
+        duration: '0:00',
         squadName: '',
         soldierSummaries: [],
       };
@@ -286,11 +294,14 @@ export default function SessionScreen() {
     });
 
     const now = new Date();
+    const duration = formatDuration(now.getTime() - startTimestamp);
+    
     return {
       id: `session-${Date.now()}`,
       date: now.toLocaleDateString('nb-NO'),
       time: now.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' }),
       timestamp: now.getTime(),
+      duration,
       squadName: squadSettings.squadName,
       soldierSummaries,
     };
@@ -298,9 +309,16 @@ export default function SessionScreen() {
 
   const handleExportSummary = async () => {
     const summary = generateSummary();
+    
+    const hasMissingItems = summary.soldierSummaries.some(ss => ss.missingItems.length > 0);
+    if (!hasMissingItems) {
+      return;
+    }
+
     let text = `KTS Oppsummering\n`;
     text += `Lag: ${summary.squadName}\n`;
-    text += `Dato: ${summary.date} ${summary.time}\n\n`;
+    text += `Dato: ${summary.date} ${summary.time}\n`;
+    text += `Tid brukt: ${summary.duration}\n\n`;
 
     summary.soldierSummaries.forEach(ss => {
       if (ss.missingItems.length > 0) {
@@ -328,11 +346,15 @@ export default function SessionScreen() {
   const handleFinish = async () => {
     try {
       const summary = generateSummary();
+      const endTimestamp = Date.now();
       const session: ChecklistSession = {
         id: summary.id,
         date: summary.date,
         time: summary.time,
         timestamp: summary.timestamp,
+        startTimestamp,
+        endTimestamp,
+        duration: summary.duration,
         squadName: summary.squadName,
         soldiers: squadSettings?.soldiers || [],
         data: sessionData,
@@ -613,6 +635,8 @@ export default function SessionScreen() {
   }
 
   const summary = generateSummary();
+  const hasMissingItems = summary.soldierSummaries.some(ss => ss.missingItems.length > 0);
+  
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={commonStyles.modalNavBar}>
@@ -630,6 +654,7 @@ export default function SessionScreen() {
           <Text style={styles.summaryTitle}>Oppsummering</Text>
           <Text style={styles.summarySquad}>{summary.squadName}</Text>
           <Text style={[styles.summaryDate, { fontFamily: bodyFont }]}>{summary.date} {summary.time}</Text>
+          <Text style={[styles.summaryDuration, { fontFamily: bodyFont }]}>Tid brukt: {summary.duration}</Text>
         </View>
 
         {summary.soldierSummaries.map(ss => {
@@ -658,18 +683,32 @@ export default function SessionScreen() {
           );
         })}
 
-        {summary.soldierSummaries.every(ss => ss.missingItems.length === 0) && (
+        {!hasMissingItems && (
           <View style={styles.noIssuesCard}>
-            <IconSymbol name="checkmark.circle.fill" color={colors.primary} size={48} />
-            <Text style={styles.noIssuesText}>Ingen mangler registrert!</Text>
+            <IconSymbol name="figure.fencing" color={colors.primary} size={48} />
+            <Text style={styles.noIssuesText}>Bravo zulu. Ingen feil eller mangler.</Text>
           </View>
         )}
       </ScrollView>
 
       <View style={styles.summaryBottomButtons}>
-        <Pressable style={styles.exportButton} onPress={handleExportSummary}>
-          <IconSymbol name="square.and.arrow.up" color={colors.accent} size={20} />
-          <Text style={styles.exportButtonText}>Eksporter</Text>
+        <Pressable 
+          style={[
+            styles.exportButton,
+            !hasMissingItems && styles.exportButtonDisabled
+          ]} 
+          onPress={handleExportSummary}
+          disabled={!hasMissingItems}
+        >
+          <IconSymbol 
+            name="doc.on.doc" 
+            color={hasMissingItems ? colors.accent : colors.textSecondary} 
+            size={20} 
+          />
+          <Text style={[
+            styles.exportButtonText,
+            !hasMissingItems && styles.exportButtonTextDisabled
+          ]}>Kopier</Text>
         </Pressable>
         <Pressable
           style={[styles.navButton, styles.navButtonPrimary]}
@@ -971,6 +1010,11 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 4,
   },
+  summaryDuration: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
   summaryCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
@@ -1022,6 +1066,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
     marginTop: 16,
     fontFamily: 'BigShouldersStencil_700Bold',
+    textAlign: 'center',
   },
   summaryBottomButtons: {
     position: 'absolute',
@@ -1049,11 +1094,18 @@ const styles = StyleSheet.create({
     borderColor: colors.accent,
     minHeight: 56,
   },
+  exportButtonDisabled: {
+    opacity: 0.4,
+    borderColor: colors.textSecondary,
+  },
   exportButtonText: {
     fontSize: 18,
     fontWeight: '700',
     color: colors.accent,
     fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  exportButtonTextDisabled: {
+    color: colors.textSecondary,
   },
   exitDialogContent: {
     backgroundColor: colors.backgroundSecondary,

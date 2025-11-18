@@ -106,6 +106,11 @@ export default function LogScreen() {
                     <Text style={styles.sessionTitle}>
                       KTS {session.date} {session.time}
                     </Text>
+                    {session.duration && (
+                      <Text style={[styles.sessionDuration, { fontFamily: bodyFont }]}>
+                        {session.duration}
+                      </Text>
+                    )}
                   </View>
                   <View style={styles.sessionStats}>
                     <View style={styles.statItem}>
@@ -184,6 +189,11 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 4,
     fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  sessionDuration: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
   sessionStats: {
     flexDirection: 'row',

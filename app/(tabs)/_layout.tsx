@@ -11,7 +11,7 @@ export default function TabLayout() {
     {
       route: '/(tabs)/(home)',
       label: 'Start',
-      icon: 'house.fill',
+      icon: 'shield.fill',
     },
     {
       route: '/(tabs)/log',
@@ -33,7 +33,7 @@ export default function TabLayout() {
             name="(home)"
             options={{
               title: 'Start',
-              tabBarIcon: ({ color }) => <Icon name="house.fill" color={color} />,
+              tabBarIcon: ({ color }) => <Icon name="shield.fill" color={color} />,
               tabBarLabel: ({ color }) => <Label color={color}>Start</Label>,
             }}
           />

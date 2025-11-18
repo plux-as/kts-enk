@@ -74,7 +74,7 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
-            <Text style={styles.appTitle}>KTS Enkeltsoldat</Text>
+            <Text style={styles.appTitle}>KTS ALFA</Text>
             {squadSettings && (
               <Pressable style={styles.squadInfo} onPress={handleEditSquad}>
                 <Text style={styles.squadName}>{squadSettings.squadName}</Text>
