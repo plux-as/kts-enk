@@ -1,7 +1,7 @@
 
 import React from 'react';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
-import { ColorValue, OpaqueColorValue, Platform } from 'react-native';
+import { ColorValue, OpaqueColorValue, Platform, DynamicColorIOS } from 'react-native';
 import { NativeTabs, Icon, Label, NativeTabsLabelStyle } from 'expo-router/unstable-native-tabs';
 import { Stack } from 'expo-router';
 import { colors } from '@/styles/commonStyles';
@@ -12,6 +12,18 @@ const selectedLabelStyle: NativeTabsLabelStyle = {
 };
 
 export default function TabLayout() {
+
+	// Only use DynamicColorIOS on iOS platform
+	const dynamicLabelColor = Platform.OS === 'ios' ? DynamicColorIOS({
+		dark: '#FFFFFF',
+		light: '#000000',
+	}) : colors.text;
+
+	const dynamicTintColor = Platform.OS === 'ios' ? DynamicColorIOS({
+		dark: '#B7FF00',   // your foreground color on dark glass
+		light: '#3A4300',  // same hue but adapted for light glass
+	}) : colors.primary;
+	
   const tabs: TabBarItem[] = [
     {
       route: '/(tabs)/(home)',
@@ -38,7 +50,9 @@ export default function TabLayout() {
           while the Label component uses the 'selectedStyle' prop (a NativeTabsLabelStyle object
           which has color as a value).
         */}
-        <NativeTabs>
+        <NativeTabs
+      labelStyle={{ color: dynamicLabelColor}}
+      tintColor={dynamicTintColor}>
           <NativeTabs.Trigger
             name="(home)"
             options={{
