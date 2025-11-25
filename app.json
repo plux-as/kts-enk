@@ -1,7 +1,8 @@
+
 {
   "expo": {
-    "name": "KTS Enkelt",
-    "slug": "KTS Enkelt",
+    "name": "KTS ALFA",
+    "slug": "KTS-ALFA",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
@@ -46,5 +47,5 @@
       "router": {}
     }
   },
-  "scheme": "KTS Enkelt"
+  "scheme": "KTS-ALFA"
 }

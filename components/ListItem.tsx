@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   listItemText: {
-    fontSize: 22,
+    fontSize: 16,
   },
   rightAction: {
     width: 200,

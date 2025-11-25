@@ -29,7 +29,6 @@ import {
 import { IconSymbol } from '@/components/IconSymbol';
 import * as Clipboard from 'expo-clipboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 
 type ScreenType = 'category' | 'item' | 'summary';
 
@@ -385,26 +384,6 @@ export default function SessionScreen() {
     setShowExitDialog(false);
   };
 
-  // Swipe gesture for item screen
-  const swipeGesture = Gesture.Pan()
-    .onEnd((event) => {
-      const SWIPE_THRESHOLD = 50;
-      const velocityThreshold = 500;
-      
-      // Swipe right to left (next)
-      if (event.translationX < -SWIPE_THRESHOLD || event.velocityX < -velocityThreshold) {
-        if (screenType === 'item') {
-          handleNext();
-        }
-      }
-      // Swipe left to right (previous)
-      else if (event.translationX > SWIPE_THRESHOLD || event.velocityX > velocityThreshold) {
-        if (screenType === 'item') {
-          handlePrevious();
-        }
-      }
-    });
-
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent, { paddingTop: insets.top }]}>
@@ -490,180 +469,178 @@ export default function SessionScreen() {
     );
 
     return (
-      <GestureDetector gesture={swipeGesture}>
-        <KeyboardAvoidingView 
-          style={[styles.container, { paddingTop: insets.top }]}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-        >
-          <View style={commonStyles.modalNavBar}>
-            <View style={{ width: 24 }} />
-            <Text style={commonStyles.modalNavBarTitle}>KTS ALFA</Text>
-            <Pressable onPress={handleExit} style={styles.exitButton}>
-              <IconSymbol name="xmark" color={colors.error} size={24} />
-            </Pressable>
-          </View>
+      <KeyboardAvoidingView 
+        style={[styles.container, { paddingTop: insets.top }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <View style={commonStyles.modalNavBar}>
+          <View style={{ width: 24 }} />
+          <Text style={commonStyles.modalNavBarTitle}>KTS ALFA</Text>
+          <Pressable onPress={handleExit} style={styles.exitButton}>
+            <IconSymbol name="xmark" color={colors.error} size={24} />
+          </Pressable>
+        </View>
 
-          <View style={styles.progressBarContainer}>
-            <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
-          </View>
+        <View style={styles.progressBarContainer}>
+          <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
+        </View>
 
-          <ScrollView contentContainerStyle={styles.scrollContent}>
-            <Text style={styles.itemCategory}>{currentCategory.name}</Text>
-            <Text style={styles.itemName}>{currentItem.name}</Text>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.itemCategory}>{currentCategory.name}</Text>
+          <Text style={[styles.itemName, { fontFamily: bodyFont }]}>{currentItem.name}</Text>
 
-            <View style={styles.soldiersList}>
-              {squadSettings?.soldiers.map(soldier => {
-                const status = currentData?.statuses.find(s => s.soldierId === soldier.id);
-                const isChecked = showAllOkAnimation || status?.status === 'fulfilled';
-                
-                return (
-                  <View key={soldier.id} style={styles.soldierItem}>
-                    <View style={styles.soldierInfo}>
-                      <Text style={styles.soldierName}>{soldier.name}</Text>
-                      {soldier.role && (
-                        <Text style={[styles.soldierRole, { fontFamily: bodyFont }]}>{soldier.role}</Text>
-                      )}
-                    </View>
-                    <View style={styles.soldierActions}>
-                      <Pressable
-                        style={[
-                          styles.statusButton,
-                          isChecked && styles.statusButtonActive,
-                        ]}
-                        onPress={() => handleStatusChange(soldier.id, 'fulfilled')}
-                      >
-                        <IconSymbol
-                          name="checkmark"
-                          color={isChecked ? colors.checkmark : colors.primary}
-                          size={24}
-                        />
-                      </Pressable>
-                      <Pressable
-                        style={[
-                          styles.statusButton,
-                          styles.statusButtonMissing,
-                          status?.status === 'missing' && styles.statusButtonMissingActive,
-                        ]}
-                        onPress={() => handleStatusChange(soldier.id, 'missing')}
-                      >
-                        <IconSymbol
-                          name="xmark"
-                          color={status?.status === 'missing' ? colors.checkmark : colors.error}
-                          size={24}
-                        />
-                      </Pressable>
-                      {status?.status === 'missing' && (
-                        <Pressable
-                          style={styles.descButton}
-                          onPress={() => handleAddDescription(soldier.id)}
-                        >
-                          <IconSymbol name="pencil" color={colors.accent} size={20} />
-                        </Pressable>
-                      )}
-                    </View>
+          <View style={styles.soldiersList}>
+            {squadSettings?.soldiers.map(soldier => {
+              const status = currentData?.statuses.find(s => s.soldierId === soldier.id);
+              const isChecked = showAllOkAnimation || status?.status === 'fulfilled';
+              
+              return (
+                <View key={soldier.id} style={styles.soldierItem}>
+                  <View style={styles.soldierInfo}>
+                    <Text style={styles.soldierName}>{soldier.name}</Text>
+                    {soldier.role && (
+                      <Text style={[styles.soldierRole, { fontFamily: bodyFont }]}>{soldier.role}</Text>
+                    )}
                   </View>
-                );
-              })}
-            </View>
-          </ScrollView>
+                  <View style={styles.soldierActions}>
+                    <Pressable
+                      style={[
+                        styles.statusButton,
+                        isChecked && styles.statusButtonActive,
+                      ]}
+                      onPress={() => handleStatusChange(soldier.id, 'fulfilled')}
+                    >
+                      <IconSymbol
+                        name="checkmark"
+                        color={isChecked ? colors.checkmark : colors.primary}
+                        size={24}
+                      />
+                    </Pressable>
+                    <Pressable
+                      style={[
+                        styles.statusButton,
+                        styles.statusButtonMissing,
+                        status?.status === 'missing' && styles.statusButtonMissingActive,
+                      ]}
+                      onPress={() => handleStatusChange(soldier.id, 'missing')}
+                    >
+                      <IconSymbol
+                        name="xmark"
+                        color={status?.status === 'missing' ? colors.checkmark : colors.error}
+                        size={24}
+                      />
+                    </Pressable>
+                    {status?.status === 'missing' && (
+                      <Pressable
+                        style={styles.descButton}
+                        onPress={() => handleAddDescription(soldier.id)}
+                      >
+                        <IconSymbol name="pencil" color={colors.accent} size={20} />
+                      </Pressable>
+                    )}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        </ScrollView>
 
-          <View style={styles.bottomContainer}>
-            <Pressable style={styles.allOkButton} onPress={handleAllOk}>
-              <IconSymbol name="checkmark.circle.fill" color="#000" size={24} />
-              <Text style={styles.allOkButtonText}>Alle ok</Text>
+        <View style={styles.bottomContainer}>
+          <Pressable style={styles.allOkButton} onPress={handleAllOk}>
+            <IconSymbol name="checkmark.circle.fill" color="#000" size={24} />
+            <Text style={styles.allOkButtonText}>Alle ok</Text>
+          </Pressable>
+
+          <View style={styles.bottomButtons}>
+            <Pressable style={styles.navButton} onPress={handlePrevious}>
+              <Text style={styles.navButtonText}>Forrige</Text>
             </Pressable>
+            <Pressable
+              style={[styles.navButton, styles.navButtonPrimary]}
+              onPress={handleNext}
+            >
+              <Text style={styles.navButtonTextPrimary}>
+                {currentItemIndex === currentCategory.items.length - 1 &&
+                currentCategoryIndex === checklist.length - 1
+                  ? 'Oppsummering'
+                  : 'Neste'}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
 
-            <View style={styles.bottomButtons}>
-              <Pressable style={styles.navButton} onPress={handlePrevious}>
-                <Text style={styles.navButtonText}>Forrige</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.navButton, styles.navButtonPrimary]}
-                onPress={handleNext}
-              >
-                <Text style={styles.navButtonTextPrimary}>
-                  {currentItemIndex === currentCategory.items.length - 1 &&
-                  currentCategoryIndex === checklist.length - 1
-                    ? 'Oppsummering'
-                    : 'Neste'}
-                </Text>
-              </Pressable>
+        <Modal
+          visible={editingSoldierId !== null}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setEditingSoldierId(null)}
+        >
+          <KeyboardAvoidingView 
+            style={styles.modalOverlay}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Legg til beskrivelse</Text>
+                <Pressable onPress={() => setEditingSoldierId(null)}>
+                  <IconSymbol name="xmark" color={colors.error} size={24} />
+                </Pressable>
+              </View>
+              <TextInput
+                style={[styles.modalInput, { fontFamily: bodyFont }]}
+                value={descriptionText}
+                onChangeText={setDescriptionText}
+                placeholder="Beskriv problemet..."
+                placeholderTextColor={colors.textSecondary}
+                multiline
+                numberOfLines={4}
+              />
+              <View style={styles.modalButtons}>
+                <Pressable
+                  style={[styles.modalButton, styles.modalButtonCancel]}
+                  onPress={() => setEditingSoldierId(null)}
+                >
+                  <Text style={styles.modalButtonText}>Avbryt</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.modalButton, styles.modalButtonSave]}
+                  onPress={handleSaveDescription}
+                >
+                  <Text style={styles.modalButtonTextSave}>Lagre</Text>
+                </Pressable>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
+
+        <Modal
+          visible={showExitDialog}
+          transparent
+          animationType="fade"
+          onRequestClose={cancelExit}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.exitDialogContent}>
+              <Text style={styles.exitDialogTitle}>Er du sikker på at du vil avslutte?</Text>
+              <View style={styles.exitDialogButtons}>
+                <Pressable
+                  style={[styles.exitDialogButton, styles.exitDialogButtonCancel]}
+                  onPress={cancelExit}
+                >
+                  <Text style={styles.exitDialogButtonText}>Nei, fortsett</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.exitDialogButton, styles.exitDialogButtonConfirm]}
+                  onPress={confirmExit}
+                >
+                  <Text style={styles.exitDialogButtonTextConfirm}>Ja, avslutt</Text>
+                </Pressable>
+              </View>
             </View>
           </View>
-
-          <Modal
-            visible={editingSoldierId !== null}
-            transparent
-            animationType="slide"
-            onRequestClose={() => setEditingSoldierId(null)}
-          >
-            <KeyboardAvoidingView 
-              style={styles.modalOverlay}
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            >
-              <View style={styles.modalContent}>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Legg til beskrivelse</Text>
-                  <Pressable onPress={() => setEditingSoldierId(null)}>
-                    <IconSymbol name="xmark" color={colors.error} size={24} />
-                  </Pressable>
-                </View>
-                <TextInput
-                  style={[styles.modalInput, { fontFamily: bodyFont }]}
-                  value={descriptionText}
-                  onChangeText={setDescriptionText}
-                  placeholder="Beskriv problemet..."
-                  placeholderTextColor={colors.textSecondary}
-                  multiline
-                  numberOfLines={4}
-                />
-                <View style={styles.modalButtons}>
-                  <Pressable
-                    style={[styles.modalButton, styles.modalButtonCancel]}
-                    onPress={() => setEditingSoldierId(null)}
-                  >
-                    <Text style={styles.modalButtonText}>Avbryt</Text>
-                  </Pressable>
-                  <Pressable
-                    style={[styles.modalButton, styles.modalButtonSave]}
-                    onPress={handleSaveDescription}
-                  >
-                    <Text style={styles.modalButtonTextSave}>Lagre</Text>
-                  </Pressable>
-                </View>
-              </View>
-            </KeyboardAvoidingView>
-          </Modal>
-
-          <Modal
-            visible={showExitDialog}
-            transparent
-            animationType="fade"
-            onRequestClose={cancelExit}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.exitDialogContent}>
-                <Text style={styles.exitDialogTitle}>Er du sikker på at du vil avslutte?</Text>
-                <View style={styles.exitDialogButtons}>
-                  <Pressable
-                    style={[styles.exitDialogButton, styles.exitDialogButtonCancel]}
-                    onPress={cancelExit}
-                  >
-                    <Text style={styles.exitDialogButtonText}>Nei, fortsett</Text>
-                  </Pressable>
-                  <Pressable
-                    style={[styles.exitDialogButton, styles.exitDialogButtonConfirm]}
-                    onPress={confirmExit}
-                  >
-                    <Text style={styles.exitDialogButtonTextConfirm}>Ja, avslutt</Text>
-                  </Pressable>
-                </View>
-              </View>
-            </View>
-          </Modal>
-        </KeyboardAvoidingView>
-      </GestureDetector>
+        </Modal>
+      </KeyboardAvoidingView>
     );
   }
 
@@ -817,20 +794,18 @@ const styles = StyleSheet.create({
     paddingBottom: 260,
   },
   itemCategory: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 8,
-    fontFamily: bodyFont,
-  },
-  itemName: {
     fontSize: 28,
     fontWeight: '800',
     color: colors.text,
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 8,
     fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  itemName: {
+    fontSize: 20,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 32,
   },
   soldiersList: {
     gap: 12,
