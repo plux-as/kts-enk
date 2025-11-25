@@ -8,6 +8,8 @@ import {
   ScrollView,
   Pressable,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
@@ -71,7 +73,10 @@ export default function SetupScreen() {
 
   if (step === 'squad') {
     return (
-      <View style={commonStyles.container}>
+      <KeyboardAvoidingView 
+        style={commonStyles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.title}>Oppsett av Lag</Text>
           <Text style={[styles.subtitle, { fontFamily: bodyFont }]}>Definer lagets detaljer</Text>
@@ -103,12 +108,15 @@ export default function SetupScreen() {
             <Text style={styles.primaryButtonText}>Neste</Text>
           </Pressable>
         </ScrollView>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
   return (
-    <View style={commonStyles.container}>
+    <KeyboardAvoidingView 
+      style={commonStyles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>Soldater</Text>
         <Text style={[styles.subtitle, { fontFamily: bodyFont }]}>Definer navn og rolle for hver soldat</Text>
@@ -156,7 +164,7 @@ export default function SetupScreen() {
           </Pressable>
         </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -1,14 +1,15 @@
+
 {
   "expo": {
-    "name": "KTS Enkelt",
-    "slug": "KTS Enkelt",
+    "name": "KTS ALFA",
+    "slug": "KTS-ALFA",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/cee50603-3984-474d-8f81-0af72a74d36d.png",
-    "userInterfaceStyle": "automatic",
+    "icon": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/cee50603-3984-474d-8f81-0af72a74d36d.png",
+      "image": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
       "resizeMode": "contain",
       "backgroundColor": "#0F0F0F"
     },
@@ -16,19 +17,21 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.Natively",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIUserInterfaceStyle": "Dark"
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/cee50603-3984-474d-8f81-0af72a74d36d.png",
+        "foregroundImage": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
         "backgroundColor": "#0F0F0F"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.Natively"
+      "package": "com.anonymous.Natively",
+      "userInterfaceStyle": "dark"
     },
     "web": {
-      "favicon": "./assets/images/final_quest_240x240.png",
+      "favicon": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
       "bundler": "metro"
     },
     "plugins": [
@@ -36,7 +39,7 @@
       "expo-router",
       "expo-web-browser"
     ],
-    "scheme": "natively",
+    "scheme": "kts-alfa",
     "experiments": {
       "typedRoutes": true
     },
@@ -44,5 +47,5 @@
       "router": {}
     }
   },
-  "scheme": "KTS Enkelt"
+  "scheme": "KTS-ALFA"
 }

@@ -8,6 +8,8 @@ import {
   ScrollView,
   Pressable,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
@@ -136,7 +138,10 @@ export default function SettingsScreen() {
           headerShown: false,
         }}
       />
-      <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
+      <KeyboardAvoidingView 
+        style={[styles.fullScreenModal, { paddingTop: insets.top }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <View style={commonStyles.modalNavBar}>
           <View style={{ width: 24 }} />
           <Text style={commonStyles.modalNavBarTitle}>Rediger Lag</Text>
@@ -204,7 +209,7 @@ export default function SettingsScreen() {
             <Text style={styles.saveButtonText}>Ferdig</Text>
           </Pressable>
         </ScrollView>
-      </View>
+      </KeyboardAvoidingView>
     </>
   );
 }

@@ -9,6 +9,8 @@ import {
   Pressable,
   Alert,
   Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
@@ -304,7 +306,10 @@ export default function EditChecklistScreen() {
           animationType="slide"
           onRequestClose={() => setEditingCategory(null)}
         >
-          <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView 
+            style={styles.modalOverlay}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>
@@ -336,7 +341,7 @@ export default function EditChecklistScreen() {
                 </Pressable>
               </View>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </Modal>
 
         <Modal
@@ -345,7 +350,10 @@ export default function EditChecklistScreen() {
           animationType="slide"
           onRequestClose={() => setEditingItem(null)}
         >
-          <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView 
+            style={styles.modalOverlay}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>
@@ -379,7 +387,7 @@ export default function EditChecklistScreen() {
                 </Pressable>
               </View>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </Modal>
       </View>
     </>

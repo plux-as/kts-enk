@@ -10,6 +10,8 @@ import {
   Modal,
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
@@ -308,7 +310,10 @@ export default function LogDetailScreen() {
           animationType="slide"
           onRequestClose={() => setEditingItem(null)}
         >
-          <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView 
+            style={styles.modalOverlay}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Rediger beskrivelse</Text>
@@ -340,7 +345,7 @@ export default function LogDetailScreen() {
                 </Pressable>
               </View>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </Modal>
       </View>
     </>

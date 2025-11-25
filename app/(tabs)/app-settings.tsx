@@ -125,12 +125,12 @@ export default function AppSettingsScreen() {
             </View>
             <ScrollView contentContainerStyle={styles.aboutModalContent}>
               <Image
-                source={require('@/assets/images/cee50603-3984-474d-8f81-0af72a74d36d.png')}
+                source={require('@/assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png')}
                 style={styles.aboutLogo}
                 resizeMode="contain"
               />
               <Text style={[styles.aboutText, { fontFamily: bodyFont }]}>
-								Appens hensikt er å gjøre det lettere å følge opp feil og mangler i etterkant av utført KTS. Loggen gir deg oversikt over tidligere gjennomføringer og  feil og mangler dokumenteres og utbedres her. Du kan tilpasse sjekklisten etter lagets behov ved å legge til eller fjerne kategorier og elementer.
+                Appens hensikt er å gjøre det lettere å følge opp feil og mangler i etterkant av utført KTS. Loggen gir deg oversikt over tidligere gjennomføringer og feil og mangler dokumenteres og utbedres her. Du kan tilpasse sjekklisten etter lagets behov ved å legge til eller fjerne kategorier og elementer.
               </Text>
               <Text style={[styles.aboutText, { fontFamily: bodyFont, marginTop: 16 }]}>
                 Appen utveksler ingen data med en server eller eksterne tjenester, og appen kan gjerne brukes i flymodus eller uten dekning. Alle data knyttet til appen lagres kun lokalt på din enhet. Dersom du bytter telefon, mister du alle lagrede data. Appen sporer ingen bruk eller posisjon.
@@ -244,8 +244,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   aboutLogo: {
-    width: 200,
-    height: 200,
+    width: 120,
+    height: 120,
     marginBottom: 32,
   },
   aboutText: {

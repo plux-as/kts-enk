@@ -10,6 +10,8 @@ import {
   TextInput,
   Modal,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
@@ -337,7 +339,7 @@ export default function SessionScreen() {
 
     try {
       await Clipboard.setStringAsync(text);
-      Alert.alert('Kopiert', 'Kopiert. Du kan nå lime inn teksten der du ønsker');
+      Alert.alert('Kopiert', 'Du kan nå lime inn teksten der du ønsker');
     } catch (error) {
       console.error('Error copying to clipboard:', error);
       Alert.alert('Feil', 'Kunne ikke kopiere til utklippstavlen');
@@ -396,7 +398,7 @@ export default function SessionScreen() {
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={commonStyles.modalNavBar}>
           <View style={{ width: 24 }} />
-          <Text style={commonStyles.modalNavBarTitle}>KTS</Text>
+          <Text style={commonStyles.modalNavBarTitle}>KTS ALFA</Text>
           <Pressable onPress={handleExit} style={styles.exitButton}>
             <IconSymbol name="xmark" color={colors.error} size={24} />
           </Pressable>
@@ -467,10 +469,14 @@ export default function SessionScreen() {
     );
 
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <KeyboardAvoidingView 
+        style={[styles.container, { paddingTop: insets.top }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
         <View style={commonStyles.modalNavBar}>
           <View style={{ width: 24 }} />
-          <Text style={commonStyles.modalNavBarTitle}>KTS</Text>
+          <Text style={commonStyles.modalNavBarTitle}>KTS ALFA</Text>
           <Pressable onPress={handleExit} style={styles.exitButton}>
             <IconSymbol name="xmark" color={colors.error} size={24} />
           </Pressable>
@@ -481,8 +487,8 @@ export default function SessionScreen() {
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={[styles.itemCategory, { fontFamily: bodyFont }]}>{currentCategory.name}</Text>
-          <Text style={styles.itemName}>{currentItem.name}</Text>
+          <Text style={styles.itemCategory}>{currentCategory.name}</Text>
+          <Text style={[styles.itemName, { fontFamily: bodyFont }]}>{currentItem.name}</Text>
 
           <View style={styles.soldiersList}>
             {squadSettings?.soldiers.map(soldier => {
@@ -570,7 +576,10 @@ export default function SessionScreen() {
           animationType="slide"
           onRequestClose={() => setEditingSoldierId(null)}
         >
-          <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView 
+            style={styles.modalOverlay}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Legg til beskrivelse</Text>
@@ -602,7 +611,7 @@ export default function SessionScreen() {
                 </Pressable>
               </View>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </Modal>
 
         <Modal
@@ -631,7 +640,7 @@ export default function SessionScreen() {
             </View>
           </View>
         </Modal>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
@@ -642,7 +651,7 @@ export default function SessionScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={commonStyles.modalNavBar}>
         <View style={{ width: 24 }} />
-        <Text style={commonStyles.modalNavBarTitle}>KTS</Text>
+        <Text style={commonStyles.modalNavBarTitle}>KTS ALFA</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -785,18 +794,18 @@ const styles = StyleSheet.create({
     paddingBottom: 260,
   },
   itemCategory: {
-    fontSize: 20,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  itemName: {
     fontSize: 28,
     fontWeight: '800',
     color: colors.text,
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 8,
     fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  itemName: {
+    fontSize: 20,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 32,
   },
   soldiersList: {
     gap: 12,
