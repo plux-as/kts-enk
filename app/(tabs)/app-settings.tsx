@@ -125,7 +125,7 @@ export default function AppSettingsScreen() {
             </View>
             <ScrollView contentContainerStyle={styles.aboutModalContent}>
               <Image
-                source={require('@/assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png')}
+                source={require('@/assets/images/cee50603-3984-474d-8f81-0af72a74d36d.png')}
                 style={styles.aboutLogo}
                 resizeMode="contain"
               />
@@ -247,6 +247,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     marginBottom: 32,
+    backgroundColor: 'transparent',
   },
   aboutText: {
     fontSize: 16,

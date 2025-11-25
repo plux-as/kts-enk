@@ -398,7 +398,7 @@ export default function SessionScreen() {
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={commonStyles.modalNavBar}>
           <View style={{ width: 24 }} />
-          <Text style={commonStyles.modalNavBarTitle}>KTS ALFA</Text>
+          <Text style={commonStyles.modalNavBarTitle}>KTS</Text>
           <Pressable onPress={handleExit} style={styles.exitButton}>
             <IconSymbol name="xmark" color={colors.error} size={24} />
           </Pressable>
@@ -476,7 +476,7 @@ export default function SessionScreen() {
       >
         <View style={commonStyles.modalNavBar}>
           <View style={{ width: 24 }} />
-          <Text style={commonStyles.modalNavBarTitle}>KTS ALFA</Text>
+          <Text style={commonStyles.modalNavBarTitle}>KTS</Text>
           <Pressable onPress={handleExit} style={styles.exitButton}>
             <IconSymbol name="xmark" color={colors.error} size={24} />
           </Pressable>
@@ -651,7 +651,7 @@ export default function SessionScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={commonStyles.modalNavBar}>
         <View style={{ width: 24 }} />
-        <Text style={commonStyles.modalNavBarTitle}>KTS ALFA</Text>
+        <Text style={commonStyles.modalNavBarTitle}>KTS</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -698,10 +698,11 @@ export default function SessionScreen() {
 
         {!hasMissingItems && (
           <View style={styles.noIssuesCard}>
-            <Image
-              source={require('@/assets/images/f54512be-2d40-4d54-93d7-66c0b49c0292.png')}
-              style={styles.noIssuesIcon}
-              resizeMode="contain"
+            <IconSymbol 
+              ios_icon_name="shield.lefthalf.filled.badge.checkmark" 
+              android_material_icon_name="shield" 
+              size={80} 
+              color="#BCF135" 
             />
             <Text style={styles.noIssuesText}>Bravo zulu. Ingen feil eller mangler.</Text>
           </View>
@@ -794,7 +795,7 @@ const styles = StyleSheet.create({
     paddingBottom: 260,
   },
   itemCategory: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '800',
     color: colors.text,
     textAlign: 'center',
@@ -802,7 +803,7 @@ const styles = StyleSheet.create({
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   itemName: {
-    fontSize: 20,
+    fontSize: 22,
     color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 32,
@@ -1093,6 +1094,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontFamily: 'BigShouldersStencil_700Bold',
     textAlign: 'center',
+    marginTop: 16,
   },
   summaryBottomButtons: {
     position: 'absolute',
