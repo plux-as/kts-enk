@@ -87,7 +87,7 @@ export default function LogScreen() {
               <IconSymbol name="list.bullet" color={colors.textSecondary} size={64} />
               <Text style={styles.emptyText}>Ingen økter registrert</Text>
               <Text style={[styles.emptySubtext, { fontFamily: bodyFont }]}>
-                Start en ny KTS-økt fra hjemmeskjermen
+                Start en ny KTS fra Start-fanen
               </Text>
             </View>
           ) : (
