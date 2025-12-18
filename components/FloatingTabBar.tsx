@@ -94,22 +94,26 @@ export default function FloatingTabBar({
 
   const itemWidth = containerWidth / tabs.length;
 
+  // Android-specific styling
+  const isAndroid = Platform.OS === 'android';
+  const containerBackgroundColor = isAndroid 
+    ? '#000000' 
+    : (theme.dark ? 'rgba(28, 28, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)');
+
   return (
     <SafeAreaView
       edges={['bottom']}
       style={[styles.safeArea, { marginBottom: bottomMargin }]}
     >
       <BlurView
-        intensity={80}
+        intensity={isAndroid ? 0 : 80}
         tint={theme.dark ? 'dark' : 'light'}
         style={[
           styles.container,
           {
             width: containerWidth,
             borderRadius,
-            backgroundColor: theme.dark
-              ? 'rgba(28, 28, 30, 0.8)'
-              : 'rgba(255, 255, 255, 0.8)',
+            backgroundColor: containerBackgroundColor,
           },
         ]}
       >
@@ -127,6 +131,14 @@ export default function FloatingTabBar({
 
         {tabs.map((tab, index) => {
           const isActive = index === activeIndex;
+          // On Android, use black for active tab, white for inactive
+          const iconColor = isAndroid 
+            ? (isActive ? '#000000' : '#FFFFFF')
+            : (isActive ? '#FFFFFF' : colors.text);
+          const labelColor = isAndroid
+            ? (isActive ? '#000000' : '#FFFFFF')
+            : (isActive ? '#FFFFFF' : colors.text);
+
           return (
             <TouchableOpacity
               key={tab.route}
@@ -137,13 +149,13 @@ export default function FloatingTabBar({
               <IconSymbol
                 name={tab.icon as any}
                 size={24}
-                color={isActive ? '#FFFFFF' : colors.text}
+                color={iconColor}
               />
               <Text
                 style={[
                   styles.label,
                   {
-                    color: isActive ? '#FFFFFF' : colors.text,
+                    color: labelColor,
                     fontFamily: 'BigShouldersStencil_700Bold',
                   },
                 ]}

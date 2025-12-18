@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -45,6 +45,8 @@ export default function SessionScreen() {
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [showAllOkAnimation, setShowAllOkAnimation] = useState(false);
   const [startTimestamp, setStartTimestamp] = useState<number>(Date.now());
+  const [endTimestamp, setEndTimestamp] = useState<number | null>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -120,6 +122,9 @@ export default function SessionScreen() {
   };
 
   const handleNext = () => {
+    // Reset scroll position to top
+    scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: false });
+
     if (screenType === 'category') {
       setScreenType('item');
       setCurrentItemIndex(0);
@@ -167,6 +172,9 @@ export default function SessionScreen() {
   };
 
   const handlePrevious = () => {
+    // Reset scroll position to top
+    scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: false });
+
     if (screenType === 'item') {
       if (currentItemIndex > 0) {
         setCurrentItemIndex(currentItemIndex - 1);
@@ -255,6 +263,9 @@ export default function SessionScreen() {
   };
 
   const handleShowSummary = () => {
+    // Capture end timestamp at the moment the summary button is pressed
+    const now = Date.now();
+    setEndTimestamp(now);
     setScreenType('summary');
   };
 
@@ -297,7 +308,9 @@ export default function SessionScreen() {
     });
 
     const now = new Date();
-    const duration = formatDuration(now.getTime() - startTimestamp);
+    // Use the captured endTimestamp for duration calculation
+    const finalEndTimestamp = endTimestamp || now.getTime();
+    const duration = formatDuration(finalEndTimestamp - startTimestamp);
     
     return {
       id: `session-${Date.now()}`,
@@ -349,14 +362,15 @@ export default function SessionScreen() {
   const handleFinish = async () => {
     try {
       const summary = generateSummary();
-      const endTimestamp = Date.now();
+      // Use the captured endTimestamp
+      const finalEndTimestamp = endTimestamp || Date.now();
       const session: ChecklistSession = {
         id: summary.id,
         date: summary.date,
         time: summary.time,
         timestamp: summary.timestamp,
         startTimestamp,
-        endTimestamp,
+        endTimestamp: finalEndTimestamp,
         duration: summary.duration,
         squadName: summary.squadName,
         soldiers: squadSettings?.soldiers || [],
@@ -486,7 +500,10 @@ export default function SessionScreen() {
           <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView 
+          ref={scrollViewRef}
+          contentContainerStyle={styles.scrollContent}
+        >
           <Text style={styles.itemCategory}>{currentCategory.name}</Text>
           <Text style={[styles.itemName, { fontFamily: bodyFont }]}>{currentItem.name}</Text>
 
@@ -709,7 +726,7 @@ export default function SessionScreen() {
         )}
       </ScrollView>
 
-      <View style={styles.summaryBottomButtons}>
+      <View style={[styles.summaryBottomButtons, Platform.OS === 'android' && styles.summaryBottomButtonsAndroid]}>
         <Pressable 
           style={[
             styles.exportButton,
@@ -788,23 +805,23 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.textSecondary + '40',
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: Platform.OS === 'android' ? 32 : 40,
   },
   scrollContent: {
     padding: 20,
     paddingBottom: 260,
   },
   itemCategory: {
-    fontSize: 24,
+    fontSize: 21,
     fontWeight: '800',
-    color: colors.text,
+    color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 16,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   itemName: {
     fontSize: 22,
-    color: colors.textSecondary,
+    color: colors.text,
     textAlign: 'center',
     marginBottom: 32,
   },
@@ -877,7 +894,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.textSecondary + '40',
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: Platform.OS === 'android' ? 32 : 40,
   },
   allOkButton: {
     backgroundColor: colors.primary,
@@ -1108,6 +1125,9 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     flexDirection: 'row',
     gap: 12,
+  },
+  summaryBottomButtonsAndroid: {
+    paddingBottom: 32,
   },
   exportButton: {
     flex: 1,

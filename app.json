@@ -1,9 +1,8 @@
-
 {
   "expo": {
-    "name": "KTS ALFA",
-    "slug": "KTS-ALFA",
-    "version": "1.0.0",
+    "name": "KTS Enkelt",
+    "slug": "KTS Enkelt",
+    "version": "2.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
     "userInterfaceStyle": "dark",
@@ -14,8 +13,8 @@
       "backgroundColor": "#0F0F0F"
     },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.Natively",
+      "supportsTablet": false,
+      "bundleIdentifier": "com.plux.ktsalfa",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIUserInterfaceStyle": "Dark"
@@ -27,7 +26,7 @@
         "backgroundColor": "#0F0F0F"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.Natively",
+      "package": "com.plux.ktsalfa",
       "userInterfaceStyle": "dark"
     },
     "web": {
@@ -47,5 +46,5 @@
       "router": {}
     }
   },
-  "scheme": "KTS-ALFA"
+  "scheme": "KTS Enkelt"
 }
