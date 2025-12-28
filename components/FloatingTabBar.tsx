@@ -45,7 +45,7 @@ export default function FloatingTabBar({
   const pathname = usePathname();
 
   // Find the active tab index based on the current pathname
-  const getActiveIndex = () => {
+  const getActiveIndex = React.useCallback(() => {
     // Check for exact matches first
     for (let i = 0; i < tabs.length; i++) {
       const tab = tabs[i];
@@ -60,7 +60,7 @@ export default function FloatingTabBar({
     
     // Default to first tab if no match
     return 0;
-  };
+  }, [pathname, tabs]);
 
   const activeIndex = getActiveIndex();
   const translateX = useSharedValue(activeIndex);
@@ -71,7 +71,7 @@ export default function FloatingTabBar({
       damping: 20,
       stiffness: 90,
     });
-  }, [pathname]);
+  }, [pathname, getActiveIndex]);
 
   const animatedStyle = useAnimatedStyle(() => {
     const itemWidth = containerWidth / tabs.length;
@@ -96,7 +96,8 @@ export default function FloatingTabBar({
 
   // Android-specific styling
   const isAndroid = Platform.OS === 'android';
-  const containerBackgroundColor = isAndroid 
+  const isWeb = Platform.OS === 'web';
+  const containerBackgroundColor = (isAndroid || isWeb)
     ? '#000000' 
     : (theme.dark ? 'rgba(28, 28, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)');
 
@@ -106,7 +107,7 @@ export default function FloatingTabBar({
       style={[styles.safeArea, { marginBottom: bottomMargin }]}
     >
       <BlurView
-        intensity={isAndroid ? 0 : 80}
+        intensity={(isAndroid || isWeb) ? 0 : 80}
         tint={theme.dark ? 'dark' : 'light'}
         style={[
           styles.container,
@@ -131,11 +132,11 @@ export default function FloatingTabBar({
 
         {tabs.map((tab, index) => {
           const isActive = index === activeIndex;
-          // On Android, use black for active tab, white for inactive
-          const iconColor = isAndroid 
+          // On Android and Web, use black for active tab, white for inactive
+          const iconColor = (isAndroid || isWeb)
             ? (isActive ? '#000000' : '#FFFFFF')
             : (isActive ? '#FFFFFF' : colors.text);
-          const labelColor = isAndroid
+          const labelColor = (isAndroid || isWeb)
             ? (isActive ? '#000000' : '#FFFFFF')
             : (isActive ? '#FFFFFF' : colors.text);
 
