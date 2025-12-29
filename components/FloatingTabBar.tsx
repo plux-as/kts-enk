@@ -45,33 +45,42 @@ export default function FloatingTabBar({
   const pathname = usePathname();
 
   // Find the active tab index based on the current pathname
-  const getActiveIndex = React.useCallback(() => {
+  const getActiveIndex = () => {
+    console.log('[FloatingTabBar] Current pathname:', pathname);
+    
     // Check for exact matches first
     for (let i = 0; i < tabs.length; i++) {
       const tab = tabs[i];
+      console.log(`[FloatingTabBar] Checking tab ${i}: ${tab.route}`);
+      
       if (tab.route === '/(tabs)/(home)') {
         if (pathname === '/(tabs)/(home)' || pathname === '/' || pathname.startsWith('/(tabs)/(home)')) {
+          console.log(`[FloatingTabBar] Matched home tab at index ${i}`);
           return i;
         }
       } else if (pathname === tab.route || pathname.startsWith(tab.route + '/')) {
+        console.log(`[FloatingTabBar] Matched tab at index ${i}`);
         return i;
       }
     }
     
     // Default to first tab if no match
+    console.log('[FloatingTabBar] No match found, defaulting to index 0');
     return 0;
-  }, [pathname, tabs]);
+  };
 
+  // Calculate active index directly from pathname
   const activeIndex = getActiveIndex();
   const translateX = useSharedValue(activeIndex);
 
+  // Update animation whenever pathname or activeIndex changes
   React.useEffect(() => {
-    const newIndex = getActiveIndex();
-    translateX.value = withSpring(newIndex, {
+    console.log('[FloatingTabBar] Effect triggered - pathname:', pathname, 'activeIndex:', activeIndex);
+    translateX.value = withSpring(activeIndex, {
       damping: 20,
       stiffness: 90,
     });
-  }, [pathname, getActiveIndex]);
+  }, [pathname, activeIndex, translateX]);
 
   const animatedStyle = useAnimatedStyle(() => {
     const itemWidth = containerWidth / tabs.length;
@@ -89,6 +98,7 @@ export default function FloatingTabBar({
   });
 
   const handleTabPress = (route: string) => {
+    console.log('[FloatingTabBar] Tab pressed:', route);
     router.push(route as any);
   };
 
@@ -100,6 +110,8 @@ export default function FloatingTabBar({
   const containerBackgroundColor = (isAndroid || isWeb)
     ? '#000000' 
     : (theme.dark ? 'rgba(28, 28, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)');
+
+  console.log('[FloatingTabBar] Rendering with activeIndex:', activeIndex);
 
   return (
     <SafeAreaView
