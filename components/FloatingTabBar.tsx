@@ -9,7 +9,7 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import { useRouter, usePathname } from 'expo-router';
+import { useRouter, usePathname, useSegments } from 'expo-router';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -43,22 +43,60 @@ export default function FloatingTabBar({
   const theme = useTheme();
   const router = useRouter();
   const pathname = usePathname();
+  const segments = useSegments();
 
-  // Find the active tab index based on the current pathname
+  // Find the active tab index based on the current pathname and segments
   const getActiveIndex = () => {
     console.log('[FloatingTabBar] Current pathname:', pathname);
+    console.log('[FloatingTabBar] Current segments:', segments);
     
-    // Check for exact matches first
+    // Check segments for more reliable matching
+    const segmentString = segments.join('/');
+    console.log('[FloatingTabBar] Segment string:', segmentString);
+    
     for (let i = 0; i < tabs.length; i++) {
       const tab = tabs[i];
       console.log(`[FloatingTabBar] Checking tab ${i}: ${tab.route}`);
       
+      // Special handling for home tab
       if (tab.route === '/(tabs)/(home)') {
-        if (pathname === '/(tabs)/(home)' || pathname === '/' || pathname.startsWith('/(tabs)/(home)')) {
+        if (
+          pathname === '/(tabs)/(home)' || 
+          pathname === '/' || 
+          pathname.startsWith('/(tabs)/(home)') ||
+          segmentString.includes('(tabs)/(home)') ||
+          (segments.length >= 2 && segments[0] === '(tabs)' && segments[1] === '(home)')
+        ) {
           console.log(`[FloatingTabBar] Matched home tab at index ${i}`);
           return i;
         }
-      } else if (pathname === tab.route || pathname.startsWith(tab.route + '/')) {
+      }
+      // Check for log tab
+      else if (tab.route === '/(tabs)/log') {
+        if (
+          pathname === '/(tabs)/log' || 
+          pathname.includes('/log') ||
+          segmentString.includes('(tabs)/log') ||
+          (segments.length >= 2 && segments[0] === '(tabs)' && segments[1] === 'log')
+        ) {
+          console.log(`[FloatingTabBar] Matched log tab at index ${i}`);
+          return i;
+        }
+      }
+      // Check for app-settings tab
+      else if (tab.route === '/(tabs)/app-settings') {
+        if (
+          pathname === '/(tabs)/app-settings' || 
+          pathname.includes('/app-settings') ||
+          segmentString.includes('(tabs)/app-settings') ||
+          (segments.length >= 2 && segments[0] === '(tabs)' && segments[1] === 'app-settings')
+        ) {
+          console.log(`[FloatingTabBar] Matched app-settings tab at index ${i}`);
+          return i;
+        }
+      }
+      // Generic check for other tabs
+      else if (pathname === tab.route || pathname.startsWith(tab.route + '/')) {
         console.log(`[FloatingTabBar] Matched tab at index ${i}`);
         return i;
       }
@@ -73,14 +111,14 @@ export default function FloatingTabBar({
   const activeIndex = getActiveIndex();
   const translateX = useSharedValue(activeIndex);
 
-  // Update animation whenever pathname or activeIndex changes
+  // Update animation whenever pathname, segments, or activeIndex changes
   React.useEffect(() => {
     console.log('[FloatingTabBar] Effect triggered - pathname:', pathname, 'activeIndex:', activeIndex);
     translateX.value = withSpring(activeIndex, {
       damping: 20,
       stiffness: 90,
     });
-  }, [pathname, activeIndex, translateX]);
+  }, [pathname, segments, activeIndex, translateX]);
 
   const animatedStyle = useAnimatedStyle(() => {
     const itemWidth = containerWidth / tabs.length;
@@ -147,10 +185,10 @@ export default function FloatingTabBar({
           // On Android and Web, use black for active tab, white for inactive
           const iconColor = (isAndroid || isWeb)
             ? (isActive ? '#000000' : '#FFFFFF')
-            : (isActive ? '#FFFFFF' : colors.text);
+            : (isActive ? '#000000' : colors.text);
           const labelColor = (isAndroid || isWeb)
             ? (isActive ? '#000000' : '#FFFFFF')
-            : (isActive ? '#FFFFFF' : colors.text);
+            : (isActive ? '#000000' : colors.text);
 
           return (
             <TouchableOpacity
