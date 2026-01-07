@@ -13,8 +13,8 @@
       "backgroundColor": "#0F0F0F"
     },
     "ios": {
-      "supportsTablet": false,
-      "bundleIdentifier": "com.plux.ktsalfa",
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pluxas.ktsalfa",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIUserInterfaceStyle": "Dark"
