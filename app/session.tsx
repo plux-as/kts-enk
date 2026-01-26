@@ -32,6 +32,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ScreenType = 'category' | 'item' | 'summary';
 
+// Consistent bottom button height for proper centering calculations
+const BOTTOM_BUTTON_CONTAINER_HEIGHT = Platform.OS === 'android' ? 128 : 136;
+
 export default function SessionScreen() {
   const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
   const [squadSettings, setSquadSettings] = useState<SquadSettings | null>(null);
@@ -122,6 +125,7 @@ export default function SessionScreen() {
   };
 
   const handleNext = () => {
+    console.log('User tapped Next button');
     // Reset scroll position to top
     scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: false });
 
@@ -143,6 +147,7 @@ export default function SessionScreen() {
   };
 
   const handleAllOk = async () => {
+    console.log('User tapped All Ok button');
     if (screenType !== 'item' || !squadSettings) return;
 
     const currentCategory = checklist[currentCategoryIndex];
@@ -172,6 +177,7 @@ export default function SessionScreen() {
   };
 
   const handlePrevious = () => {
+    console.log('User tapped Previous button');
     // Reset scroll position to top
     scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: false });
 
@@ -193,6 +199,7 @@ export default function SessionScreen() {
   };
 
   const handleStatusChange = (soldierId: string, status: 'fulfilled' | 'missing') => {
+    console.log('User changed status for soldier:', soldierId, 'to:', status);
     const currentCategory = checklist[currentCategoryIndex];
     const currentItem = currentCategory.items[currentItemIndex];
 
@@ -220,6 +227,7 @@ export default function SessionScreen() {
   };
 
   const handleAddDescription = (soldierId: string) => {
+    console.log('User tapped Add Description for soldier:', soldierId);
     setEditingSoldierId(soldierId);
     const currentCategory = checklist[currentCategoryIndex];
     const currentItem = currentCategory.items[currentItemIndex];
@@ -231,6 +239,7 @@ export default function SessionScreen() {
   };
 
   const handleSaveDescription = () => {
+    console.log('User saved description:', descriptionText);
     if (!editingSoldierId) return;
 
     const currentCategory = checklist[currentCategoryIndex];
@@ -263,6 +272,7 @@ export default function SessionScreen() {
   };
 
   const handleShowSummary = () => {
+    console.log('User navigated to Summary screen');
     // Capture end timestamp at the moment the summary button is pressed
     const now = Date.now();
     setEndTimestamp(now);
@@ -324,6 +334,7 @@ export default function SessionScreen() {
   };
 
   const handleExportSummary = async () => {
+    console.log('User tapped Export Summary button');
     const summary = generateSummary();
     
     const hasMissingItems = summary.soldierSummaries.some(ss => ss.missingItems.length > 0);
@@ -360,6 +371,7 @@ export default function SessionScreen() {
   };
 
   const handleFinish = async () => {
+    console.log('User tapped Finish button');
     try {
       const summary = generateSummary();
       // Use the captured endTimestamp
@@ -386,15 +398,18 @@ export default function SessionScreen() {
   };
 
   const handleExit = () => {
+    console.log('User tapped Exit button');
     setShowExitDialog(true);
   };
 
   const confirmExit = () => {
+    console.log('User confirmed exit');
     setShowExitDialog(false);
     router.back();
   };
 
   const cancelExit = () => {
+    console.log('User cancelled exit');
     setShowExitDialog(false);
   };
 
@@ -422,7 +437,7 @@ export default function SessionScreen() {
           <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
         </View>
 
-        <View style={styles.content}>
+        <View style={[styles.content, { marginBottom: BOTTOM_BUTTON_CONTAINER_HEIGHT }]}>
           <Text style={styles.categoryTitle}>{currentCategory.name}</Text>
           <Text style={[styles.categorySubtitle, { fontFamily: bodyFont }]}>
             Kategori {currentCategoryIndex + 1} av {checklist.length}
@@ -726,7 +741,7 @@ export default function SessionScreen() {
         )}
       </ScrollView>
 
-      <View style={[styles.summaryBottomButtons, Platform.OS === 'android' && styles.summaryBottomButtonsAndroid]}>
+      <View style={styles.summaryBottomButtons}>
         <Pressable 
           style={[
             styles.exportButton,
@@ -805,7 +820,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.textSecondary + '40',
     padding: 20,
-    paddingBottom: Platform.OS === 'android' ? 32 : 40,
+    paddingBottom: Platform.OS === 'android' ? 24 : 40,
   },
   scrollContent: {
     padding: 20,
@@ -894,7 +909,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.textSecondary + '40',
     padding: 20,
-    paddingBottom: Platform.OS === 'android' ? 32 : 40,
+    paddingBottom: Platform.OS === 'android' ? 24 : 40,
   },
   allOkButton: {
     backgroundColor: colors.primary,
@@ -1122,12 +1137,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.textSecondary + '40',
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: Platform.OS === 'android' ? 24 : 40,
     flexDirection: 'row',
     gap: 12,
-  },
-  summaryBottomButtonsAndroid: {
-    paddingBottom: 32,
   },
   exportButton: {
     flex: 1,
