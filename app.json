@@ -38,7 +38,7 @@
       "expo-router",
       "expo-web-browser"
     ],
-    "scheme": "kts-alfa",
+    "scheme": "KTS Enkelt",
     "experiments": {
       "typedRoutes": true
     },

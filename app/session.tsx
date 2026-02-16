@@ -731,10 +731,9 @@ export default function SessionScreen() {
         {!hasMissingItems && (
           <View style={styles.noIssuesCard}>
             <IconSymbol 
-              ios_icon_name="shield.lefthalf.filled.badge.checkmark" 
-              android_material_icon_name="shield" 
-              size={80} 
-              color="#BCF135" 
+              name="checkmark.circle.fill" 
+              size={100} 
+              color={colors.primary} 
             />
             <Text style={styles.noIssuesText}>Bravo zulu. Ingen feil eller mangler.</Text>
           </View>
@@ -1114,11 +1113,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
-  },
-  noIssuesIcon: {
-    width: 80,
-    height: 80,
-    marginBottom: 16,
   },
   noIssuesText: {
     fontSize: 24,
