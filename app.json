@@ -2,7 +2,7 @@
   "expo": {
     "name": "KTS Enkelt",
     "slug": "KTS Enkelt",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
     "userInterfaceStyle": "dark",
