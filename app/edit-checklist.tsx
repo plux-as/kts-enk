@@ -30,6 +30,7 @@ const ROLE_OPTIONS: { value: CategoryRole; label: string }[] = [
 function getRoleBadge(role: CategoryRole): { label: string; bg: string; text: string } | null {
   if (role === 'primaryWeapon') return { label: 'PRIMÆRVÅPEN', bg: '#D97706', text: '#fff' };
   if (role === 'secondaryWeapon') return { label: 'SEKUNDÆRVÅPEN', bg: '#2563EB', text: '#fff' };
+  if (role === 'general') return { label: 'GENERELL', bg: '#059669', text: '#fff' };
   return null;
 }
 
