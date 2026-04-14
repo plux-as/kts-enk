@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import {
 import { router } from 'expo-router';
 import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
-import { Soldier } from '@/types/checklist';
+import { Soldier, ChecklistCategory } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
 
 export default function SetupScreen() {
@@ -22,8 +22,26 @@ export default function SetupScreen() {
   const [numberOfSoldiers, setNumberOfSoldiers] = useState('');
   const [soldiers, setSoldiers] = useState<Soldier[]>([]);
   const [step, setStep] = useState<'squad' | 'soldiers'>('squad');
+  const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
+
+  useEffect(() => {
+    loadChecklist();
+  }, []);
+
+  const loadChecklist = async () => {
+    try {
+      const data = await storage.getChecklist();
+      setChecklist(data);
+    } catch (error) {
+      console.error('Error loading checklist in setup:', error);
+    }
+  };
+
+  const primaryWeaponCategories = checklist.filter(c => c.categoryRole === 'primaryWeapon');
+  const defaultWeaponId = primaryWeaponCategories.length > 0 ? primaryWeaponCategories[0].id : '';
 
   const handleSquadSubmit = () => {
+    console.log('User submitted squad info:', squadName, numberOfSoldiers);
     if (!squadName.trim()) {
       Alert.alert('Feil', 'Vennligst skriv inn lagets navn');
       return;
@@ -39,23 +57,33 @@ export default function SetupScreen() {
       id: `soldier-${Date.now()}-${i}`,
       name: '',
       role: '',
+      personligVapenCategoryId: defaultWeaponId,
     }));
 
     setSoldiers(newSoldiers);
     setStep('soldiers');
   };
 
-  const updateSoldier = (index: number, field: 'name' | 'role', value: string) => {
+  const updateSoldier = (index: number, field: 'name' | 'role' | 'personligVapenCategoryId', value: string) => {
     const updated = [...soldiers];
     updated[index][field] = value;
     setSoldiers(updated);
   };
 
   const handleComplete = async () => {
+    console.log('User tapped Complete setup');
     const incompleteSoldiers = soldiers.filter(s => !s.name.trim());
     if (incompleteSoldiers.length > 0) {
       Alert.alert('Feil', 'Vennligst fyll inn navn for alle soldater');
       return;
+    }
+
+    if (primaryWeaponCategories.length > 0) {
+      const missingWeapon = soldiers.find(s => !s.personligVapenCategoryId);
+      if (missingWeapon) {
+        Alert.alert('Feil', 'Vennligst velg personlig våpen for alle soldater');
+        return;
+      }
     }
 
     try {
@@ -73,7 +101,7 @@ export default function SetupScreen() {
 
   if (step === 'squad') {
     return (
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={commonStyles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
@@ -113,7 +141,7 @@ export default function SetupScreen() {
   }
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={commonStyles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
@@ -144,6 +172,32 @@ export default function SetupScreen() {
                 placeholderTextColor={colors.textSecondary}
               />
             </View>
+            {primaryWeaponCategories.length > 0 && (
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Personlig våpen</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+                  <View style={styles.chipRow}>
+                    {primaryWeaponCategories.map(cat => {
+                      const isSelected = soldier.personligVapenCategoryId === cat.id;
+                      return (
+                        <Pressable
+                          key={cat.id}
+                          style={[styles.chip, isSelected && styles.chipSelected]}
+                          onPress={() => {
+                            console.log('User selected weapon for soldier', index, ':', cat.name);
+                            updateSoldier(index, 'personligVapenCategoryId', cat.id);
+                          }}
+                        >
+                          <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                            {cat.name}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
+              </View>
+            )}
           </View>
         ))}
       </ScrollView>
@@ -152,7 +206,10 @@ export default function SetupScreen() {
         <View style={styles.buttonRow}>
           <Pressable
             style={[styles.button, styles.secondaryButton]}
-            onPress={() => setStep('squad')}
+            onPress={() => {
+              console.log('User tapped Back in soldiers step');
+              setStep('squad');
+            }}
           >
             <Text style={styles.secondaryButtonText}>Tilbake</Text>
           </Pressable>
@@ -221,6 +278,34 @@ const styles = StyleSheet.create({
     color: colors.primary,
     marginBottom: 12,
     fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  chipScroll: {
+    flexGrow: 0,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingRight: 4,
+  },
+  chip: {
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: 'transparent',
+  },
+  chipSelected: {
+    backgroundColor: colors.primary,
+  },
+  chipText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.primary,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  chipTextSelected: {
+    color: '#000',
   },
   stickyButtonContainer: {
     position: 'absolute',

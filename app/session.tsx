@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,6 @@ import {
   Alert,
   TextInput,
   Modal,
-  Image,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -30,24 +29,28 @@ import { IconSymbol } from '@/components/IconSymbol';
 import * as Clipboard from 'expo-clipboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type ScreenType = 'category' | 'item' | 'summary';
+type SessionPhase =
+  | { type: 'parallelWeaponIntro' }
+  | { type: 'parallelWeaponStep'; stepIndex: number }
+  | { type: 'categoryIntro'; categoryIndex: number }
+  | { type: 'item'; categoryIndex: number; itemIndex: number }
+  | { type: 'summary' };
 
-// Consistent bottom button height for proper centering calculations
 const BOTTOM_BUTTON_CONTAINER_HEIGHT = Platform.OS === 'android' ? 128 : 136;
 
 export default function SessionScreen() {
   const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
   const [squadSettings, setSquadSettings] = useState<SquadSettings | null>(null);
   const [sessionData, setSessionData] = useState<SessionItemData[]>([]);
-  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
-  const [currentItemIndex, setCurrentItemIndex] = useState(-1);
-  const [screenType, setScreenType] = useState<ScreenType>('category');
+  const [phase, setPhase] = useState<SessionPhase>({ type: 'parallelWeaponIntro' });
   const [loading, setLoading] = useState(true);
   const [editingSoldierId, setEditingSoldierId] = useState<string | null>(null);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [descriptionText, setDescriptionText] = useState('');
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [showAllOkAnimation, setShowAllOkAnimation] = useState(false);
-  const [startTimestamp, setStartTimestamp] = useState<number>(Date.now());
+  const [startTimestamp] = useState<number>(Date.now());
   const [endTimestamp, setEndTimestamp] = useState<number | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
@@ -95,125 +98,146 @@ export default function SessionScreen() {
     }
   };
 
-  const formatDuration = (milliseconds: number): string => {
-    const totalSeconds = Math.floor(milliseconds / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
+  const primaryWeaponCategories = useMemo(
+    () => checklist.filter(c => c.categoryRole === 'primaryWeapon'),
+    [checklist]
+  );
 
-  const getTotalItems = () => {
-    return checklist.reduce((total, cat) => total + cat.items.length, 0);
-  };
+  const generalCategories = useMemo(
+    () => checklist.filter(c => c.categoryRole !== 'primaryWeapon'),
+    [checklist]
+  );
 
-  const getCurrentItemNumber = () => {
-    let count = 0;
-    for (let i = 0; i < currentCategoryIndex; i++) {
-      count += checklist[i].items.length;
+  const maxParallelSteps = useMemo(() => {
+    if (primaryWeaponCategories.length === 0) return 0;
+    return Math.max(...primaryWeaponCategories.map(c => c.items.length));
+  }, [primaryWeaponCategories]);
+
+  const totalSteps = useMemo(() => {
+    const generalItemCount = generalCategories.reduce((sum, c) => sum + c.items.length, 0);
+    return maxParallelSteps + generalItemCount;
+  }, [maxParallelSteps, generalCategories]);
+
+  const getProgressStep = (): number => {
+    if (phase.type === 'parallelWeaponIntro') return 0;
+    if (phase.type === 'parallelWeaponStep') return phase.stepIndex + 1;
+    if (phase.type === 'summary') return totalSteps;
+
+    const generalItemsBefore = (catIdx: number) =>
+      generalCategories.slice(0, catIdx).reduce((sum, c) => sum + c.items.length, 0);
+
+    if (phase.type === 'categoryIntro') {
+      return maxParallelSteps + generalItemsBefore(phase.categoryIndex);
     }
-    if (currentItemIndex >= 0) {
-      count += currentItemIndex + 1;
+    if (phase.type === 'item') {
+      return maxParallelSteps + generalItemsBefore(phase.categoryIndex) + phase.itemIndex + 1;
     }
-    return count;
+    return 0;
   };
 
-  const getProgressPercentage = () => {
-    if (screenType === 'summary') return 100;
-    const total = getTotalItems();
-    const current = getCurrentItemNumber();
-    return (current / total) * 100;
+  const getProgressPercentage = (): number => {
+    if (totalSteps === 0) return 100;
+    return (getProgressStep() / totalSteps) * 100;
   };
 
   const handleNext = () => {
-    console.log('User tapped Next button');
-    // Reset scroll position to top
+    console.log('User tapped Next button, phase:', JSON.stringify(phase));
     scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: false });
 
-    if (screenType === 'category') {
-      setScreenType('item');
-      setCurrentItemIndex(0);
-    } else if (screenType === 'item') {
-      const currentCategory = checklist[currentCategoryIndex];
-      if (currentItemIndex < currentCategory.items.length - 1) {
-        setCurrentItemIndex(currentItemIndex + 1);
-      } else if (currentCategoryIndex < checklist.length - 1) {
-        setCurrentCategoryIndex(currentCategoryIndex + 1);
-        setCurrentItemIndex(-1);
-        setScreenType('category');
+    if (phase.type === 'parallelWeaponIntro') {
+      if (maxParallelSteps > 0) {
+        setPhase({ type: 'parallelWeaponStep', stepIndex: 0 });
+      } else if (generalCategories.length > 0) {
+        setPhase({ type: 'categoryIntro', categoryIndex: 0 });
       } else {
         handleShowSummary();
       }
+      return;
     }
-  };
 
-  const handleAllOk = async () => {
-    console.log('User tapped All Ok button');
-    if (screenType !== 'item' || !squadSettings) return;
-
-    const currentCategory = checklist[currentCategoryIndex];
-    const currentItem = currentCategory.items[currentItemIndex];
-
-    setSessionData(prev => {
-      const updated = [...prev];
-      const dataIndex = updated.findIndex(
-        d => d.categoryId === currentCategory.id && d.itemId === currentItem.id
-      );
-
-      if (dataIndex !== -1) {
-        updated[dataIndex].statuses = squadSettings.soldiers.map(soldier => ({
-          soldierId: soldier.id,
-          status: 'fulfilled',
-        }));
+    if (phase.type === 'parallelWeaponStep') {
+      const { stepIndex } = phase;
+      if (stepIndex + 1 < maxParallelSteps) {
+        setPhase({ type: 'parallelWeaponStep', stepIndex: stepIndex + 1 });
+      } else if (generalCategories.length > 0) {
+        setPhase({ type: 'categoryIntro', categoryIndex: 0 });
+      } else {
+        handleShowSummary();
       }
+      return;
+    }
 
-      return updated;
-    });
+    if (phase.type === 'categoryIntro') {
+      setPhase({ type: 'item', categoryIndex: phase.categoryIndex, itemIndex: 0 });
+      return;
+    }
 
-    setShowAllOkAnimation(true);
-    await new Promise(resolve => setTimeout(resolve, 300));
-    setShowAllOkAnimation(false);
-    
-    handleNext();
+    if (phase.type === 'item') {
+      const { categoryIndex, itemIndex } = phase;
+      const cat = generalCategories[categoryIndex];
+      if (itemIndex + 1 < cat.items.length) {
+        setPhase({ type: 'item', categoryIndex, itemIndex: itemIndex + 1 });
+      } else if (categoryIndex + 1 < generalCategories.length) {
+        setPhase({ type: 'categoryIntro', categoryIndex: categoryIndex + 1 });
+      } else {
+        handleShowSummary();
+      }
+      return;
+    }
   };
 
   const handlePrevious = () => {
-    console.log('User tapped Previous button');
-    // Reset scroll position to top
+    console.log('User tapped Previous button, phase:', JSON.stringify(phase));
     scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: false });
 
-    if (screenType === 'item') {
-      if (currentItemIndex > 0) {
-        setCurrentItemIndex(currentItemIndex - 1);
+    if (phase.type === 'parallelWeaponStep') {
+      if (phase.stepIndex === 0) {
+        setPhase({ type: 'parallelWeaponIntro' });
       } else {
-        setScreenType('category');
-        setCurrentItemIndex(-1);
+        setPhase({ type: 'parallelWeaponStep', stepIndex: phase.stepIndex - 1 });
       }
-    } else if (screenType === 'category') {
-      if (currentCategoryIndex > 0) {
-        const prevCategory = checklist[currentCategoryIndex - 1];
-        setCurrentCategoryIndex(currentCategoryIndex - 1);
-        setCurrentItemIndex(prevCategory.items.length - 1);
-        setScreenType('item');
+      return;
+    }
+
+    if (phase.type === 'categoryIntro') {
+      if (phase.categoryIndex === 0) {
+        if (maxParallelSteps > 0) {
+          setPhase({ type: 'parallelWeaponStep', stepIndex: maxParallelSteps - 1 });
+        } else {
+          setPhase({ type: 'parallelWeaponIntro' });
+        }
+      } else {
+        const prevCatIdx = phase.categoryIndex - 1;
+        const prevCat = generalCategories[prevCatIdx];
+        setPhase({ type: 'item', categoryIndex: prevCatIdx, itemIndex: prevCat.items.length - 1 });
       }
+      return;
+    }
+
+    if (phase.type === 'item') {
+      if (phase.itemIndex === 0) {
+        setPhase({ type: 'categoryIntro', categoryIndex: phase.categoryIndex });
+      } else {
+        setPhase({ type: 'item', categoryIndex: phase.categoryIndex, itemIndex: phase.itemIndex - 1 });
+      }
+      return;
     }
   };
 
-  const handleStatusChange = (soldierId: string, status: 'fulfilled' | 'missing') => {
-    console.log('User changed status for soldier:', soldierId, 'to:', status);
-    const currentCategory = checklist[currentCategoryIndex];
-    const currentItem = currentCategory.items[currentItemIndex];
-
+  const handleStatusChange = (
+    categoryId: string,
+    itemId: string,
+    soldierId: string,
+    status: 'fulfilled' | 'missing'
+  ) => {
+    console.log('User changed status for soldier:', soldierId, 'item:', itemId, 'status:', status);
     setSessionData(prev => {
       const updated = [...prev];
       const dataIndex = updated.findIndex(
-        d => d.categoryId === currentCategory.id && d.itemId === currentItem.id
+        d => d.categoryId === categoryId && d.itemId === itemId
       );
-
       if (dataIndex !== -1) {
-        const statusIndex = updated[dataIndex].statuses.findIndex(
-          s => s.soldierId === soldierId
-        );
-
+        const statusIndex = updated[dataIndex].statuses.findIndex(s => s.soldierId === soldierId);
         if (statusIndex !== -1) {
           updated[dataIndex].statuses[statusIndex] = {
             ...updated[dataIndex].statuses[statusIndex],
@@ -221,41 +245,95 @@ export default function SessionScreen() {
           };
         }
       }
-
       return updated;
     });
   };
 
-  const handleAddDescription = (soldierId: string) => {
+  const handleAllOk = () => {
+    console.log('User tapped All Ok button');
+    if (phase.type !== 'item' || !squadSettings) return;
+
+    const cat = generalCategories[phase.categoryIndex];
+    const item = cat.items[phase.itemIndex];
+
+    setSessionData(prev => {
+      const updated = [...prev];
+      const dataIndex = updated.findIndex(
+        d => d.categoryId === cat.id && d.itemId === item.id
+      );
+      if (dataIndex !== -1) {
+        updated[dataIndex].statuses = squadSettings.soldiers.map(soldier => ({
+          soldierId: soldier.id,
+          status: 'fulfilled',
+        }));
+      }
+      return updated;
+    });
+
+    setShowAllOkAnimation(true);
+    setTimeout(() => {
+      setShowAllOkAnimation(false);
+      handleNext();
+    }, 300);
+  };
+
+  const handleAllOkParallel = () => {
+    console.log('User tapped All Ok (parallel) button');
+    if (phase.type !== 'parallelWeaponStep' || !squadSettings) return;
+    const { stepIndex } = phase;
+
+    setSessionData(prev => {
+      const updated = [...prev];
+      primaryWeaponCategories.forEach(category => {
+        if (stepIndex >= category.items.length) return;
+        const item = category.items[stepIndex];
+        const dataIndex = updated.findIndex(
+          d => d.categoryId === category.id && d.itemId === item.id
+        );
+        if (dataIndex === -1) return;
+        const assignedSoldiers = squadSettings.soldiers.filter(
+          s => s.personligVapenCategoryId === category.id
+        );
+        updated[dataIndex].statuses = updated[dataIndex].statuses.map(s => {
+          if (assignedSoldiers.some(soldier => soldier.id === s.soldierId)) {
+            return { ...s, status: 'fulfilled' };
+          }
+          return s;
+        });
+      });
+      return updated;
+    });
+
+    setShowAllOkAnimation(true);
+    setTimeout(() => {
+      setShowAllOkAnimation(false);
+      handleNext();
+    }, 300);
+  };
+
+  const handleAddDescription = (categoryId: string, itemId: string, soldierId: string) => {
     console.log('User tapped Add Description for soldier:', soldierId);
     setEditingSoldierId(soldierId);
-    const currentCategory = checklist[currentCategoryIndex];
-    const currentItem = currentCategory.items[currentItemIndex];
-    const data = sessionData.find(
-      d => d.categoryId === currentCategory.id && d.itemId === currentItem.id
-    );
+    setEditingCategoryId(categoryId);
+    setEditingItemId(itemId);
+    const data = sessionData.find(d => d.categoryId === categoryId && d.itemId === itemId);
     const status = data?.statuses.find(s => s.soldierId === soldierId);
     setDescriptionText(status?.description || '');
   };
 
   const handleSaveDescription = () => {
     console.log('User saved description:', descriptionText);
-    if (!editingSoldierId) return;
-
-    const currentCategory = checklist[currentCategoryIndex];
-    const currentItem = currentCategory.items[currentItemIndex];
+    if (!editingSoldierId || !editingCategoryId || !editingItemId) return;
 
     setSessionData(prev => {
       const updated = [...prev];
       const dataIndex = updated.findIndex(
-        d => d.categoryId === currentCategory.id && d.itemId === currentItem.id
+        d => d.categoryId === editingCategoryId && d.itemId === editingItemId
       );
-
       if (dataIndex !== -1) {
         const statusIndex = updated[dataIndex].statuses.findIndex(
           s => s.soldierId === editingSoldierId
         );
-
         if (statusIndex !== -1) {
           updated[dataIndex].statuses[statusIndex] = {
             ...updated[dataIndex].statuses[statusIndex],
@@ -263,44 +341,40 @@ export default function SessionScreen() {
           };
         }
       }
-
       return updated;
     });
 
     setEditingSoldierId(null);
+    setEditingCategoryId(null);
+    setEditingItemId(null);
     setDescriptionText('');
   };
 
   const handleShowSummary = () => {
     console.log('User navigated to Summary screen');
-    // Capture end timestamp at the moment the summary button is pressed
-    const now = Date.now();
-    setEndTimestamp(now);
-    setScreenType('summary');
+    setEndTimestamp(Date.now());
+    setPhase({ type: 'summary' });
+  };
+
+  const formatDuration = (milliseconds: number): string => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   const generateSummary = (): SessionSummary => {
     if (!squadSettings) {
-      return {
-        id: '',
-        date: '',
-        time: '',
-        timestamp: 0,
-        duration: '0:00',
-        squadName: '',
-        soldierSummaries: [],
-      };
+      return { id: '', date: '', time: '', timestamp: 0, duration: '0:00', squadName: '', soldierSummaries: [] };
     }
 
     const soldierSummaries: SoldierSummary[] = squadSettings.soldiers.map(soldier => {
       const missingItems: MissingItem[] = [];
-
       sessionData.forEach(data => {
         const status = data.statuses.find(s => s.soldierId === soldier.id);
         if (status && status.status === 'missing') {
           const category = checklist.find(c => c.id === data.categoryId);
           const item = category?.items.find(i => i.id === data.itemId);
-
           if (category && item) {
             missingItems.push({
               categoryName: category.name,
@@ -310,18 +384,13 @@ export default function SessionScreen() {
           }
         }
       });
-
-      return {
-        soldier,
-        missingItems,
-      };
+      return { soldier, missingItems };
     });
 
     const now = new Date();
-    // Use the captured endTimestamp for duration calculation
     const finalEndTimestamp = endTimestamp || now.getTime();
     const duration = formatDuration(finalEndTimestamp - startTimestamp);
-    
+
     return {
       id: `session-${Date.now()}`,
       date: now.toLocaleDateString('nb-NO'),
@@ -336,11 +405,8 @@ export default function SessionScreen() {
   const handleExportSummary = async () => {
     console.log('User tapped Export Summary button');
     const summary = generateSummary();
-    
     const hasMissingItems = summary.soldierSummaries.some(ss => ss.missingItems.length > 0);
-    if (!hasMissingItems) {
-      return;
-    }
+    if (!hasMissingItems) return;
 
     let text = `KTS Oppsummering\n`;
     text += `Lag: ${summary.squadName}\n`;
@@ -352,9 +418,7 @@ export default function SessionScreen() {
         text += `${ss.soldier.name}${ss.soldier.role ? ` (${ss.soldier.role})` : ''}:\n`;
         ss.missingItems.forEach(item => {
           text += `  ✗ ${item.itemName}`;
-          if (item.description) {
-            text += ` - ${item.description}`;
-          }
+          if (item.description) text += ` - ${item.description}`;
           text += '\n';
         });
         text += '\n';
@@ -374,7 +438,6 @@ export default function SessionScreen() {
     console.log('User tapped Finish button');
     try {
       const summary = generateSummary();
-      // Use the captured endTimestamp
       const finalEndTimestamp = endTimestamp || Date.now();
       const session: ChecklistSession = {
         id: summary.id,
@@ -388,7 +451,6 @@ export default function SessionScreen() {
         soldiers: squadSettings?.soldiers || [],
         data: sessionData,
       };
-
       await storage.addSession(session);
       router.back();
     } catch (error) {
@@ -413,6 +475,70 @@ export default function SessionScreen() {
     setShowExitDialog(false);
   };
 
+  const ExitDialog = () => (
+    <Modal visible={showExitDialog} transparent animationType="fade" onRequestClose={cancelExit}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.exitDialogContent}>
+          <Text style={styles.exitDialogTitle}>Er du sikker på at du vil avslutte?</Text>
+          <View style={styles.exitDialogButtons}>
+            <Pressable style={[styles.exitDialogButton, styles.exitDialogButtonCancel]} onPress={cancelExit}>
+              <Text style={styles.exitDialogButtonText}>Nei, fortsett</Text>
+            </Pressable>
+            <Pressable style={[styles.exitDialogButton, styles.exitDialogButtonConfirm]} onPress={confirmExit}>
+              <Text style={styles.exitDialogButtonTextConfirm}>Ja, avslutt</Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  const DescriptionModal = () => (
+    <Modal
+      visible={editingSoldierId !== null}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setEditingSoldierId(null)}
+    >
+      <KeyboardAvoidingView
+        style={styles.modalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Legg til beskrivelse</Text>
+            <Pressable onPress={() => setEditingSoldierId(null)}>
+              <IconSymbol name="xmark" color={colors.error} size={24} />
+            </Pressable>
+          </View>
+          <TextInput
+            style={[styles.modalInput, { fontFamily: bodyFont }]}
+            value={descriptionText}
+            onChangeText={setDescriptionText}
+            placeholder="Beskriv problemet..."
+            placeholderTextColor={colors.textSecondary}
+            multiline
+            numberOfLines={4}
+          />
+          <View style={styles.modalButtons}>
+            <Pressable
+              style={[styles.modalButton, styles.modalButtonCancel]}
+              onPress={() => setEditingSoldierId(null)}
+            >
+              <Text style={styles.modalButtonText}>Avbryt</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.modalButton, styles.modalButtonSave]}
+              onPress={handleSaveDescription}
+            >
+              <Text style={styles.modalButtonTextSave}>Lagre</Text>
+            </Pressable>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent, { paddingTop: insets.top }]}>
@@ -421,8 +547,12 @@ export default function SessionScreen() {
     );
   }
 
-  if (screenType === 'category') {
-    const currentCategory = checklist[currentCategoryIndex];
+  // ─── PARALLEL WEAPON INTRO ───────────────────────────────────────────────
+  if (phase.type === 'parallelWeaponIntro') {
+    const weaponCount = primaryWeaponCategories.length;
+    const soldierCount = squadSettings?.soldiers.length ?? 0;
+    const introSubtitle = `${weaponCount} ${weaponCount === 1 ? 'kategori' : 'kategorier'} — ${soldierCount} soldater`;
+
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={commonStyles.modalNavBar}>
@@ -438,67 +568,30 @@ export default function SessionScreen() {
         </View>
 
         <View style={[styles.content, { marginBottom: BOTTOM_BUTTON_CONTAINER_HEIGHT }]}>
-          <Text style={styles.categoryTitle}>{currentCategory.name}</Text>
-          <Text style={[styles.categorySubtitle, { fontFamily: bodyFont }]}>
-            Kategori {currentCategoryIndex + 1} av {checklist.length}
-          </Text>
+          <Text style={styles.categoryTitle}>PRIMÆRVÅPEN</Text>
+          <Text style={[styles.categorySubtitle, { fontFamily: bodyFont }]}>{introSubtitle}</Text>
         </View>
 
         <View style={styles.stickyBottomButtons}>
           <View style={styles.bottomButtons}>
-            {currentCategoryIndex > 0 && (
-              <Pressable style={styles.navButton} onPress={handlePrevious}>
-                <Text style={styles.navButtonText}>Forrige</Text>
-              </Pressable>
-            )}
-            <Pressable
-              style={[styles.navButton, styles.navButtonPrimary]}
-              onPress={handleNext}
-            >
+            <Pressable style={[styles.navButton, styles.navButtonPrimary]} onPress={handleNext}>
               <Text style={styles.navButtonTextPrimary}>Neste</Text>
             </Pressable>
           </View>
         </View>
 
-        <Modal
-          visible={showExitDialog}
-          transparent
-          animationType="fade"
-          onRequestClose={cancelExit}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.exitDialogContent}>
-              <Text style={styles.exitDialogTitle}>Er du sikker på at du vil avslutte?</Text>
-              <View style={styles.exitDialogButtons}>
-                <Pressable
-                  style={[styles.exitDialogButton, styles.exitDialogButtonCancel]}
-                  onPress={cancelExit}
-                >
-                  <Text style={styles.exitDialogButtonText}>Nei, fortsett</Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.exitDialogButton, styles.exitDialogButtonConfirm]}
-                  onPress={confirmExit}
-                >
-                  <Text style={styles.exitDialogButtonTextConfirm}>Ja, avslutt</Text>
-                </Pressable>
-              </View>
-            </View>
-          </View>
-        </Modal>
+        <ExitDialog />
       </View>
     );
   }
 
-  if (screenType === 'item') {
-    const currentCategory = checklist[currentCategoryIndex];
-    const currentItem = currentCategory.items[currentItemIndex];
-    const currentData = sessionData.find(
-      d => d.categoryId === currentCategory.id && d.itemId === currentItem.id
-    );
+  // ─── PARALLEL WEAPON STEP ────────────────────────────────────────────────
+  if (phase.type === 'parallelWeaponStep') {
+    const { stepIndex } = phase;
+    const stepLabel = `PRIMÆRVÅPEN — STEG ${stepIndex + 1}`;
 
     return (
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={[styles.container, { paddingTop: insets.top }]}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
@@ -515,10 +608,191 @@ export default function SessionScreen() {
           <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
         </View>
 
-        <ScrollView 
-          ref={scrollViewRef}
-          contentContainerStyle={styles.scrollContent}
-        >
+        <Text style={styles.parallelStepHeader}>{stepLabel}</Text>
+
+        <ScrollView ref={scrollViewRef} contentContainerStyle={styles.parallelScrollContent}>
+          {primaryWeaponCategories.map(category => {
+            const isExhausted = stepIndex >= category.items.length;
+            const item = isExhausted ? null : category.items[stepIndex];
+            const currentData = item
+              ? sessionData.find(d => d.categoryId === category.id && d.itemId === item.id)
+              : null;
+            const assignedSoldiers = squadSettings?.soldiers.filter(
+              s => s.personligVapenCategoryId === category.id
+            ) ?? [];
+
+            return (
+              <View key={category.id} style={[styles.weaponCard, isExhausted && styles.weaponCardExhausted]}>
+                <View style={styles.weaponCardHeader}>
+                  <Text style={styles.weaponCardTitle}>{category.name}</Text>
+                  {isExhausted && (
+                    <IconSymbol name="checkmark.circle.fill" color={colors.textSecondary} size={20} />
+                  )}
+                </View>
+
+                {isExhausted ? (
+                  <Text style={[styles.weaponCardDoneText, { fontFamily: bodyFont }]}>Ferdig</Text>
+                ) : (
+                  <>
+                    <Text style={[styles.weaponItemName, { fontFamily: bodyFont }]}>{item!.name}</Text>
+                    <View style={styles.soldiersList}>
+                      {assignedSoldiers.length === 0 ? (
+                        <Text style={[styles.noSoldiersText, { fontFamily: bodyFont }]}>
+                          Ingen soldater tildelt dette våpenet
+                        </Text>
+                      ) : (
+                        assignedSoldiers.map(soldier => {
+                          const status = currentData?.statuses.find(s => s.soldierId === soldier.id);
+                          const isChecked = showAllOkAnimation || status?.status === 'fulfilled';
+                          return (
+                            <View key={soldier.id} style={styles.soldierItem}>
+                              <View style={styles.soldierInfo}>
+                                <Text style={styles.soldierName}>{soldier.name}</Text>
+                                {soldier.role ? (
+                                  <Text style={[styles.soldierRole, { fontFamily: bodyFont }]}>{soldier.role}</Text>
+                                ) : null}
+                              </View>
+                              <View style={styles.soldierActions}>
+                                <Pressable
+                                  style={[styles.statusButton, isChecked && styles.statusButtonActive]}
+                                  onPress={() => handleStatusChange(category.id, item!.id, soldier.id, 'fulfilled')}
+                                >
+                                  <IconSymbol
+                                    name="checkmark"
+                                    color={isChecked ? colors.checkmark : colors.primary}
+                                    size={24}
+                                  />
+                                </Pressable>
+                                <Pressable
+                                  style={[
+                                    styles.statusButton,
+                                    styles.statusButtonMissing,
+                                    status?.status === 'missing' && styles.statusButtonMissingActive,
+                                  ]}
+                                  onPress={() => handleStatusChange(category.id, item!.id, soldier.id, 'missing')}
+                                >
+                                  <IconSymbol
+                                    name="xmark"
+                                    color={status?.status === 'missing' ? colors.checkmark : colors.error}
+                                    size={24}
+                                  />
+                                </Pressable>
+                                {status?.status === 'missing' && (
+                                  <Pressable
+                                    style={styles.descButton}
+                                    onPress={() => handleAddDescription(category.id, item!.id, soldier.id)}
+                                  >
+                                    <IconSymbol name="pencil" color={colors.accent} size={20} />
+                                  </Pressable>
+                                )}
+                              </View>
+                            </View>
+                          );
+                        })
+                      )}
+                    </View>
+                  </>
+                )}
+              </View>
+            );
+          })}
+        </ScrollView>
+
+        <View style={styles.bottomContainer}>
+          <Pressable style={styles.allOkButton} onPress={handleAllOkParallel}>
+            <IconSymbol name="checkmark.circle.fill" color="#000" size={24} />
+            <Text style={styles.allOkButtonText}>Alle ok</Text>
+          </Pressable>
+          <View style={styles.bottomButtons}>
+            <Pressable style={styles.navButton} onPress={handlePrevious}>
+              <Text style={styles.navButtonText}>Forrige</Text>
+            </Pressable>
+            <Pressable style={[styles.navButton, styles.navButtonPrimary]} onPress={handleNext}>
+              <Text style={styles.navButtonTextPrimary}>Neste</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        <DescriptionModal />
+        <ExitDialog />
+      </KeyboardAvoidingView>
+    );
+  }
+
+  // ─── CATEGORY INTRO ──────────────────────────────────────────────────────
+  if (phase.type === 'categoryIntro') {
+    const currentCategory = generalCategories[phase.categoryIndex];
+    const categorySubtitle = `Kategori ${phase.categoryIndex + 1} av ${generalCategories.length}`;
+    const isFirstScreen = phase.categoryIndex === 0 && maxParallelSteps === 0 && primaryWeaponCategories.length === 0;
+
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={commonStyles.modalNavBar}>
+          <View style={{ width: 24 }} />
+          <Text style={commonStyles.modalNavBarTitle}>KTS</Text>
+          <Pressable onPress={handleExit} style={styles.exitButton}>
+            <IconSymbol name="xmark" color={colors.error} size={24} />
+          </Pressable>
+        </View>
+
+        <View style={styles.progressBarContainer}>
+          <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
+        </View>
+
+        <View style={[styles.content, { marginBottom: BOTTOM_BUTTON_CONTAINER_HEIGHT }]}>
+          <Text style={styles.categoryTitle}>{currentCategory.name}</Text>
+          <Text style={[styles.categorySubtitle, { fontFamily: bodyFont }]}>{categorySubtitle}</Text>
+        </View>
+
+        <View style={styles.stickyBottomButtons}>
+          <View style={styles.bottomButtons}>
+            {!isFirstScreen && (
+              <Pressable style={styles.navButton} onPress={handlePrevious}>
+                <Text style={styles.navButtonText}>Forrige</Text>
+              </Pressable>
+            )}
+            <Pressable style={[styles.navButton, styles.navButtonPrimary]} onPress={handleNext}>
+              <Text style={styles.navButtonTextPrimary}>Neste</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        <ExitDialog />
+      </View>
+    );
+  }
+
+  // ─── ITEM SCREEN ─────────────────────────────────────────────────────────
+  if (phase.type === 'item') {
+    const { categoryIndex, itemIndex } = phase;
+    const currentCategory = generalCategories[categoryIndex];
+    const currentItem = currentCategory.items[itemIndex];
+    const currentData = sessionData.find(
+      d => d.categoryId === currentCategory.id && d.itemId === currentItem.id
+    );
+    const isLastItem =
+      itemIndex === currentCategory.items.length - 1 &&
+      categoryIndex === generalCategories.length - 1;
+
+    return (
+      <KeyboardAvoidingView
+        style={[styles.container, { paddingTop: insets.top }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <View style={commonStyles.modalNavBar}>
+          <View style={{ width: 24 }} />
+          <Text style={commonStyles.modalNavBarTitle}>KTS</Text>
+          <Pressable onPress={handleExit} style={styles.exitButton}>
+            <IconSymbol name="xmark" color={colors.error} size={24} />
+          </Pressable>
+        </View>
+
+        <View style={styles.progressBarContainer}>
+          <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
+        </View>
+
+        <ScrollView ref={scrollViewRef} contentContainerStyle={styles.scrollContent}>
           <Text style={styles.itemCategory}>{currentCategory.name}</Text>
           <Text style={[styles.itemName, { fontFamily: bodyFont }]}>{currentItem.name}</Text>
 
@@ -526,22 +800,18 @@ export default function SessionScreen() {
             {squadSettings?.soldiers.map(soldier => {
               const status = currentData?.statuses.find(s => s.soldierId === soldier.id);
               const isChecked = showAllOkAnimation || status?.status === 'fulfilled';
-              
               return (
                 <View key={soldier.id} style={styles.soldierItem}>
                   <View style={styles.soldierInfo}>
                     <Text style={styles.soldierName}>{soldier.name}</Text>
-                    {soldier.role && (
+                    {soldier.role ? (
                       <Text style={[styles.soldierRole, { fontFamily: bodyFont }]}>{soldier.role}</Text>
-                    )}
+                    ) : null}
                   </View>
                   <View style={styles.soldierActions}>
                     <Pressable
-                      style={[
-                        styles.statusButton,
-                        isChecked && styles.statusButtonActive,
-                      ]}
-                      onPress={() => handleStatusChange(soldier.id, 'fulfilled')}
+                      style={[styles.statusButton, isChecked && styles.statusButtonActive]}
+                      onPress={() => handleStatusChange(currentCategory.id, currentItem.id, soldier.id, 'fulfilled')}
                     >
                       <IconSymbol
                         name="checkmark"
@@ -555,7 +825,7 @@ export default function SessionScreen() {
                         styles.statusButtonMissing,
                         status?.status === 'missing' && styles.statusButtonMissingActive,
                       ]}
-                      onPress={() => handleStatusChange(soldier.id, 'missing')}
+                      onPress={() => handleStatusChange(currentCategory.id, currentItem.id, soldier.id, 'missing')}
                     >
                       <IconSymbol
                         name="xmark"
@@ -566,7 +836,7 @@ export default function SessionScreen() {
                     {status?.status === 'missing' && (
                       <Pressable
                         style={styles.descButton}
-                        onPress={() => handleAddDescription(soldier.id)}
+                        onPress={() => handleAddDescription(currentCategory.id, currentItem.id, soldier.id)}
                       >
                         <IconSymbol name="pencil" color={colors.accent} size={20} />
                       </Pressable>
@@ -583,102 +853,28 @@ export default function SessionScreen() {
             <IconSymbol name="checkmark.circle.fill" color="#000" size={24} />
             <Text style={styles.allOkButtonText}>Alle ok</Text>
           </Pressable>
-
           <View style={styles.bottomButtons}>
             <Pressable style={styles.navButton} onPress={handlePrevious}>
               <Text style={styles.navButtonText}>Forrige</Text>
             </Pressable>
-            <Pressable
-              style={[styles.navButton, styles.navButtonPrimary]}
-              onPress={handleNext}
-            >
+            <Pressable style={[styles.navButton, styles.navButtonPrimary]} onPress={handleNext}>
               <Text style={styles.navButtonTextPrimary}>
-                {currentItemIndex === currentCategory.items.length - 1 &&
-                currentCategoryIndex === checklist.length - 1
-                  ? 'Oppsummering'
-                  : 'Neste'}
+                {isLastItem ? 'Oppsummering' : 'Neste'}
               </Text>
             </Pressable>
           </View>
         </View>
 
-        <Modal
-          visible={editingSoldierId !== null}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setEditingSoldierId(null)}
-        >
-          <KeyboardAvoidingView 
-            style={styles.modalOverlay}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          >
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Legg til beskrivelse</Text>
-                <Pressable onPress={() => setEditingSoldierId(null)}>
-                  <IconSymbol name="xmark" color={colors.error} size={24} />
-                </Pressable>
-              </View>
-              <TextInput
-                style={[styles.modalInput, { fontFamily: bodyFont }]}
-                value={descriptionText}
-                onChangeText={setDescriptionText}
-                placeholder="Beskriv problemet..."
-                placeholderTextColor={colors.textSecondary}
-                multiline
-                numberOfLines={4}
-              />
-              <View style={styles.modalButtons}>
-                <Pressable
-                  style={[styles.modalButton, styles.modalButtonCancel]}
-                  onPress={() => setEditingSoldierId(null)}
-                >
-                  <Text style={styles.modalButtonText}>Avbryt</Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.modalButton, styles.modalButtonSave]}
-                  onPress={handleSaveDescription}
-                >
-                  <Text style={styles.modalButtonTextSave}>Lagre</Text>
-                </Pressable>
-              </View>
-            </View>
-          </KeyboardAvoidingView>
-        </Modal>
-
-        <Modal
-          visible={showExitDialog}
-          transparent
-          animationType="fade"
-          onRequestClose={cancelExit}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.exitDialogContent}>
-              <Text style={styles.exitDialogTitle}>Er du sikker på at du vil avslutte?</Text>
-              <View style={styles.exitDialogButtons}>
-                <Pressable
-                  style={[styles.exitDialogButton, styles.exitDialogButtonCancel]}
-                  onPress={cancelExit}
-                >
-                  <Text style={styles.exitDialogButtonText}>Nei, fortsett</Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.exitDialogButton, styles.exitDialogButtonConfirm]}
-                  onPress={confirmExit}
-                >
-                  <Text style={styles.exitDialogButtonTextConfirm}>Ja, avslutt</Text>
-                </Pressable>
-              </View>
-            </View>
-          </View>
-        </Modal>
+        <DescriptionModal />
+        <ExitDialog />
       </KeyboardAvoidingView>
     );
   }
 
+  // ─── SUMMARY ─────────────────────────────────────────────────────────────
   const summary = generateSummary();
   const hasMissingItems = summary.soldierSummaries.some(ss => ss.missingItems.length > 0);
-  
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={commonStyles.modalNavBar}>
@@ -695,7 +891,12 @@ export default function SessionScreen() {
         <View style={styles.summaryHeader}>
           <Text style={styles.summaryTitle}>Oppsummering</Text>
           <Text style={styles.summarySquad}>{summary.squadName}</Text>
-          <Text style={[styles.summaryDate, { fontFamily: bodyFont }]}>{summary.date} {summary.time}</Text>
+          <Text style={[styles.summaryDate, { fontFamily: bodyFont }]}>
+            {summary.date}
+          </Text>
+          <Text style={[styles.summaryDate, { fontFamily: bodyFont }]}>
+            {summary.time}
+          </Text>
           <View style={styles.summaryDurationContainer}>
             <IconSymbol name="stopwatch.fill" color={colors.textSecondary} size={20} />
             <Text style={[styles.summaryDuration, { fontFamily: bodyFont }]}>{summary.duration}</Text>
@@ -704,13 +905,12 @@ export default function SessionScreen() {
 
         {summary.soldierSummaries.map(ss => {
           if (ss.missingItems.length === 0) return null;
-
+          const soldierDisplay = ss.soldier.role
+            ? `${ss.soldier.name} (${ss.soldier.role})`
+            : ss.soldier.name;
           return (
             <View key={ss.soldier.id} style={styles.summaryCard}>
-              <Text style={styles.summarySoldierName}>
-                {ss.soldier.name}
-                {ss.soldier.role && ` (${ss.soldier.role})`}
-              </Text>
+              <Text style={styles.summarySoldierName}>{soldierDisplay}</Text>
               {ss.missingItems.map((item, index) => (
                 <View key={index} style={styles.summaryItem}>
                   <View style={styles.summaryItemIconContainer}>
@@ -718,9 +918,9 @@ export default function SessionScreen() {
                   </View>
                   <View style={styles.summaryItemText}>
                     <Text style={[styles.summaryItemName, { fontFamily: bodyFont }]}>{item.itemName}</Text>
-                    {item.description && (
+                    {item.description ? (
                       <Text style={[styles.summaryItemDesc, { fontFamily: bodyFont }]}>{item.description}</Text>
-                    )}
+                    ) : null}
                   </View>
                 </View>
               ))}
@@ -730,39 +930,28 @@ export default function SessionScreen() {
 
         {!hasMissingItems && (
           <View style={styles.noIssuesCard}>
-            <IconSymbol 
-              name="checkmark.circle.fill" 
-              size={100} 
-              color={colors.primary} 
-            />
+            <IconSymbol name="checkmark.circle.fill" size={100} color={colors.primary} />
             <Text style={styles.noIssuesText}>Bravo zulu. Ingen feil eller mangler.</Text>
           </View>
         )}
       </ScrollView>
 
       <View style={styles.summaryBottomButtons}>
-        <Pressable 
-          style={[
-            styles.exportButton,
-            !hasMissingItems && styles.exportButtonDisabled
-          ]} 
+        <Pressable
+          style={[styles.exportButton, !hasMissingItems && styles.exportButtonDisabled]}
           onPress={handleExportSummary}
           disabled={!hasMissingItems}
         >
-          <IconSymbol 
-            name="doc.on.doc" 
-            color={hasMissingItems ? colors.accent : colors.textSecondary} 
-            size={20} 
+          <IconSymbol
+            name="doc.on.doc"
+            color={hasMissingItems ? colors.accent : colors.textSecondary}
+            size={20}
           />
-          <Text style={[
-            styles.exportButtonText,
-            !hasMissingItems && styles.exportButtonTextDisabled
-          ]}>Kopier</Text>
+          <Text style={[styles.exportButtonText, !hasMissingItems && styles.exportButtonTextDisabled]}>
+            Kopier
+          </Text>
         </Pressable>
-        <Pressable
-          style={[styles.navButton, styles.navButtonPrimary]}
-          onPress={handleFinish}
-        >
+        <Pressable style={[styles.navButton, styles.navButtonPrimary]} onPress={handleFinish}>
           <Text style={styles.navButtonTextPrimary}>Ferdig</Text>
         </Pressable>
       </View>
@@ -821,6 +1010,65 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: Platform.OS === 'android' ? 24 : 40,
   },
+  // Parallel weapon step
+  parallelStepHeader: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    textAlign: 'center',
+    fontFamily: 'BigShouldersStencil_700Bold',
+    paddingVertical: 12,
+    letterSpacing: 1,
+  },
+  parallelScrollContent: {
+    padding: 16,
+    paddingBottom: 260,
+    gap: 16,
+  },
+  weaponCard: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
+    elevation: 3,
+  },
+  weaponCardExhausted: {
+    opacity: 0.5,
+  },
+  weaponCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.primary + '60',
+  },
+  weaponCardTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  weaponCardDoneText: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    paddingVertical: 8,
+  },
+  weaponItemName: {
+    fontSize: 17,
+    color: colors.text,
+    marginBottom: 16,
+    lineHeight: 24,
+  },
+  noSoldiersText: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    paddingVertical: 8,
+  },
+  // Item screen
   scrollContent: {
     padding: 20,
     paddingBottom: 260,

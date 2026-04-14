@@ -19,12 +19,36 @@ import { ChecklistCategory, ChecklistItem } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+type CategoryRole = 'general' | 'primaryWeapon' | 'secondaryWeapon';
+
+const ROLE_OPTIONS: { value: CategoryRole; label: string }[] = [
+  { value: 'general', label: 'Generell' },
+  { value: 'primaryWeapon', label: 'Primærvåpen' },
+  { value: 'secondaryWeapon', label: 'Sekundærvåpen' },
+];
+
+function getRoleBadge(role: CategoryRole): { label: string; bg: string; text: string } | null {
+  if (role === 'primaryWeapon') return { label: 'PRIMÆRVÅPEN', bg: '#D97706', text: '#fff' };
+  if (role === 'secondaryWeapon') return { label: 'SEKUNDÆRVÅPEN', bg: '#2563EB', text: '#fff' };
+  return null;
+}
+
+function sortedCategories(checklist: ChecklistCategory[]): ChecklistCategory[] {
+  const order: CategoryRole[] = ['primaryWeapon', 'secondaryWeapon', 'general'];
+  return [...checklist].sort((a, b) => {
+    const aRole = a.categoryRole ?? 'general';
+    const bRole = b.categoryRole ?? 'general';
+    return order.indexOf(aRole) - order.indexOf(bRole);
+  });
+}
+
 export default function EditChecklistScreen() {
   const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingCategory, setEditingCategory] = useState<{
     id: string;
     name: string;
+    categoryRole: CategoryRole;
   } | null>(null);
   const [editingItem, setEditingItem] = useState<{
     categoryId: string;
@@ -32,6 +56,7 @@ export default function EditChecklistScreen() {
     name: string;
   } | null>(null);
   const [categoryName, setCategoryName] = useState('');
+  const [categoryRole, setCategoryRole] = useState<CategoryRole>('general');
   const [itemName, setItemName] = useState('');
   const insets = useSafeAreaInsets();
 
@@ -51,16 +76,22 @@ export default function EditChecklistScreen() {
   };
 
   const handleAddCategory = () => {
-    setEditingCategory({ id: '', name: '' });
+    console.log('User tapped Add Category');
+    setEditingCategory({ id: '', name: '', categoryRole: 'general' });
     setCategoryName('');
+    setCategoryRole('general');
   };
 
   const handleEditCategory = (category: ChecklistCategory) => {
-    setEditingCategory({ id: category.id, name: category.name });
+    console.log('User tapped Edit Category:', category.id, category.name);
+    const role = category.categoryRole ?? 'general';
+    setEditingCategory({ id: category.id, name: category.name, categoryRole: role });
     setCategoryName(category.name);
+    setCategoryRole(role);
   };
 
   const handleSaveCategory = async () => {
+    console.log('User saved category:', categoryName, 'role:', categoryRole);
     if (!categoryName.trim()) {
       Alert.alert('Feil', 'Vennligst skriv inn kategorinavn');
       return;
@@ -75,12 +106,14 @@ export default function EditChecklistScreen() {
           updatedChecklist[index] = {
             ...updatedChecklist[index],
             name: categoryName.trim(),
+            categoryRole,
           };
         }
       } else {
         const newCategory: ChecklistCategory = {
           id: `cat-${Date.now()}`,
           name: categoryName.trim(),
+          categoryRole,
           items: [],
         };
         updatedChecklist.push(newCategory);
@@ -90,6 +123,7 @@ export default function EditChecklistScreen() {
       setChecklist(updatedChecklist);
       setEditingCategory(null);
       setCategoryName('');
+      setCategoryRole('general');
     } catch (error) {
       console.error('Error saving category:', error);
       Alert.alert('Feil', 'Kunne ikke lagre kategorien');
@@ -97,6 +131,7 @@ export default function EditChecklistScreen() {
   };
 
   const handleDeleteCategory = (categoryId: string) => {
+    console.log('User tapped Delete Category:', categoryId);
     Alert.alert(
       'Bekreft sletting',
       'Er du sikker på at du vil slette denne kategorien og alle dens elementer?',
@@ -121,16 +156,19 @@ export default function EditChecklistScreen() {
   };
 
   const handleAddItem = (categoryId: string) => {
+    console.log('User tapped Add Item to category:', categoryId);
     setEditingItem({ categoryId, id: '', name: '' });
     setItemName('');
   };
 
   const handleEditItem = (categoryId: string, item: ChecklistItem) => {
+    console.log('User tapped Edit Item:', item.id, item.name);
     setEditingItem({ categoryId, id: item.id, name: item.name });
     setItemName(item.name);
   };
 
   const handleSaveItem = async () => {
+    console.log('User saved item:', itemName);
     if (!itemName.trim() || !editingItem) {
       Alert.alert('Feil', 'Vennligst skriv inn elementnavn');
       return;
@@ -172,6 +210,7 @@ export default function EditChecklistScreen() {
   };
 
   const handleDeleteItem = (categoryId: string, itemId: string) => {
+    console.log('User tapped Delete Item:', itemId, 'from category:', categoryId);
     Alert.alert(
       'Bekreft sletting',
       'Er du sikker på at du vil slette dette elementet?',
@@ -203,17 +242,14 @@ export default function EditChecklistScreen() {
   };
 
   const handleFinish = () => {
+    console.log('User tapped Finish in edit-checklist');
     router.back();
   };
 
   if (loading) {
     return (
       <>
-        <Stack.Screen
-          options={{
-            headerShown: false,
-          }}
-        />
+        <Stack.Screen options={{ headerShown: false }} />
         <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
           <View style={commonStyles.modalNavBar}>
             <View style={{ width: 24 }} />
@@ -230,13 +266,66 @@ export default function EditChecklistScreen() {
     );
   }
 
+  const sorted = sortedCategories(checklist);
+  const primaryCats = sorted.filter(c => (c.categoryRole ?? 'general') === 'primaryWeapon');
+  const secondaryCats = sorted.filter(c => (c.categoryRole ?? 'general') === 'secondaryWeapon');
+  const generalCats = sorted.filter(c => (c.categoryRole ?? 'general') === 'general');
+
+  const renderCategory = (category: ChecklistCategory) => {
+    const badge = getRoleBadge(category.categoryRole ?? 'general');
+    return (
+      <View key={category.id} style={styles.categoryCard}>
+        <View style={styles.categoryHeader}>
+          <View style={styles.categoryNameRow}>
+            <Text style={styles.categoryName}>{category.name}</Text>
+            {badge && (
+              <View style={[styles.roleBadge, { backgroundColor: badge.bg }]}>
+                <Text style={[styles.roleBadgeText, { color: badge.text }]}>{badge.label}</Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.categoryActions}>
+            <Pressable onPress={() => handleEditCategory(category)}>
+              <IconSymbol name="pencil" color={colors.accent} size={20} />
+            </Pressable>
+            <Pressable onPress={() => handleDeleteCategory(category.id)}>
+              <IconSymbol name="trash" color={colors.error} size={20} />
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={styles.itemsContainer}>
+          {category.items.map(item => (
+            <View key={item.id} style={styles.itemRow}>
+              <Text style={[styles.itemName, { fontFamily: bodyFont }]} numberOfLines={2}>
+                {item.name}
+              </Text>
+              <View style={styles.itemActions}>
+                <Pressable onPress={() => handleEditItem(category.id, item)}>
+                  <IconSymbol name="pencil" color={colors.accent} size={18} />
+                </Pressable>
+                <Pressable onPress={() => handleDeleteItem(category.id, item.id)}>
+                  <IconSymbol name="trash" color={colors.error} size={18} />
+                </Pressable>
+              </View>
+            </View>
+          ))}
+
+          <Pressable
+            style={styles.addItemButton}
+            onPress={() => handleAddItem(category.id)}
+          >
+            <IconSymbol name="plus" color={colors.primary} size={20} />
+            <Text style={styles.addItemText}>Legg til element</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: false,
-        }}
-      />
+      <Stack.Screen options={{ headerShown: false }} />
       <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
         <View style={commonStyles.modalNavBar}>
           <View style={{ width: 24 }} />
@@ -247,47 +336,24 @@ export default function EditChecklistScreen() {
         </View>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.section}>
-            {checklist.map(category => (
-              <View key={category.id} style={styles.categoryCard}>
-                <View style={styles.categoryHeader}>
-                  <Text style={styles.categoryName}>{category.name}</Text>
-                  <View style={styles.categoryActions}>
-                    <Pressable onPress={() => handleEditCategory(category)}>
-                      <IconSymbol name="pencil" color={colors.accent} size={20} />
-                    </Pressable>
-                    <Pressable onPress={() => handleDeleteCategory(category.id)}>
-                      <IconSymbol name="trash" color={colors.error} size={20} />
-                    </Pressable>
-                  </View>
-                </View>
-
-                <View style={styles.itemsContainer}>
-                  {category.items.map(item => (
-                    <View key={item.id} style={styles.itemRow}>
-                      <Text style={[styles.itemName, { fontFamily: bodyFont }]} numberOfLines={2}>
-                        {item.name}
-                      </Text>
-                      <View style={styles.itemActions}>
-                        <Pressable onPress={() => handleEditItem(category.id, item)}>
-                          <IconSymbol name="pencil" color={colors.accent} size={18} />
-                        </Pressable>
-                        <Pressable onPress={() => handleDeleteItem(category.id, item.id)}>
-                          <IconSymbol name="trash" color={colors.error} size={18} />
-                        </Pressable>
-                      </View>
-                    </View>
-                  ))}
-
-                  <Pressable
-                    style={styles.addItemButton}
-                    onPress={() => handleAddItem(category.id)}
-                  >
-                    <IconSymbol name="plus" color={colors.primary} size={20} />
-                    <Text style={styles.addItemText}>Legg til element</Text>
-                  </Pressable>
-                </View>
-              </View>
-            ))}
+            {primaryCats.length > 0 && (
+              <>
+                <Text style={styles.sectionHeader}>PRIMÆRVÅPEN</Text>
+                {primaryCats.map(renderCategory)}
+              </>
+            )}
+            {secondaryCats.length > 0 && (
+              <>
+                <Text style={styles.sectionHeader}>SEKUNDÆRVÅPEN</Text>
+                {secondaryCats.map(renderCategory)}
+              </>
+            )}
+            {generalCats.length > 0 && (
+              <>
+                <Text style={styles.sectionHeader}>GENERELLE KATEGORIER</Text>
+                {generalCats.map(renderCategory)}
+              </>
+            )}
 
             <Pressable style={styles.addCategoryButton} onPress={handleAddCategory}>
               <IconSymbol name="plus" color={colors.primary} size={24} />
@@ -300,13 +366,14 @@ export default function EditChecklistScreen() {
           </Pressable>
         </ScrollView>
 
+        {/* Category edit modal */}
         <Modal
           visible={editingCategory !== null}
           transparent
           animationType="slide"
           onRequestClose={() => setEditingCategory(null)}
         >
-          <KeyboardAvoidingView 
+          <KeyboardAvoidingView
             style={styles.modalOverlay}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
@@ -326,6 +393,28 @@ export default function EditChecklistScreen() {
                 placeholder="Kategorinavn"
                 placeholderTextColor={colors.textSecondary}
               />
+
+              <Text style={styles.roleLabel}>Kategoritype</Text>
+              <View style={styles.segmentedControl}>
+                {ROLE_OPTIONS.map(opt => {
+                  const isSelected = categoryRole === opt.value;
+                  return (
+                    <Pressable
+                      key={opt.value}
+                      style={[styles.segmentOption, isSelected && styles.segmentOptionSelected]}
+                      onPress={() => {
+                        console.log('User selected category role:', opt.value);
+                        setCategoryRole(opt.value);
+                      }}
+                    >
+                      <Text style={[styles.segmentOptionText, isSelected && styles.segmentOptionTextSelected]}>
+                        {opt.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
               <View style={styles.modalButtons}>
                 <Pressable
                   style={[styles.modalButton, styles.modalButtonCancel]}
@@ -344,13 +433,14 @@ export default function EditChecklistScreen() {
           </KeyboardAvoidingView>
         </Modal>
 
+        {/* Item edit modal */}
         <Modal
           visible={editingItem !== null}
           transparent
           animationType="slide"
           onRequestClose={() => setEditingItem(null)}
         >
-          <KeyboardAvoidingView 
+          <KeyboardAvoidingView
             style={styles.modalOverlay}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
@@ -399,10 +489,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  centerContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   scrollContent: {
     padding: 20,
     paddingBottom: 100,
@@ -413,6 +499,15 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 32,
+  },
+  sectionHeader: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    letterSpacing: 1.5,
+    marginBottom: 10,
+    marginTop: 8,
+    fontFamily: 'BigShouldersStencil_700Bold',
   },
   categoryCard: {
     backgroundColor: colors.card,
@@ -425,22 +520,40 @@ const styles = StyleSheet.create({
   categoryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
     paddingBottom: 12,
     borderBottomWidth: 2,
     borderBottomColor: colors.primary,
   },
+  categoryNameRow: {
+    flex: 1,
+    flexDirection: 'column',
+    gap: 6,
+  },
   categoryName: {
     fontSize: 20,
     fontWeight: '700',
     color: colors.text,
-    flex: 1,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  roleBadge: {
+    alignSelf: 'flex-start',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  roleBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   categoryActions: {
     flexDirection: 'row',
     gap: 12,
+    marginLeft: 12,
+    paddingTop: 2,
   },
   itemsContainer: {
     gap: 8,
@@ -554,10 +667,45 @@ const styles = StyleSheet.create({
     color: colors.text,
     borderWidth: 1,
     borderColor: colors.inputBorder,
+    marginBottom: 16,
   },
   modalInputMultiline: {
     minHeight: 80,
     textAlignVertical: 'top',
+  },
+  roleLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 10,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  segmentedControl: {
+    flexDirection: 'row',
+    backgroundColor: colors.background,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  segmentOption: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  segmentOptionSelected: {
+    backgroundColor: colors.primary,
+  },
+  segmentOptionText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  segmentOptionTextSelected: {
+    color: '#000',
   },
   modalButtons: {
     flexDirection: 'row',

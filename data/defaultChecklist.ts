@@ -4,7 +4,8 @@ import { ChecklistCategory } from '@/types/checklist';
 export const defaultChecklist: ChecklistCategory[] = [
   {
     id: 'cat-1',
-    name: 'PERSONLIG VÅPEN',
+    name: 'HK416',
+    categoryRole: 'primaryWeapon',
     items: [
       { id: 'item-1-1', name: 'Kontroller at pipe, kammer og sluttstykkehode er rent og tørrpusset', categoryId: 'cat-1' },
       { id: 'item-1-2', name: 'Flammedemper er tilskrudd', categoryId: 'cat-1' },
@@ -23,6 +24,7 @@ export const defaultChecklist: ChecklistCategory[] = [
   {
     id: 'cat-2',
     name: 'STRIDSVEST',
+    categoryRole: 'general',
     items: [
       { id: 'item-2-1', name: '6 stk. magasiner for HK-416', categoryId: 'cat-2' },
       { id: 'item-2-2', name: 'Fulle magasiner, uten bulker eller skader på magasinleppene', categoryId: 'cat-2' },
@@ -43,6 +45,7 @@ export const defaultChecklist: ChecklistCategory[] = [
   {
     id: 'cat-3',
     name: 'HJELM',
+    categoryRole: 'general',
     items: [
       { id: 'item-3-1', name: 'Reimer og passform er tilpasset', categoryId: 'cat-3' },
       { id: 'item-3-2', name: 'Tilpasset til NVG', categoryId: 'cat-3' },
@@ -53,6 +56,7 @@ export const defaultChecklist: ChecklistCategory[] = [
   {
     id: 'cat-4',
     name: 'PÅ KROPP / I UNIFORM / I STRIDSSEKK',
+    categoryRole: 'general',
     items: [
       { id: 'item-4-1', name: 'Gjenkjenningsmerke/ID-kort', categoryId: 'cat-4' },
       { id: 'item-4-2', name: 'Enkeltmannspakke', categoryId: 'cat-4' },
@@ -75,6 +79,7 @@ export const defaultChecklist: ChecklistCategory[] = [
   {
     id: 'cat-5',
     name: 'SAMBAND',
+    categoryRole: 'general',
     items: [
       { id: 'item-5-1', name: 'Sjekk batteri. Funksjonstest, apeøre/headset,  PTT, antenne. ', categoryId: 'cat-5' },
       { id: 'item-5-5', name: 'Oppdater nettvelger iht. SOI', categoryId: 'cat-5' },

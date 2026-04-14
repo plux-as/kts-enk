@@ -9,12 +9,14 @@ export interface ChecklistCategory {
   id: string;
   name: string;
   items: ChecklistItem[];
+  categoryRole: 'general' | 'primaryWeapon' | 'secondaryWeapon';
 }
 
 export interface Soldier {
   id: string;
   name: string;
   role: string;
+  personligVapenCategoryId: string;
 }
 
 export interface SquadSettings {

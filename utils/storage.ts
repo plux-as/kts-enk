@@ -27,7 +27,16 @@ export const storage = {
       const data = await AsyncStorage.getItem(KEYS.SQUAD_SETTINGS);
       if (data) {
         console.log('Squad settings loaded');
-        return JSON.parse(data);
+        const parsed: SquadSettings = JSON.parse(data);
+        // Migrate: backfill personligVapenCategoryId for soldiers that predate the field
+        const migrated: SquadSettings = {
+          ...parsed,
+          soldiers: parsed.soldiers.map(s => ({
+            ...s,
+            personligVapenCategoryId: s.personligVapenCategoryId ?? 'cat-1',
+          })),
+        };
+        return migrated;
       }
       return null;
     } catch (error) {
@@ -52,7 +61,13 @@ export const storage = {
       const data = await AsyncStorage.getItem(KEYS.CHECKLIST);
       if (data) {
         console.log('Checklist loaded from storage');
-        return JSON.parse(data);
+        const parsed: ChecklistCategory[] = JSON.parse(data);
+        // Migrate: backfill categoryRole for categories that predate the field
+        const migrated = parsed.map(cat => ({
+          ...cat,
+          categoryRole: cat.categoryRole ?? (cat.id === 'cat-1' ? 'primaryWeapon' : 'general'),
+        }));
+        return migrated;
       }
       console.log('No checklist found, using default');
       return defaultChecklist;

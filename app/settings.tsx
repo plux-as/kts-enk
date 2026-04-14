@@ -14,13 +14,14 @@ import {
 import { Stack, router } from 'expo-router';
 import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
-import { Soldier, SquadSettings } from '@/types/checklist';
+import { Soldier, SquadSettings, ChecklistCategory } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function SettingsScreen() {
   const [squadName, setSquadName] = useState('');
   const [soldiers, setSoldiers] = useState<Soldier[]>([]);
+  const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
 
@@ -30,11 +31,15 @@ export default function SettingsScreen() {
 
   const loadSettings = async () => {
     try {
-      const settings = await storage.getSquadSettings();
+      const [settings, checklistData] = await Promise.all([
+        storage.getSquadSettings(),
+        storage.getChecklist(),
+      ]);
       if (settings) {
         setSquadName(settings.squadName);
         setSoldiers(settings.soldiers);
       }
+      setChecklist(checklistData);
     } catch (error) {
       console.error('Error loading settings:', error);
     } finally {
@@ -42,24 +47,30 @@ export default function SettingsScreen() {
     }
   };
 
-  const updateSoldier = (index: number, field: 'name' | 'role', value: string) => {
+  const primaryWeaponCategories = checklist.filter(c => c.categoryRole === 'primaryWeapon');
+
+  const updateSoldier = (index: number, field: 'name' | 'role' | 'personligVapenCategoryId', value: string) => {
     const updated = [...soldiers];
     updated[index][field] = value;
     setSoldiers(updated);
   };
 
   const addSoldier = () => {
+    console.log('User tapped Add Soldier');
+    const defaultWeaponId = primaryWeaponCategories.length > 0 ? primaryWeaponCategories[0].id : '';
     setSoldiers([
       ...soldiers,
       {
         id: `soldier-${Date.now()}`,
         name: '',
         role: '',
+        personligVapenCategoryId: defaultWeaponId,
       },
     ]);
   };
 
   const removeSoldier = (index: number) => {
+    console.log('User tapped Remove Soldier at index:', index);
     if (soldiers.length <= 1) {
       Alert.alert('Feil', 'Du må ha minst én soldat');
       return;
@@ -83,6 +94,7 @@ export default function SettingsScreen() {
   };
 
   const handleSave = async () => {
+    console.log('User tapped Save in settings');
     if (!squadName.trim()) {
       Alert.alert('Feil', 'Vennligst skriv inn lagets navn');
       return;
@@ -92,6 +104,14 @@ export default function SettingsScreen() {
     if (incompleteSoldiers.length > 0) {
       Alert.alert('Feil', 'Vennligst fyll inn navn for alle soldater');
       return;
+    }
+
+    if (primaryWeaponCategories.length > 0) {
+      const missingWeapon = soldiers.find(s => !s.personligVapenCategoryId);
+      if (missingWeapon) {
+        Alert.alert('Feil', 'Vennligst velg personlig våpen for alle soldater');
+        return;
+      }
     }
 
     try {
@@ -110,11 +130,7 @@ export default function SettingsScreen() {
   if (loading) {
     return (
       <>
-        <Stack.Screen
-          options={{
-            headerShown: false,
-          }}
-        />
+        <Stack.Screen options={{ headerShown: false }} />
         <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
           <View style={commonStyles.modalNavBar}>
             <View style={{ width: 24 }} />
@@ -133,12 +149,8 @@ export default function SettingsScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: false,
-        }}
-      />
-      <KeyboardAvoidingView 
+      <Stack.Screen options={{ headerShown: false }} />
+      <KeyboardAvoidingView
         style={[styles.fullScreenModal, { paddingTop: insets.top }]}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
@@ -196,6 +208,32 @@ export default function SettingsScreen() {
                     placeholderTextColor={colors.textSecondary}
                   />
                 </View>
+                {primaryWeaponCategories.length > 0 && (
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Personlig våpen</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+                      <View style={styles.chipRow}>
+                        {primaryWeaponCategories.map(cat => {
+                          const isSelected = soldier.personligVapenCategoryId === cat.id;
+                          return (
+                            <Pressable
+                              key={cat.id}
+                              style={[styles.chip, isSelected && styles.chipSelected]}
+                              onPress={() => {
+                                console.log('User selected weapon for soldier', index, ':', cat.name);
+                                updateSoldier(index, 'personligVapenCategoryId', cat.id);
+                              }}
+                            >
+                              <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                                {cat.name}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    </ScrollView>
+                  </View>
+                )}
               </View>
             ))}
 
@@ -218,10 +256,6 @@ const styles = StyleSheet.create({
   fullScreenModal: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  centerContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   scrollContent: {
     padding: 20,
@@ -284,6 +318,34 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.primary,
     fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  chipScroll: {
+    flexGrow: 0,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingRight: 4,
+  },
+  chip: {
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: 'transparent',
+  },
+  chipSelected: {
+    backgroundColor: colors.primary,
+  },
+  chipText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.primary,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  chipTextSelected: {
+    color: '#000',
   },
   addSoldierButton: {
     backgroundColor: colors.card,
