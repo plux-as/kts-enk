@@ -34,6 +34,7 @@ export const storage = {
           soldiers: parsed.soldiers.map(s => ({
             ...s,
             personligVapenCategoryId: s.personligVapenCategoryId ?? 'cat-1',
+            // sekundærVåpenCategoryId is optional — no backfill needed
           })),
         };
         return migrated;

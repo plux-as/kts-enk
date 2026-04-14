@@ -48,10 +48,17 @@ export default function SettingsScreen() {
   };
 
   const primaryWeaponCategories = checklist.filter(c => c.categoryRole === 'primaryWeapon');
+  const secondaryWeaponCategories = checklist.filter(c => c.categoryRole === 'secondaryWeapon');
 
   const updateSoldier = (index: number, field: 'name' | 'role' | 'personligVapenCategoryId', value: string) => {
     const updated = [...soldiers];
     updated[index][field] = value;
+    setSoldiers(updated);
+  };
+
+  const updateSoldierSecondaryWeapon = (index: number, categoryId: string | undefined) => {
+    const updated = [...soldiers];
+    updated[index] = { ...updated[index], sekundærVåpenCategoryId: categoryId };
     setSoldiers(updated);
   };
 
@@ -210,7 +217,7 @@ export default function SettingsScreen() {
                 </View>
                 {primaryWeaponCategories.length > 0 && (
                   <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Personlig våpen</Text>
+                    <Text style={styles.label}>Primærvåpen</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
                       <View style={styles.chipRow}>
                         {primaryWeaponCategories.map(cat => {
@@ -220,8 +227,45 @@ export default function SettingsScreen() {
                               key={cat.id}
                               style={[styles.chip, isSelected && styles.chipSelected]}
                               onPress={() => {
-                                console.log('User selected weapon for soldier', index, ':', cat.name);
+                                console.log('User selected primary weapon for soldier', index, ':', cat.name);
                                 updateSoldier(index, 'personligVapenCategoryId', cat.id);
+                              }}
+                            >
+                              <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                                {cat.name}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    </ScrollView>
+                  </View>
+                )}
+                {secondaryWeaponCategories.length > 0 && (
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Sekundærvåpen</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+                      <View style={styles.chipRow}>
+                        <Pressable
+                          style={[styles.chip, !soldier.sekundærVåpenCategoryId && styles.chipSelected]}
+                          onPress={() => {
+                            console.log('User cleared secondary weapon for soldier', index);
+                            updateSoldierSecondaryWeapon(index, undefined);
+                          }}
+                        >
+                          <Text style={[styles.chipText, !soldier.sekundærVåpenCategoryId && styles.chipTextSelected]}>
+                            Ingen
+                          </Text>
+                        </Pressable>
+                        {secondaryWeaponCategories.map(cat => {
+                          const isSelected = soldier.sekundærVåpenCategoryId === cat.id;
+                          return (
+                            <Pressable
+                              key={cat.id}
+                              style={[styles.chip, isSelected && styles.chipSelected]}
+                              onPress={() => {
+                                console.log('User selected secondary weapon for soldier', index, ':', cat.name);
+                                updateSoldierSecondaryWeapon(index, cat.id);
                               }}
                             >
                               <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>

@@ -118,10 +118,8 @@ export default function SessionScreen() {
   const secondaryWeaponCategories = useMemo(() => {
     const all = checklist.filter(c => c.categoryRole === 'secondaryWeapon');
     if (!squadSettings) return all;
-    // Secondary weapon assignment: reuse personligVapenCategoryId for now;
-    // when a dedicated field is added, replace the condition below.
     return all.filter(cat =>
-      squadSettings.soldiers.some(s => s.personligVapenCategoryId === cat.id)
+      squadSettings.soldiers.some(s => s.sekundærVåpenCategoryId === cat.id)
     );
   }, [checklist, squadSettings]);
 
@@ -382,8 +380,11 @@ export default function SessionScreen() {
           d => d.categoryId === category.id && d.itemId === item.id
         );
         if (dataIndex === -1) return;
-        const assignedSoldiers = squadSettings.soldiers.filter(
-          s => s.personligVapenCategoryId === category.id
+        const catRole = category.categoryRole;
+        const assignedSoldiers = squadSettings.soldiers.filter(s =>
+          catRole === 'secondaryWeapon'
+            ? s.sekundærVåpenCategoryId === category.id
+            : s.personligVapenCategoryId === category.id
         );
         updated[dataIndex].statuses = updated[dataIndex].statuses.map(s => {
           if (assignedSoldiers.some(soldier => soldier.id === s.soldierId)) {
@@ -734,8 +735,10 @@ export default function SessionScreen() {
             const currentData = item
               ? sessionData.find(d => d.categoryId === category.id && d.itemId === item.id)
               : null;
-            const assignedSoldiers = squadSettings?.soldiers.filter(
-              s => s.personligVapenCategoryId === category.id
+            const assignedSoldiers = squadSettings?.soldiers.filter(s =>
+              category.categoryRole === 'secondaryWeapon'
+                ? s.sekundærVåpenCategoryId === category.id
+                : s.personligVapenCategoryId === category.id
             ) ?? [];
 
             return (

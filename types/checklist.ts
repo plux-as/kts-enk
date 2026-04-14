@@ -17,6 +17,7 @@ export interface Soldier {
   name: string;
   role: string;
   personligVapenCategoryId: string;
+  sekundærVåpenCategoryId?: string;
 }
 
 export interface SquadSettings {
