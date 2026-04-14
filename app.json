@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "KTS Enkelt",
-    "slug": "KTS Enkelt",
+    "slug": "kts-enkelt",
     "version": "2.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
@@ -38,7 +38,7 @@
       "expo-router",
       "expo-web-browser"
     ],
-    "scheme": "kts-alfa",
+    "scheme": "ktsenkelt",
     "experiments": {
       "typedRoutes": true
     },
