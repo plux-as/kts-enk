@@ -29,9 +29,16 @@ import { IconSymbol } from '@/components/IconSymbol';
 import * as Clipboard from 'expo-clipboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+// A weapon group is a set of parallel weapon categories (all primary, or all secondary)
+// that are navigated together as one unit in the session.
+interface WeaponGroup {
+  label: string;
+  categories: ChecklistCategory[];
+}
+
 type SessionPhase =
-  | { type: 'parallelWeaponIntro' }
-  | { type: 'parallelWeaponStep'; stepIndex: number }
+  | { type: 'parallelWeaponIntro'; groupIndex: number }
+  | { type: 'parallelWeaponStep'; groupIndex: number; stepIndex: number }
   | { type: 'categoryIntro'; categoryIndex: number }
   | { type: 'item'; categoryIndex: number; itemIndex: number }
   | { type: 'summary' };
@@ -42,7 +49,7 @@ export default function SessionScreen() {
   const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
   const [squadSettings, setSquadSettings] = useState<SquadSettings | null>(null);
   const [sessionData, setSessionData] = useState<SessionItemData[]>([]);
-  const [phase, setPhase] = useState<SessionPhase>({ type: 'parallelWeaponIntro' });
+  const [phase, setPhase] = useState<SessionPhase>({ type: 'parallelWeaponIntro', groupIndex: 0 });
   const [loading, setLoading] = useState(true);
   const [editingSoldierId, setEditingSoldierId] = useState<string | null>(null);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
@@ -98,39 +105,81 @@ export default function SessionScreen() {
     }
   };
 
-  const primaryWeaponCategories = useMemo(
-    () => checklist.filter(c => c.categoryRole === 'primaryWeapon'),
-    [checklist]
-  );
+  // ─── Filtered weapon categories (only those with assigned soldiers) ────────
+
+  const primaryWeaponCategories = useMemo(() => {
+    const all = checklist.filter(c => c.categoryRole === 'primaryWeapon');
+    if (!squadSettings) return all;
+    return all.filter(cat =>
+      squadSettings.soldiers.some(s => s.personligVapenCategoryId === cat.id)
+    );
+  }, [checklist, squadSettings]);
+
+  const secondaryWeaponCategories = useMemo(() => {
+    const all = checklist.filter(c => c.categoryRole === 'secondaryWeapon');
+    if (!squadSettings) return all;
+    // Secondary weapon assignment: reuse personligVapenCategoryId for now;
+    // when a dedicated field is added, replace the condition below.
+    return all.filter(cat =>
+      squadSettings.soldiers.some(s => s.personligVapenCategoryId === cat.id)
+    );
+  }, [checklist, squadSettings]);
 
   const generalCategories = useMemo(
-    () => checklist.filter(c => c.categoryRole !== 'primaryWeapon'),
+    () => checklist.filter(c => c.categoryRole === 'general'),
     [checklist]
   );
 
-  const maxParallelSteps = useMemo(() => {
-    if (primaryWeaponCategories.length === 0) return 0;
-    return Math.max(...primaryWeaponCategories.map(c => c.items.length));
-  }, [primaryWeaponCategories]);
+  // Ordered weapon groups: primary first, then secondary (each non-empty group is one unit)
+  const weaponGroups = useMemo<WeaponGroup[]>(() => {
+    const groups: WeaponGroup[] = [];
+    if (primaryWeaponCategories.length > 0) {
+      groups.push({ label: 'PRIMÆRVÅPEN', categories: primaryWeaponCategories });
+    }
+    if (secondaryWeaponCategories.length > 0) {
+      groups.push({ label: 'SEKUNDÆRVÅPEN', categories: secondaryWeaponCategories });
+    }
+    return groups;
+  }, [primaryWeaponCategories, secondaryWeaponCategories]);
 
+  // Max parallel steps for a given weapon group
+  const maxStepsForGroup = (group: WeaponGroup): number => {
+    if (group.categories.length === 0) return 0;
+    return Math.max(...group.categories.map(c => c.items.length));
+  };
+
+  // Total progress steps: sum of max steps across all weapon groups + all general items
   const totalSteps = useMemo(() => {
+    const weaponSteps = weaponGroups.reduce((sum, g) => sum + maxStepsForGroup(g), 0);
     const generalItemCount = generalCategories.reduce((sum, c) => sum + c.items.length, 0);
-    return maxParallelSteps + generalItemCount;
-  }, [maxParallelSteps, generalCategories]);
+    return weaponSteps + generalItemCount;
+  }, [weaponGroups, generalCategories]);
+
+  // Steps completed before a given weapon group index
+  const stepsBeforeGroup = (groupIdx: number): number => {
+    let steps = 0;
+    for (let i = 0; i < groupIdx; i++) {
+      steps += maxStepsForGroup(weaponGroups[i]);
+    }
+    return steps;
+  };
 
   const getProgressStep = (): number => {
-    if (phase.type === 'parallelWeaponIntro') return 0;
-    if (phase.type === 'parallelWeaponStep') return phase.stepIndex + 1;
+    if (phase.type === 'parallelWeaponIntro') return stepsBeforeGroup(phase.groupIndex);
+    if (phase.type === 'parallelWeaponStep') {
+      return stepsBeforeGroup(phase.groupIndex) + phase.stepIndex + 1;
+    }
     if (phase.type === 'summary') return totalSteps;
 
+    const weaponStepsTotal = weaponGroups.reduce((sum, g) => sum + maxStepsForGroup(g), 0);
     const generalItemsBefore = (catIdx: number) =>
       generalCategories.slice(0, catIdx).reduce((sum, c) => sum + c.items.length, 0);
 
     if (phase.type === 'categoryIntro') {
-      return maxParallelSteps + generalItemsBefore(phase.categoryIndex);
+      return weaponStepsTotal + generalItemsBefore(phase.categoryIndex);
     }
     if (phase.type === 'item') {
-      return maxParallelSteps + generalItemsBefore(phase.categoryIndex) + phase.itemIndex + 1;
+      return weaponStepsTotal + generalItemsBefore(phase.categoryIndex) + phase.itemIndex + 1;
     }
     return 0;
   };
@@ -140,29 +189,40 @@ export default function SessionScreen() {
     return (getProgressStep() / totalSteps) * 100;
   };
 
+  // Total number of "top-level" session categories for "kategori X av Y" subtitle.
+  // Each weapon group counts as 1, each general category counts as 1.
+  const totalSessionCategories = useMemo(
+    () => weaponGroups.length + generalCategories.length,
+    [weaponGroups, generalCategories]
+  );
+
+  // Position (1-based) of a weapon group or general category in the session sequence
+  const sessionPositionOfGroup = (groupIdx: number): number => groupIdx + 1;
+  const sessionPositionOfGeneral = (catIdx: number): number => weaponGroups.length + catIdx + 1;
+
   const handleNext = () => {
     console.log('User tapped Next button, phase:', JSON.stringify(phase));
     scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: false });
 
     if (phase.type === 'parallelWeaponIntro') {
-      if (maxParallelSteps > 0) {
-        setPhase({ type: 'parallelWeaponStep', stepIndex: 0 });
-      } else if (generalCategories.length > 0) {
-        setPhase({ type: 'categoryIntro', categoryIndex: 0 });
+      const group = weaponGroups[phase.groupIndex];
+      const maxSteps = maxStepsForGroup(group);
+      if (maxSteps > 0) {
+        setPhase({ type: 'parallelWeaponStep', groupIndex: phase.groupIndex, stepIndex: 0 });
       } else {
-        handleShowSummary();
+        advanceFromWeaponGroup(phase.groupIndex);
       }
       return;
     }
 
     if (phase.type === 'parallelWeaponStep') {
-      const { stepIndex } = phase;
-      if (stepIndex + 1 < maxParallelSteps) {
-        setPhase({ type: 'parallelWeaponStep', stepIndex: stepIndex + 1 });
-      } else if (generalCategories.length > 0) {
-        setPhase({ type: 'categoryIntro', categoryIndex: 0 });
+      const { groupIndex, stepIndex } = phase;
+      const group = weaponGroups[groupIndex];
+      const maxSteps = maxStepsForGroup(group);
+      if (stepIndex + 1 < maxSteps) {
+        setPhase({ type: 'parallelWeaponStep', groupIndex, stepIndex: stepIndex + 1 });
       } else {
-        handleShowSummary();
+        advanceFromWeaponGroup(groupIndex);
       }
       return;
     }
@@ -186,26 +246,58 @@ export default function SessionScreen() {
     }
   };
 
+  // Move forward after finishing a weapon group
+  const advanceFromWeaponGroup = (groupIndex: number) => {
+    if (groupIndex + 1 < weaponGroups.length) {
+      setPhase({ type: 'parallelWeaponIntro', groupIndex: groupIndex + 1 });
+    } else if (generalCategories.length > 0) {
+      setPhase({ type: 'categoryIntro', categoryIndex: 0 });
+    } else {
+      handleShowSummary();
+    }
+  };
+
   const handlePrevious = () => {
     console.log('User tapped Previous button, phase:', JSON.stringify(phase));
     scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: false });
 
+    if (phase.type === 'parallelWeaponIntro') {
+      const { groupIndex } = phase;
+      if (groupIndex === 0) return; // first screen, no back
+      // Go to last step of previous weapon group
+      const prevGroupIdx = groupIndex - 1;
+      const prevGroup = weaponGroups[prevGroupIdx];
+      const prevMaxSteps = maxStepsForGroup(prevGroup);
+      if (prevMaxSteps > 0) {
+        setPhase({ type: 'parallelWeaponStep', groupIndex: prevGroupIdx, stepIndex: prevMaxSteps - 1 });
+      } else {
+        setPhase({ type: 'parallelWeaponIntro', groupIndex: prevGroupIdx });
+      }
+      return;
+    }
+
     if (phase.type === 'parallelWeaponStep') {
       if (phase.stepIndex === 0) {
-        setPhase({ type: 'parallelWeaponIntro' });
+        setPhase({ type: 'parallelWeaponIntro', groupIndex: phase.groupIndex });
       } else {
-        setPhase({ type: 'parallelWeaponStep', stepIndex: phase.stepIndex - 1 });
+        setPhase({ type: 'parallelWeaponStep', groupIndex: phase.groupIndex, stepIndex: phase.stepIndex - 1 });
       }
       return;
     }
 
     if (phase.type === 'categoryIntro') {
       if (phase.categoryIndex === 0) {
-        if (maxParallelSteps > 0) {
-          setPhase({ type: 'parallelWeaponStep', stepIndex: maxParallelSteps - 1 });
-        } else {
-          setPhase({ type: 'parallelWeaponIntro' });
+        if (weaponGroups.length > 0) {
+          const lastGroupIdx = weaponGroups.length - 1;
+          const lastGroup = weaponGroups[lastGroupIdx];
+          const lastMaxSteps = maxStepsForGroup(lastGroup);
+          if (lastMaxSteps > 0) {
+            setPhase({ type: 'parallelWeaponStep', groupIndex: lastGroupIdx, stepIndex: lastMaxSteps - 1 });
+          } else {
+            setPhase({ type: 'parallelWeaponIntro', groupIndex: lastGroupIdx });
+          }
         }
+        // else: no weapon groups, this is the first screen — no back
       } else {
         const prevCatIdx = phase.categoryIndex - 1;
         const prevCat = generalCategories[prevCatIdx];
@@ -277,14 +369,13 @@ export default function SessionScreen() {
     }, 300);
   };
 
-  const handleAllOkParallel = () => {
-    console.log('User tapped All Ok (parallel) button');
-    if (phase.type !== 'parallelWeaponStep' || !squadSettings) return;
-    const { stepIndex } = phase;
+  const handleAllOkParallel = (group: WeaponGroup, stepIndex: number) => {
+    console.log('User tapped All Ok (parallel) button, group:', group.label, 'step:', stepIndex);
+    if (!squadSettings) return;
 
     setSessionData(prev => {
       const updated = [...prev];
-      primaryWeaponCategories.forEach(category => {
+      group.categories.forEach(category => {
         if (stepIndex >= category.items.length) return;
         const item = category.items[stepIndex];
         const dataIndex = updated.findIndex(
@@ -549,9 +640,22 @@ export default function SessionScreen() {
 
   // ─── PARALLEL WEAPON INTRO ───────────────────────────────────────────────
   if (phase.type === 'parallelWeaponIntro') {
-    const weaponCount = primaryWeaponCategories.length;
-    const soldierCount = squadSettings?.soldiers.length ?? 0;
-    const introSubtitle = `${weaponCount} ${weaponCount === 1 ? 'kategori' : 'kategorier'} — ${soldierCount} soldater`;
+    const { groupIndex } = phase;
+    const group = weaponGroups[groupIndex];
+
+    // If no weapon groups exist at all, skip straight to general categories
+    if (!group) {
+      if (generalCategories.length > 0) {
+        setPhase({ type: 'categoryIntro', categoryIndex: 0 });
+      } else {
+        handleShowSummary();
+      }
+      return null;
+    }
+
+    const sessionPos = sessionPositionOfGroup(groupIndex);
+    const introSubtitle = `Kategori ${sessionPos} av ${totalSessionCategories}`;
+    const isFirstScreen = groupIndex === 0;
 
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -568,12 +672,17 @@ export default function SessionScreen() {
         </View>
 
         <View style={[styles.content, { marginBottom: BOTTOM_BUTTON_CONTAINER_HEIGHT }]}>
-          <Text style={styles.categoryTitle}>PRIMÆRVÅPEN</Text>
+          <Text style={styles.categoryTitle}>{group.label}</Text>
           <Text style={[styles.categorySubtitle, { fontFamily: bodyFont }]}>{introSubtitle}</Text>
         </View>
 
         <View style={styles.stickyBottomButtons}>
           <View style={styles.bottomButtons}>
+            {!isFirstScreen && (
+              <Pressable style={styles.navButton} onPress={handlePrevious}>
+                <Text style={styles.navButtonText}>Forrige</Text>
+              </Pressable>
+            )}
             <Pressable style={[styles.navButton, styles.navButtonPrimary]} onPress={handleNext}>
               <Text style={styles.navButtonTextPrimary}>Neste</Text>
             </Pressable>
@@ -587,8 +696,16 @@ export default function SessionScreen() {
 
   // ─── PARALLEL WEAPON STEP ────────────────────────────────────────────────
   if (phase.type === 'parallelWeaponStep') {
-    const { stepIndex } = phase;
-    const stepLabel = `PRIMÆRVÅPEN — STEG ${stepIndex + 1}`;
+    const { groupIndex, stepIndex } = phase;
+    const group = weaponGroups[groupIndex];
+
+    // Sort weapon cards: active (not exhausted) first, exhausted last.
+    // Within each group, preserve original edit-screen order.
+    const sortedCategories = [...group.categories].sort((a, b) => {
+      const aExhausted = stepIndex >= a.items.length ? 1 : 0;
+      const bExhausted = stepIndex >= b.items.length ? 1 : 0;
+      return aExhausted - bExhausted;
+    });
 
     return (
       <KeyboardAvoidingView
@@ -608,10 +725,10 @@ export default function SessionScreen() {
           <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
         </View>
 
-        <Text style={styles.parallelStepHeader}>{stepLabel}</Text>
+        <Text style={styles.parallelStepHeader}>{group.label}</Text>
 
         <ScrollView ref={scrollViewRef} contentContainerStyle={styles.parallelScrollContent}>
-          {primaryWeaponCategories.map(category => {
+          {sortedCategories.map(category => {
             const isExhausted = stepIndex >= category.items.length;
             const item = isExhausted ? null : category.items[stepIndex];
             const currentData = item
@@ -699,7 +816,7 @@ export default function SessionScreen() {
         </ScrollView>
 
         <View style={styles.bottomContainer}>
-          <Pressable style={styles.allOkButton} onPress={handleAllOkParallel}>
+          <Pressable style={styles.allOkButton} onPress={() => handleAllOkParallel(group, stepIndex)}>
             <IconSymbol name="checkmark.circle.fill" color="#000" size={24} />
             <Text style={styles.allOkButtonText}>Alle ok</Text>
           </Pressable>
@@ -722,8 +839,9 @@ export default function SessionScreen() {
   // ─── CATEGORY INTRO ──────────────────────────────────────────────────────
   if (phase.type === 'categoryIntro') {
     const currentCategory = generalCategories[phase.categoryIndex];
-    const categorySubtitle = `Kategori ${phase.categoryIndex + 1} av ${generalCategories.length}`;
-    const isFirstScreen = phase.categoryIndex === 0 && maxParallelSteps === 0 && primaryWeaponCategories.length === 0;
+    const sessionPos = sessionPositionOfGeneral(phase.categoryIndex);
+    const categorySubtitle = `Kategori ${sessionPos} av ${totalSessionCategories}`;
+    const isFirstScreen = phase.categoryIndex === 0 && weaponGroups.length === 0;
 
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -1012,13 +1130,12 @@ const styles = StyleSheet.create({
   },
   // Parallel weapon step
   parallelStepHeader: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 21,
+    fontWeight: '800',
     color: colors.textSecondary,
     textAlign: 'center',
     fontFamily: 'BigShouldersStencil_700Bold',
     paddingVertical: 12,
-    letterSpacing: 1,
   },
   parallelScrollContent: {
     padding: 16,
