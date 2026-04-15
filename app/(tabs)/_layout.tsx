@@ -1,11 +1,10 @@
 
 import React from 'react';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
-import { ColorValue, OpaqueColorValue, Platform, DynamicColorIOS } from 'react-native';
+import { Platform, DynamicColorIOS } from 'react-native';
 import { NativeTabs, Icon, Label, NativeTabsLabelStyle } from 'expo-router/unstable-native-tabs';
 import { Stack } from 'expo-router';
 import { colors } from '@/styles/commonStyles';
-import { SymbolView } from 'expo-symbols';
 
 const selectedLabelStyle: NativeTabsLabelStyle = {
   color: colors.primary,
