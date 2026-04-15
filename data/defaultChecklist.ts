@@ -1,3 +1,6 @@
+import { ChecklistCategory } from '@/types/checklist';
+
+export const CHECKLIST_VERSION = 2;
 
 export const defaultChecklist: ChecklistCategory[] = [
   {

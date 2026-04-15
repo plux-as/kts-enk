@@ -6,9 +6,41 @@ import { defaultChecklist } from '@/data/defaultChecklist';
 const KEYS = {
   SQUAD_SETTINGS: '@squad_settings',
   CHECKLIST: '@checklist',
+  CHECKLIST_VERSION: '@checklist_version',
   SESSIONS: '@sessions',
   SETUP_COMPLETE: '@setup_complete',
 };
+
+export function mergeChecklists(
+  stored: ChecklistCategory[],
+  incoming: ChecklistCategory[],
+): ChecklistCategory[] {
+  const storedIds = new Set(stored.map(c => c.id));
+  const merged = [...stored];
+
+  for (const incomingCat of incoming) {
+    if (!storedIds.has(incomingCat.id)) {
+      // Entirely new category — add it
+      merged.push(incomingCat);
+    } else {
+      // Category exists — merge in any new items
+      const storedCatIndex = merged.findIndex(c => c.id === incomingCat.id);
+      if (storedCatIndex !== -1) {
+        const storedCat = merged[storedCatIndex];
+        const storedItemIds = new Set(storedCat.items.map(i => i.id));
+        const newItems = incomingCat.items.filter(i => !storedItemIds.has(i.id));
+        if (newItems.length > 0) {
+          merged[storedCatIndex] = {
+            ...storedCat,
+            items: [...storedCat.items, ...newItems],
+          };
+        }
+      }
+    }
+  }
+
+  return merged;
+}
 
 export const storage = {
   // Squad Settings
@@ -175,12 +207,37 @@ export const storage = {
     }
   },
 
+  // Checklist Version
+  async getChecklistVersion(): Promise<number> {
+    try {
+      const data = await AsyncStorage.getItem(KEYS.CHECKLIST_VERSION);
+      if (data !== null) {
+        return JSON.parse(data) as number;
+      }
+      return 0;
+    } catch (error) {
+      console.error('Error getting checklist version:', error);
+      return 0;
+    }
+  },
+
+  async saveChecklistVersion(version: number): Promise<void> {
+    try {
+      await AsyncStorage.setItem(KEYS.CHECKLIST_VERSION, JSON.stringify(version));
+      console.log('Checklist version saved:', version);
+    } catch (error) {
+      console.error('Error saving checklist version:', error);
+      throw error;
+    }
+  },
+
   // Clear all data (for testing)
   async clearAll(): Promise<void> {
     try {
       await AsyncStorage.multiRemove([
         KEYS.SQUAD_SETTINGS,
         KEYS.CHECKLIST,
+        KEYS.CHECKLIST_VERSION,
         KEYS.SESSIONS,
         KEYS.SETUP_COMPLETE,
       ]);
