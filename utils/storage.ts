@@ -28,13 +28,17 @@ export const storage = {
       if (data) {
         console.log('Squad settings loaded');
         const parsed: SquadSettings = JSON.parse(data);
-        // Migrate: backfill personligVapenCategoryId for soldiers that predate the field
+        // Find HK416 category id for default primary weapon fallback
+        const checklist = await this.getChecklist();
+        const hk416Cat = checklist.find(c => c.name === 'HK416');
+        const defaultPrimaryId = hk416Cat?.id ?? (checklist.find(c => c.categoryRole === 'weapon')?.id ?? 'cat-1');
+
         const migrated: SquadSettings = {
           ...parsed,
           soldiers: parsed.soldiers.map(s => ({
             ...s,
-            personligVapenCategoryId: s.personligVapenCategoryId ?? 'cat-1',
-            // sekundærVåpenCategoryId is optional — no backfill needed
+            personligVapenCategoryId: s.personligVapenCategoryId ?? defaultPrimaryId,
+            // sekundærVåpenCategoryId: no default — leave as undefined if missing
           })),
         };
         return migrated;
@@ -63,11 +67,18 @@ export const storage = {
       if (data) {
         console.log('Checklist loaded from storage');
         const parsed: ChecklistCategory[] = JSON.parse(data);
-        // Migrate: backfill categoryRole for categories that predate the field
-        const migrated = parsed.map(cat => ({
-          ...cat,
-          categoryRole: cat.categoryRole ?? (cat.id === 'cat-1' ? 'primaryWeapon' : 'general'),
-        }));
+        // Migrate: map old primaryWeapon/secondaryWeapon roles to 'weapon'
+        const migrated = parsed.map(cat => {
+          const role = cat.categoryRole as string;
+          if (role === 'primaryWeapon' || role === 'secondaryWeapon') {
+            return { ...cat, categoryRole: 'weapon' as const };
+          }
+          if (!role) {
+            // Legacy: cat-1 was always the primary weapon (HK416)
+            return { ...cat, categoryRole: (cat.id === 'cat-1' ? 'weapon' : 'general') as 'weapon' | 'general' };
+          }
+          return cat;
+        });
         return migrated;
       }
       console.log('No checklist found, using default');

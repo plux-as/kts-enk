@@ -9,7 +9,7 @@ export interface ChecklistCategory {
   id: string;
   name: string;
   items: ChecklistItem[];
-  categoryRole: 'general' | 'primaryWeapon' | 'secondaryWeapon';
+  categoryRole: 'general' | 'weapon';
 }
 
 export interface Soldier {

@@ -107,26 +107,37 @@ export default function SessionScreen() {
 
   // ─── Filtered weapon categories (only those with assigned soldiers) ────────
 
-  const primaryWeaponCategories = useMemo(() => {
-    const all = checklist.filter(c => c.categoryRole === 'primaryWeapon');
-    if (!squadSettings) return all;
-    return all.filter(cat =>
-      squadSettings.soldiers.some(s => s.personligVapenCategoryId === cat.id)
-    );
-  }, [checklist, squadSettings]);
-
-  const secondaryWeaponCategories = useMemo(() => {
-    const all = checklist.filter(c => c.categoryRole === 'secondaryWeapon');
-    if (!squadSettings) return all;
-    return all.filter(cat =>
-      squadSettings.soldiers.some(s => s.sekundærVåpenCategoryId === cat.id)
-    );
-  }, [checklist, squadSettings]);
-
   const generalCategories = useMemo(
     () => checklist.filter(c => c.categoryRole === 'general'),
     [checklist]
   );
+
+  // Primary weapon group: unique personligVapenCategoryId values from all soldiers
+  const primaryWeaponCategories = useMemo(() => {
+    if (!squadSettings) return [];
+    const usedIds = new Set(
+      squadSettings.soldiers
+        .map(s => s.personligVapenCategoryId)
+        .filter(Boolean)
+    );
+    return checklist.filter(
+      c => c.categoryRole === 'weapon' && usedIds.has(c.id)
+    );
+  }, [checklist, squadSettings]);
+
+  // Secondary weapon group: unique sekundærVåpenCategoryId values from soldiers that have one
+  const secondaryWeaponCategories = useMemo(() => {
+    if (!squadSettings) return [];
+    const usedIds = new Set(
+      squadSettings.soldiers
+        .map(s => s.sekundærVåpenCategoryId)
+        .filter((id): id is string => !!id)
+    );
+    if (usedIds.size === 0) return [];
+    return checklist.filter(
+      c => c.categoryRole === 'weapon' && usedIds.has(c.id)
+    );
+  }, [checklist, squadSettings]);
 
   // Ordered weapon groups: primary first, then secondary (each non-empty group is one unit)
   const weaponGroups = useMemo<WeaponGroup[]>(() => {
@@ -380,9 +391,11 @@ export default function SessionScreen() {
           d => d.categoryId === category.id && d.itemId === item.id
         );
         if (dataIndex === -1) return;
-        const catRole = category.categoryRole;
+        // Determine if this category is in the secondary group
+        const isSecondaryGroup = secondaryWeaponCategories.some(c => c.id === category.id)
+          && !primaryWeaponCategories.some(c => c.id === category.id);
         const assignedSoldiers = squadSettings.soldiers.filter(s =>
-          catRole === 'secondaryWeapon'
+          isSecondaryGroup
             ? s.sekundærVåpenCategoryId === category.id
             : s.personligVapenCategoryId === category.id
         );
@@ -735,8 +748,10 @@ export default function SessionScreen() {
             const currentData = item
               ? sessionData.find(d => d.categoryId === category.id && d.itemId === item.id)
               : null;
+            const isSecondaryGroupCat = secondaryWeaponCategories.some(c => c.id === category.id)
+              && !primaryWeaponCategories.some(c => c.id === category.id);
             const assignedSoldiers = squadSettings?.soldiers.filter(s =>
-              category.categoryRole === 'secondaryWeapon'
+              isSecondaryGroupCat
                 ? s.sekundærVåpenCategoryId === category.id
                 : s.personligVapenCategoryId === category.id
             ) ?? [];

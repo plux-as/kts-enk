@@ -19,26 +19,24 @@ import { ChecklistCategory, ChecklistItem } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type CategoryRole = 'general' | 'primaryWeapon' | 'secondaryWeapon';
+type CategoryRole = 'general' | 'weapon';
 
 const ROLE_OPTIONS: { value: CategoryRole; label: string }[] = [
+  { value: 'weapon', label: 'Våpen' },
   { value: 'general', label: 'Generell' },
-  { value: 'primaryWeapon', label: 'Primærvåpen' },
-  { value: 'secondaryWeapon', label: 'Sekundærvåpen' },
 ];
 
 function getRoleBadge(role: CategoryRole): { label: string; bg: string; text: string } | null {
-  if (role === 'primaryWeapon') return { label: 'PRIMÆRVÅPEN', bg: '#D97706', text: '#fff' };
-  if (role === 'secondaryWeapon') return { label: 'SEKUNDÆRVÅPEN', bg: '#2563EB', text: '#fff' };
-  if (role === 'general') return { label: 'GENERELL', bg: '#059669', text: '#fff' };
+  if (role === 'weapon') return { label: 'VÅPEN', bg: '#0D9488', text: '#fff' };
+  if (role === 'general') return { label: 'GENERELL', bg: '#475569', text: '#fff' };
   return null;
 }
 
 function sortedCategories(checklist: ChecklistCategory[]): ChecklistCategory[] {
-  const order: CategoryRole[] = ['primaryWeapon', 'secondaryWeapon', 'general'];
+  const order: CategoryRole[] = ['weapon', 'general'];
   return [...checklist].sort((a, b) => {
-    const aRole = a.categoryRole ?? 'general';
-    const bRole = b.categoryRole ?? 'general';
+    const aRole = (a.categoryRole ?? 'general') as CategoryRole;
+    const bRole = (b.categoryRole ?? 'general') as CategoryRole;
     return order.indexOf(aRole) - order.indexOf(bRole);
   });
 }
@@ -85,7 +83,7 @@ export default function EditChecklistScreen() {
 
   const handleEditCategory = (category: ChecklistCategory) => {
     console.log('User tapped Edit Category:', category.id, category.name);
-    const role = category.categoryRole ?? 'general';
+    const role = (category.categoryRole ?? 'general') as CategoryRole;
     setEditingCategory({ id: category.id, name: category.name, categoryRole: role });
     setCategoryName(category.name);
     setCategoryRole(role);
@@ -268,12 +266,12 @@ export default function EditChecklistScreen() {
   }
 
   const sorted = sortedCategories(checklist);
-  const primaryCats = sorted.filter(c => (c.categoryRole ?? 'general') === 'primaryWeapon');
-  const secondaryCats = sorted.filter(c => (c.categoryRole ?? 'general') === 'secondaryWeapon');
+  const weaponCats = sorted.filter(c => (c.categoryRole ?? 'general') === 'weapon');
   const generalCats = sorted.filter(c => (c.categoryRole ?? 'general') === 'general');
 
   const renderCategory = (category: ChecklistCategory) => {
-    const badge = getRoleBadge(category.categoryRole ?? 'general');
+    const role = (category.categoryRole ?? 'general') as CategoryRole;
+    const badge = getRoleBadge(role);
     return (
       <View key={category.id} style={styles.categoryCard}>
         <View style={styles.categoryHeader}>
@@ -337,16 +335,10 @@ export default function EditChecklistScreen() {
         </View>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.section}>
-            {primaryCats.length > 0 && (
+            {weaponCats.length > 0 && (
               <>
-                <Text style={styles.sectionHeader}>PRIMÆRVÅPEN</Text>
-                {primaryCats.map(renderCategory)}
-              </>
-            )}
-            {secondaryCats.length > 0 && (
-              <>
-                <Text style={styles.sectionHeader}>SEKUNDÆRVÅPEN</Text>
-                {secondaryCats.map(renderCategory)}
+                <Text style={styles.sectionHeader}>VÅPENKATEGORIER</Text>
+                {weaponCats.map(renderCategory)}
               </>
             )}
             {generalCats.length > 0 && (

@@ -10,6 +10,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
@@ -18,12 +19,147 @@ import { Soldier, SquadSettings, ChecklistCategory } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+// ─── Weapon Picker Modal ──────────────────────────────────────────────────────
+
+interface WeaponPickerModalProps {
+  visible: boolean;
+  title: string;
+  options: ChecklistCategory[];
+  includeNone: boolean;
+  selectedId: string | undefined;
+  excludeId: string | undefined;
+  onSelect: (id: string | undefined) => void;
+  onClose: () => void;
+}
+
+function WeaponPickerModal({
+  visible,
+  title,
+  options,
+  includeNone,
+  selectedId,
+  excludeId,
+  onSelect,
+  onClose,
+}: WeaponPickerModalProps) {
+  const filtered = options.filter(c => c.id !== excludeId);
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable style={pickerStyles.overlay} onPress={onClose}>
+        <Pressable style={pickerStyles.sheet} onPress={() => {}}>
+          <View style={pickerStyles.handle} />
+          <Text style={pickerStyles.title}>{title}</Text>
+          <ScrollView bounces={false}>
+            {includeNone && (
+              <Pressable
+                style={[pickerStyles.option, !selectedId && pickerStyles.optionSelected]}
+                onPress={() => {
+                  console.log('User selected "Ingen" for weapon picker:', title);
+                  onSelect(undefined);
+                  onClose();
+                }}
+              >
+                <Text style={[pickerStyles.optionText, !selectedId && pickerStyles.optionTextSelected]}>
+                  Ingen
+                </Text>
+                {!selectedId && (
+                  <IconSymbol name="checkmark" color="#000" size={18} />
+                )}
+              </Pressable>
+            )}
+            {filtered.map(cat => {
+              const isSelected = selectedId === cat.id;
+              return (
+                <Pressable
+                  key={cat.id}
+                  style={[pickerStyles.option, isSelected && pickerStyles.optionSelected]}
+                  onPress={() => {
+                    console.log('User selected weapon:', cat.name, 'in picker:', title);
+                    onSelect(cat.id);
+                    onClose();
+                  }}
+                >
+                  <Text style={[pickerStyles.optionText, isSelected && pickerStyles.optionTextSelected]}>
+                    {cat.name}
+                  </Text>
+                  {isSelected && (
+                    <IconSymbol name="checkmark" color="#000" size={18} />
+                  )}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+const pickerStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: colors.backgroundSecondary,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    maxHeight: '70%',
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    backgroundColor: colors.textSecondary,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_700Bold',
+    marginBottom: 12,
+  },
+  option: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginBottom: 4,
+  },
+  optionSelected: {
+    backgroundColor: colors.primary,
+  },
+  optionText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  optionTextSelected: {
+    color: '#000',
+  },
+});
+
+// ─── Main Screen ──────────────────────────────────────────────────────────────
+
 export default function SettingsScreen() {
   const [squadName, setSquadName] = useState('');
   const [soldiers, setSoldiers] = useState<Soldier[]>([]);
   const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
+
+  // Picker state
+  const [pickerSoldierIndex, setPickerSoldierIndex] = useState<number | null>(null);
+  const [pickerSlot, setPickerSlot] = useState<'primary' | 'secondary' | null>(null);
 
   useEffect(() => {
     loadSettings();
@@ -47,31 +183,65 @@ export default function SettingsScreen() {
     }
   };
 
-  const primaryWeaponCategories = checklist.filter(c => c.categoryRole === 'primaryWeapon');
-  const secondaryWeaponCategories = checklist.filter(c => c.categoryRole === 'secondaryWeapon');
+  const weaponCategories = checklist.filter(c => c.categoryRole === 'weapon');
 
-  const updateSoldier = (index: number, field: 'name' | 'role' | 'personligVapenCategoryId', value: string) => {
+  const getDefaultPrimaryId = (): string => {
+    const hk416 = weaponCategories.find(c => c.name === 'HK416');
+    return hk416?.id ?? (weaponCategories[0]?.id ?? '');
+  };
+
+  const updateSoldierField = (index: number, field: 'name' | 'role', value: string) => {
     const updated = [...soldiers];
-    updated[index][field] = value;
+    updated[index] = { ...updated[index], [field]: value };
     setSoldiers(updated);
   };
 
-  const updateSoldierSecondaryWeapon = (index: number, categoryId: string | undefined) => {
+  const updateSoldierPrimary = (index: number, categoryId: string) => {
+    const updated = [...soldiers];
+    const soldier = { ...updated[index], personligVapenCategoryId: categoryId };
+    if (soldier.sekundærVåpenCategoryId === categoryId) {
+      soldier.sekundærVåpenCategoryId = undefined;
+    }
+    updated[index] = soldier;
+    setSoldiers(updated);
+  };
+
+  const updateSoldierSecondary = (index: number, categoryId: string | undefined) => {
     const updated = [...soldiers];
     updated[index] = { ...updated[index], sekundærVåpenCategoryId: categoryId };
     setSoldiers(updated);
   };
 
+  const openPicker = (soldierIndex: number, slot: 'primary' | 'secondary') => {
+    console.log('User opened weapon picker for soldier', soldierIndex, 'slot:', slot);
+    setPickerSoldierIndex(soldierIndex);
+    setPickerSlot(slot);
+  };
+
+  const closePicker = () => {
+    setPickerSoldierIndex(null);
+    setPickerSlot(null);
+  };
+
+  const handlePickerSelect = (id: string | undefined) => {
+    if (pickerSoldierIndex === null || pickerSlot === null) return;
+    if (pickerSlot === 'primary' && id !== undefined) {
+      updateSoldierPrimary(pickerSoldierIndex, id);
+    } else if (pickerSlot === 'secondary') {
+      updateSoldierSecondary(pickerSoldierIndex, id);
+    }
+  };
+
   const addSoldier = () => {
     console.log('User tapped Add Soldier');
-    const defaultWeaponId = primaryWeaponCategories.length > 0 ? primaryWeaponCategories[0].id : '';
+    const defaultId = getDefaultPrimaryId();
     setSoldiers([
       ...soldiers,
       {
         id: `soldier-${Date.now()}`,
         name: '',
         role: '',
-        personligVapenCategoryId: defaultWeaponId,
+        personligVapenCategoryId: defaultId,
       },
     ]);
   };
@@ -113,10 +283,10 @@ export default function SettingsScreen() {
       return;
     }
 
-    if (primaryWeaponCategories.length > 0) {
+    if (weaponCategories.length > 0) {
       const missingWeapon = soldiers.find(s => !s.personligVapenCategoryId);
       if (missingWeapon) {
-        Alert.alert('Feil', 'Vennligst velg personlig våpen for alle soldater');
+        Alert.alert('Feil', 'Vennligst velg primærvåpen for alle soldater');
         return;
       }
     }
@@ -133,6 +303,18 @@ export default function SettingsScreen() {
       Alert.alert('Feil', 'Kunne ikke lagre innstillingene');
     }
   };
+
+  // Picker props
+  const activeSoldier = pickerSoldierIndex !== null ? soldiers[pickerSoldierIndex] : null;
+  const pickerExcludeId =
+    pickerSlot === 'primary'
+      ? activeSoldier?.sekundærVåpenCategoryId
+      : activeSoldier?.personligVapenCategoryId;
+  const pickerSelectedId =
+    pickerSlot === 'primary'
+      ? activeSoldier?.personligVapenCategoryId
+      : activeSoldier?.sekundærVåpenCategoryId;
+  const pickerTitle = pickerSlot === 'primary' ? 'Velg primærvåpen' : 'Velg sekundærvåpen';
 
   if (loading) {
     return (
@@ -187,99 +369,72 @@ export default function SettingsScreen() {
               <Text style={styles.sectionTitle}>Soldater</Text>
             </View>
 
-            {soldiers.map((soldier, index) => (
-              <View key={soldier.id} style={styles.soldierCard}>
-                <View style={styles.soldierHeader}>
-                  <Text style={styles.soldierNumber}>Soldat {index + 1}</Text>
-                  <Pressable onPress={() => removeSoldier(index)}>
-                    <IconSymbol name="trash" color={colors.error} size={20} />
-                  </Pressable>
-                </View>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Navn</Text>
-                  <TextInput
-                    style={[styles.input, { fontFamily: bodyFont }]}
-                    value={soldier.name}
-                    onChangeText={(value) => updateSoldier(index, 'name', value)}
-                    placeholder="F.eks. Ole Hansen"
-                    placeholderTextColor={colors.textSecondary}
-                  />
-                </View>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Rolle (valgfritt)</Text>
-                  <TextInput
-                    style={[styles.input, { fontFamily: bodyFont }]}
-                    value={soldier.role}
-                    onChangeText={(value) => updateSoldier(index, 'role', value)}
-                    placeholder="F.eks. Skytter"
-                    placeholderTextColor={colors.textSecondary}
-                  />
-                </View>
-                {primaryWeaponCategories.length > 0 && (
-                  <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Primærvåpen</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
-                      <View style={styles.chipRow}>
-                        {primaryWeaponCategories.map(cat => {
-                          const isSelected = soldier.personligVapenCategoryId === cat.id;
-                          return (
-                            <Pressable
-                              key={cat.id}
-                              style={[styles.chip, isSelected && styles.chipSelected]}
-                              onPress={() => {
-                                console.log('User selected primary weapon for soldier', index, ':', cat.name);
-                                updateSoldier(index, 'personligVapenCategoryId', cat.id);
-                              }}
-                            >
-                              <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                                {cat.name}
-                              </Text>
-                            </Pressable>
-                          );
-                        })}
-                      </View>
-                    </ScrollView>
+            {soldiers.map((soldier, index) => {
+              const primaryName = weaponCategories.find(c => c.id === soldier.personligVapenCategoryId)?.name ?? 'Velg...';
+              const secondaryName = soldier.sekundærVåpenCategoryId
+                ? (weaponCategories.find(c => c.id === soldier.sekundærVåpenCategoryId)?.name ?? 'Velg...')
+                : 'Ingen';
+
+              return (
+                <View key={soldier.id} style={styles.soldierCard}>
+                  <View style={styles.soldierHeader}>
+                    <Text style={styles.soldierNumber}>Soldat {index + 1}</Text>
+                    <Pressable onPress={() => removeSoldier(index)}>
+                      <IconSymbol name="trash" color={colors.error} size={20} />
+                    </Pressable>
                   </View>
-                )}
-                {secondaryWeaponCategories.length > 0 && (
                   <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Sekundærvåpen</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
-                      <View style={styles.chipRow}>
+                    <Text style={styles.label}>Navn</Text>
+                    <TextInput
+                      style={[styles.input, { fontFamily: bodyFont }]}
+                      value={soldier.name}
+                      onChangeText={(value) => updateSoldierField(index, 'name', value)}
+                      placeholder="F.eks. Ole Hansen"
+                      placeholderTextColor={colors.textSecondary}
+                    />
+                  </View>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Rolle (valgfritt)</Text>
+                    <TextInput
+                      style={[styles.input, { fontFamily: bodyFont }]}
+                      value={soldier.role}
+                      onChangeText={(value) => updateSoldierField(index, 'role', value)}
+                      placeholder="F.eks. Skytter"
+                      placeholderTextColor={colors.textSecondary}
+                    />
+                  </View>
+
+                  {weaponCategories.length > 0 && (
+                    <View style={styles.weaponRow}>
+                      <View style={styles.weaponCol}>
+                        <Text style={styles.weaponColLabel}>Primærvåpen</Text>
                         <Pressable
-                          style={[styles.chip, !soldier.sekundærVåpenCategoryId && styles.chipSelected]}
-                          onPress={() => {
-                            console.log('User cleared secondary weapon for soldier', index);
-                            updateSoldierSecondaryWeapon(index, undefined);
-                          }}
+                          style={styles.weaponSelector}
+                          onPress={() => openPicker(index, 'primary')}
                         >
-                          <Text style={[styles.chipText, !soldier.sekundærVåpenCategoryId && styles.chipTextSelected]}>
-                            Ingen
+                          <Text style={styles.weaponSelectorText} numberOfLines={1}>
+                            {primaryName}
                           </Text>
+                          <IconSymbol name="chevron.down" color={colors.primary} size={16} />
                         </Pressable>
-                        {secondaryWeaponCategories.map(cat => {
-                          const isSelected = soldier.sekundærVåpenCategoryId === cat.id;
-                          return (
-                            <Pressable
-                              key={cat.id}
-                              style={[styles.chip, isSelected && styles.chipSelected]}
-                              onPress={() => {
-                                console.log('User selected secondary weapon for soldier', index, ':', cat.name);
-                                updateSoldierSecondaryWeapon(index, cat.id);
-                              }}
-                            >
-                              <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                                {cat.name}
-                              </Text>
-                            </Pressable>
-                          );
-                        })}
                       </View>
-                    </ScrollView>
-                  </View>
-                )}
-              </View>
-            ))}
+                      <View style={styles.weaponCol}>
+                        <Text style={styles.weaponColLabel}>Sekundærvåpen</Text>
+                        <Pressable
+                          style={styles.weaponSelector}
+                          onPress={() => openPicker(index, 'secondary')}
+                        >
+                          <Text style={styles.weaponSelectorText} numberOfLines={1}>
+                            {secondaryName}
+                          </Text>
+                          <IconSymbol name="chevron.down" color={colors.primary} size={16} />
+                        </Pressable>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              );
+            })}
 
             <Pressable style={styles.addSoldierButton} onPress={addSoldier}>
               <IconSymbol name="plus" color={colors.primary} size={24} />
@@ -292,6 +447,17 @@ export default function SettingsScreen() {
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <WeaponPickerModal
+        visible={pickerSoldierIndex !== null && pickerSlot !== null}
+        title={pickerTitle}
+        options={weaponCategories}
+        includeNone={pickerSlot === 'secondary'}
+        selectedId={pickerSelectedId}
+        excludeId={pickerExcludeId}
+        onSelect={handlePickerSelect}
+        onClose={closePicker}
+      />
     </>
   );
 }
@@ -363,33 +529,40 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
-  chipScroll: {
-    flexGrow: 0,
-  },
-  chipRow: {
+  weaponRow: {
     flexDirection: 'row',
-    gap: 8,
-    paddingRight: 4,
+    gap: 12,
+    marginTop: 4,
   },
-  chip: {
-    borderRadius: 20,
+  weaponCol: {
+    flex: 1,
+  },
+  weaponColLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    marginBottom: 6,
+    fontFamily: 'BigShouldersStencil_700Bold',
+    letterSpacing: 0.5,
+  },
+  weaponSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.background,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: 'transparent',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 4,
   },
-  chipSelected: {
-    backgroundColor: colors.primary,
-  },
-  chipText: {
-    fontSize: 16,
+  weaponSelectorText: {
+    flex: 1,
+    fontSize: 15,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.text,
     fontFamily: 'BigShouldersStencil_700Bold',
-  },
-  chipTextSelected: {
-    color: '#000',
   },
   addSoldierButton: {
     backgroundColor: colors.card,

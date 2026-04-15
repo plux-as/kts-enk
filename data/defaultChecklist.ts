@@ -1,13 +1,12 @@
-
 import { ChecklistCategory } from '@/types/checklist';
 
 export const defaultChecklist: ChecklistCategory[] = [
   {
     id: 'cat-1',
     name: 'HK416',
-    categoryRole: 'primaryWeapon',
+    categoryRole: 'weapon',
     items: [
-      { id: 'item-1-1', name: 'Kontroller at pipe, kammer og sluttstykkehode er rent og tørrpusset', categoryId: 'cat-1' },
+      { id: 'item-1-1', name: 'Rent og tørrpusset løp', categoryId: 'cat-1' },
       { id: 'item-1-2', name: 'Flammedemper er tilskrudd', categoryId: 'cat-1' },
       { id: 'item-1-3', name: 'Kolbe låst i ønsket posisjon', categoryId: 'cat-1' },
       { id: 'item-1-4', name: 'Reim er tilpasset', categoryId: 'cat-1' },
@@ -89,7 +88,7 @@ export const defaultChecklist: ChecklistCategory[] = [
   {
     id: 'cat-6',
     name: 'RFK',
-    categoryRole: 'primaryWeapon',
+    categoryRole: 'weapon',
     items: [
       { id: 'item-6-1', name: 'Rent og tørrpusset løp og bakstykke. Oljes ved behov', categoryId: 'cat-6' },
       { id: 'item-6-2', name: 'Ingen skader, sprekker eller buler', categoryId: 'cat-6' },
@@ -112,7 +111,7 @@ export const defaultChecklist: ChecklistCategory[] = [
   {
     id: 'cat-7',
     name: 'LMG',
-    categoryRole: 'primaryWeapon',
+    categoryRole: 'weapon',
     items: [
       { id: 'lmg-1', name: 'Rene og tørrpussede piper. Metall som ikke er i kontakt med ammunisjon oljes inn.', categoryId: 'cat-7' },
       { id: 'lmg-2', name: 'Kontroller at kolben låser i ytre posisjon', categoryId: 'cat-7' },
@@ -139,7 +138,7 @@ export const defaultChecklist: ChecklistCategory[] = [
   {
     id: 'cat-8',
     name: 'MMG',
-    categoryRole: 'primaryWeapon',
+    categoryRole: 'weapon',
     items: [
       { id: 'mmg-1', name: 'Rene og tørrpussede piper. Metall som ikke er i kontakt med ammunisjon oljes inn.', categoryId: 'cat-8' },
       { id: 'mmg-2', name: 'Kontroller at kolben låser i ytre posisjon', categoryId: 'cat-8' },
@@ -161,6 +160,42 @@ export const defaultChecklist: ChecklistCategory[] = [
       { id: 'mmg-18', name: 'Tilbehørsveske tilstede og kontrollert i henhold til satsliste.', categoryId: 'cat-8' },
       { id: 'mmg-19', name: 'Ett sett ekstra batterier til alle enheter som går på strøm.', categoryId: 'cat-8' },
       { id: 'mmg-20', name: 'Ammunisjon klargjort og kontrollert', categoryId: 'cat-8' },
+    ],
+  },
+  {
+    id: 'cat-9',
+    name: 'AG3',
+    categoryRole: 'weapon',
+    items: [
+      { id: 'ag3-1', name: 'Rent og tørrpusset løp', categoryId: 'cat-9' },
+      { id: 'ag3-2', name: 'Flammedemper er tilskrudd', categoryId: 'cat-9' },
+      { id: 'ag3-3', name: 'Kolbe låst i ønsket posisjon', categoryId: 'cat-9' },
+      { id: 'ag3-4', name: 'Reim er tilpasset', categoryId: 'cat-9' },
+      { id: 'ag3-5', name: 'Magasin ut, ta ladegrep', categoryId: 'cat-9' },
+      { id: 'ag3-6', name: 'Sikring kontrolleres', categoryId: 'cat-9' },
+    ],
+  },
+  {
+    id: 'cat-10',
+    name: 'MP7',
+    categoryRole: 'weapon',
+    items: [
+      { id: 'mp7-1', name: 'Rent og tørrpusset løp', categoryId: 'cat-10' },
+      { id: 'mp7-2', name: 'Kolbe låst i ønsket posisjon', categoryId: 'cat-10' },
+      { id: 'mp7-3', name: 'Reim er tilpasset', categoryId: 'cat-10' },
+      { id: 'mp7-4', name: 'Magasin ut, ta ladegrep', categoryId: 'cat-10' },
+      { id: 'mp7-5', name: 'Sikring kontrolleres', categoryId: 'cat-10' },
+    ],
+  },
+  {
+    id: 'cat-11',
+    name: 'Pistol',
+    categoryRole: 'weapon',
+    items: [
+      { id: 'pistol-1', name: 'Rent og tørrpusset løp', categoryId: 'cat-11' },
+      { id: 'pistol-2', name: 'Magasin ut, ta ladegrep', categoryId: 'cat-11' },
+      { id: 'pistol-3', name: 'Sikring kontrolleres', categoryId: 'cat-11' },
+      { id: 'pistol-4', name: 'Hylster tilpasset og festet', categoryId: 'cat-11' },
     ],
   },
 ];
