@@ -1,62 +1,35 @@
 
 import React from 'react';
-import { DynamicColorIOS } from 'react-native';
-import { NativeTabs, Icon, Label, NativeTabsLabelStyle } from 'expo-router/unstable-native-tabs';
-import { colors } from '@/styles/commonStyles';
+import { Stack } from 'expo-router';
+import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
 
-const selectedLabelStyle: NativeTabsLabelStyle = {
-  color: colors.primary,
-};
+const tabs: TabBarItem[] = [
+  {
+    route: '/(tabs)/(home)',
+    label: 'Start',
+    icon: 'shield.fill',
+  },
+  {
+    route: '/(tabs)/log',
+    label: 'Logg',
+    icon: 'clock.fill',
+  },
+  {
+    route: '/(tabs)/app-settings',
+    label: 'Innstillinger',
+    icon: 'gear',
+  },
+];
 
 export default function TabLayout() {
-  const dynamicLabelColor = DynamicColorIOS({
-    dark: '#FFFFFF',
-    light: '#000000',
-  });
-
-  const dynamicTintColor = DynamicColorIOS({
-    dark: '#B7FF00',
-    light: '#3A4300',
-  });
-
   return (
     <>
-      {/*
-        Note: The Icon component uses the 'selectedColor' prop (a color value),
-        while the Label component uses the 'selectedStyle' prop (a NativeTabsLabelStyle object
-        which has color as a value).
-      */}
-      <NativeTabs
-        labelStyle={{ color: dynamicLabelColor }}
-        tintColor={dynamicTintColor}>
-        <NativeTabs.Trigger
-          name="(home)"
-          options={{
-            title: 'Start',
-          }}
-        >
-          <Icon selectedColor={colors.primary} sf="shield.fill" drawable="ic_log" />
-          <Label selectedStyle={selectedLabelStyle}>Start</Label>
-        </NativeTabs.Trigger>
-        <NativeTabs.Trigger
-          name="log"
-          options={{
-            title: 'Logg',
-          }}
-        >
-          <Icon selectedColor={colors.primary} sf="clock.fill" drawable="ic_log" />
-          <Label selectedStyle={selectedLabelStyle}>Logg</Label>
-        </NativeTabs.Trigger>
-        <NativeTabs.Trigger
-          name="app-settings"
-          options={{
-            title: 'Innstillinger',
-          }}
-        >
-          <Icon selectedColor={colors.primary} sf="gear" drawable="ic_settings" />
-          <Label selectedStyle={selectedLabelStyle}>Innstillinger</Label>
-        </NativeTabs.Trigger>
-      </NativeTabs>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(home)" />
+        <Stack.Screen name="log" />
+        <Stack.Screen name="app-settings" />
+      </Stack>
+      <FloatingTabBar tabs={tabs} />
     </>
   );
 }
