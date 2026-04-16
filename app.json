@@ -39,9 +39,6 @@
       "expo-router",
       "expo-web-browser"
     ],
-    "autolinking": {
-      "exclude": ["react-native-worklets"]
-    },
     "scheme": "ktsenkelt",
     "experiments": {
       "typedRoutes": true
