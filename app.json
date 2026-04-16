@@ -1,12 +1,13 @@
 {
   "expo": {
     "name": "KTS Enkelt",
-    "slug": "kts-enkelt",
+    "slug": "kts-enk",
     "version": "2.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "scheme": "ktsenkelt",
     "splash": {
       "image": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
       "resizeMode": "contain",
@@ -37,15 +38,14 @@
     "plugins": [
       "expo-font",
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      "react-native-edge-to-edge"
     ],
-    "scheme": "ktsenkelt",
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
       "router": {}
     }
-  },
-  "scheme": "kts-alfa"
+  }
 }
