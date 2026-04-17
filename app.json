@@ -2,7 +2,7 @@
   "expo": {
     "name": "KTS Enkelt",
     "slug": "kts-enkelt",
-    "version": "2.0.2",
+    "version": "2.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
     "userInterfaceStyle": "dark",
@@ -26,7 +26,7 @@
         "backgroundColor": "#0F0F0F"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.plux.ktsalfa",
+      "package": "com.pluxas.ktsalfa",
       "userInterfaceStyle": "dark"
     },
     "web": {
