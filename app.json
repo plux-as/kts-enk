@@ -7,6 +7,7 @@
     "icon": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "scheme": "ktsenkelt",
     "splash": {
       "image": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
       "resizeMode": "contain",
@@ -36,15 +37,15 @@
     "plugins": [
       "expo-font",
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      "react-native-edge-to-edge",
+      "react-native-reanimated"
     ],
-    "scheme": "ktsenkelt",
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
       "router": {}
     }
-  },
-  "scheme": "kts-alfa"
+  }
 }

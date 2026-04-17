@@ -130,10 +130,10 @@ export default function AppSettingsScreen() {
                 resizeMode="contain"
               />
               <Text style={[styles.aboutText, { fontFamily: bodyFont }]}>
-                Appens hensikt er å gjøre det lettere å følge opp feil og mangler i etterkant av utført KTS. Loggen gir deg oversikt over tidligere gjennomføringer og feil og mangler dokumenteres og utbedres her. Du kan tilpasse sjekklisten etter lagets behov ved å legge til eller fjerne kategorier og elementer.
+                Appens hensikt er å gjøre det lettere å følge opp feil og mangler i etterkant av utført KTS. Loggen gir deg oversikt over tidligere gjennomføringer og feil og mangler dokumenteres og utbedres her. Du kan tilpasse sjekklisten etter lagets behov ved å legge til eller fjerne kategorier og elementer. Kategorier merket med våpen, gjøres tilgjengelig i listen over våpen per lagsmedlem. Kategorier merket med generell, vil gjelde for samtlige lagsmedlemmer.
               </Text>
               <Text style={[styles.aboutText, { fontFamily: bodyFont, marginTop: 16 }]}>
-                Appen utveksler ingen data med en server eller eksterne tjenester, og appen kan gjerne brukes i flymodus eller uten dekning. Alle data knyttet til appen lagres kun lokalt på din enhet. Dersom du bytter telefon, mister du alle lagrede data. Appen sporer ingen bruk eller posisjon.
+                Appen utveksler ingen data med en server eller eksterne tjenester, og appen kan gjerne brukes i flymodus eller uten dekning. Alle data knyttet til appen lagres kun lokalt på din enhet. Dersom du bytter telefon eller sletter appen, mister du alle lagrede data. Appen sporer ingen bruk eller posisjon.
               </Text>
               <Text style={[styles.aboutText, { fontFamily: bodyFont, marginTop: 16 }]}>
                 Appen er utviklet av{' '}

@@ -20,6 +20,8 @@ import {
   BigShouldersStencil_700Bold,
 } from '@expo-google-fonts/big-shoulders-stencil';
 import { colors } from '@/styles/commonStyles';
+import { storage } from '@/utils/storage';
+import { CHECKLIST_VERSION } from '@/data/defaultChecklist';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,6 +41,24 @@ export default function RootLayout() {
     if (loaded) {
       SplashScreen.hideAsync();
     }
+  }, [loaded]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    async function checkMigration() {
+      const setupComplete = await storage.isSetupComplete();
+      if (!setupComplete) {
+        console.log('[Migration] Setup not complete, skipping migration check');
+        return;
+      }
+      const storedVersion = await storage.getChecklistVersion();
+      console.log('[Migration] Stored checklist version:', storedVersion, '| Current:', CHECKLIST_VERSION);
+      if (storedVersion < CHECKLIST_VERSION) {
+        console.log('[Migration] Version mismatch — navigating to checklist-update modal');
+        router.push('/checklist-update');
+      }
+    }
+    checkMigration();
   }, [loaded]);
 
   if (!loaded) {
@@ -103,6 +123,13 @@ export default function RootLayout() {
                   presentation: "fullScreenModal",
                   headerShown: false,
                   animation: "slide_from_bottom",
+                }}
+              />
+              <Stack.Screen
+                name="checklist-update"
+                options={{
+                  presentation: "modal",
+                  headerShown: false,
                 }}
               />
             </Stack>
