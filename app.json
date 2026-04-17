@@ -39,7 +39,8 @@
       "expo-font",
       "expo-router",
       "expo-web-browser",
-      "react-native-edge-to-edge"
+      "react-native-edge-to-edge",
+      "react-native-reanimated"
     ],
     "experiments": {
       "typedRoutes": true
