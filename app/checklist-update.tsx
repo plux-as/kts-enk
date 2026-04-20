@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { useNavigation } from 'expo-router';
 import {
   View,
   Text,
@@ -40,9 +41,14 @@ function computeDiff(stored: ChecklistCategory[], incoming: ChecklistCategory[])
 
 export default function ChecklistUpdateScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const [storedChecklist, setStoredChecklist] = useState<ChecklistCategory[] | null>(null);
   const [confirmation, setConfirmation] = useState<ConfirmationState>('idle');
   const [applying, setApplying] = useState(false);
+
+  useEffect(() => {
+    navigation.setOptions({ gestureEnabled: false });
+  }, [navigation]);
 
   useEffect(() => {
     storage.getChecklist().then(setStoredChecklist);
@@ -85,10 +91,13 @@ export default function ChecklistUpdateScreen() {
   }
 
   async function handleKeep() {
+    if (!storedChecklist) return;
     console.log('[ChecklistUpdate] User chose: Behold eksisterende');
     setApplying(true);
+    const merged = mergeChecklists(storedChecklist, defaultChecklist);
+    await storage.saveChecklist(merged);
     await storage.saveChecklistVersion(CHECKLIST_VERSION);
-    console.log('[ChecklistUpdate] Kept existing, version saved:', CHECKLIST_VERSION);
+    console.log('[ChecklistUpdate] Kept existing with silent merge, version saved:', CHECKLIST_VERSION);
     setApplying(false);
     setConfirmation('kept');
     setTimeout(() => router.back(), 1200);

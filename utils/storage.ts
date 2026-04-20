@@ -111,7 +111,10 @@ export const storage = {
           }
           return cat;
         });
-        return migrated;
+        const merged = mergeChecklists(migrated, defaultChecklist);
+        console.log('Checklist auto-merged with defaultChecklist');
+        await this.saveChecklist(merged);
+        return merged;
       }
       console.log('No checklist found, using default');
       return defaultChecklist;
