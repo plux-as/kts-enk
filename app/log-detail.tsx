@@ -358,10 +358,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  centerContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   scrollContent: {
     padding: 20,
     paddingBottom: 40,

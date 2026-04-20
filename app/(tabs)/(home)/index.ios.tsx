@@ -1,45 +1,191 @@
-import React from "react";
-import { Stack } from "expo-router";
-import { StyleSheet, View, Text } from "react-native";
-import { useTheme } from "@react-navigation/native";
+
+import React, { useEffect, useState, useCallback } from "react";
+import { Stack, router, useFocusEffect } from "expo-router";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  Alert,
+  Image,
+} from "react-native";
+import { IconSymbol } from "@/components/IconSymbol";
+import { colors, commonStyles, bodyFont } from "@/styles/commonStyles";
+import { storage } from "@/utils/storage";
+import { SquadSettings } from "@/types/checklist";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
-  const theme = useTheme();
+  const [squadSettings, setSquadSettings] = useState<SquadSettings | null>(null);
+  const [isSetupComplete, setIsSetupComplete] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
+
+  const loadData = async () => {
+    try {
+      const setupComplete = await storage.isSetupComplete();
+      setIsSetupComplete(setupComplete);
+
+      if (!setupComplete) {
+        router.replace('/setup');
+        return;
+      }
+
+      const settings = await storage.getSquadSettings();
+      setSquadSettings(settings);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStartSession = () => {
+    console.log('User tapped Start KTS');
+    router.push('/session');
+  };
+
+  const handleEditSquad = () => {
+    console.log('User tapped Edit Squad');
+    router.push('/settings');
+  };
+
+  if (loading) {
+    return (
+      <View style={[commonStyles.container, styles.centerContent]}>
+        <Text style={[commonStyles.text, { fontFamily: bodyFont }]}>Laster...</Text>
+      </View>
+    );
+  }
+
+  const soldierCount = squadSettings ? squadSettings.soldiers.length : 0;
+  const soldierLabel = soldierCount + ' soldater';
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: "Building the app...",
+          headerShown: false,
         }}
       />
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>
-          Welcome to Newly
-        </Text>
-        <Text style={[styles.subtitle, { color: theme.dark ? '#98989D' : '#666' }]}>
-          Your app is currently building...
-        </Text>
+      <View style={[commonStyles.container, { paddingTop: insets.top }]}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <Text style={styles.appTitle}>KTS ALFA</Text>
+            {squadSettings && (
+              <Pressable style={styles.squadInfo} onPress={handleEditSquad}>
+                <Text style={styles.squadName}>{squadSettings.squadName}</Text>
+                <Text style={styles.squadDetail}>{soldierLabel}</Text>
+                <Text style={styles.editLabel}>Trykk for å endre</Text>
+              </Pressable>
+            )}
+          </View>
+
+          <View style={styles.mainButtonContainer}>
+            <Pressable
+              style={styles.startButton}
+              onPress={handleStartSession}
+            >
+              <Image
+                source={require('@/assets/images/f54512be-2d40-4d54-93d7-66c0b49c0292.png')}
+                style={styles.startIcon}
+                resizeMode="contain"
+              />
+              <Text style={styles.startButtonText}>Start KTS</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
       </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
+    padding: 20,
+    paddingBottom: 100,
+  },
+  centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+  header: {
+    alignItems: 'center',
+    marginTop: 40,
+    marginBottom: 40,
+  },
+  appTitle: {
+    fontSize: 40,
+    fontWeight: '800',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 20,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  squadInfo: {
+    backgroundColor: colors.card,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    width: '100%',
+    elevation: 3,
+  },
+  squadName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    fontFamily: 'BigShouldersStencil_700Bold',
+    marginBottom: 4,
+  },
+  squadDetail: {
+    fontSize: 18,
+    color: colors.textSecondary,
+    fontFamily: bodyFont,
     marginBottom: 8,
-    textAlign: 'center',
   },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
+  editLabel: {
+    fontSize: 14,
+    color: colors.primary,
+    fontFamily: 'BigShouldersStencil_700Bold',
+    marginTop: 4,
+  },
+  mainButtonContainer: {
+    marginVertical: 30,
+    alignItems: 'center',
+  },
+  startButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 5,
+    width: '100%',
+  },
+  startIcon: {
+    width: 80,
+    height: 80,
+    marginBottom: 16,
+  },
+  startButtonText: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#000',
+    fontFamily: 'BigShouldersStencil_700Bold',
   },
 });
