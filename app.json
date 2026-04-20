@@ -4,12 +4,12 @@
     "slug": "kts-enkelt",
     "version": "2.0.3",
     "orientation": "portrait",
-    "icon": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
+    "icon": "./assets/images/insta-logo-new.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "scheme": "ktsenkelt",
     "splash": {
-      "image": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
+      "image": "./assets/images/insta-logo-new.png",
       "resizeMode": "contain",
       "backgroundColor": "#0F0F0F"
     },
@@ -23,7 +23,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
+        "foregroundImage": "./assets/images/insta-logo-new.png",
         "backgroundColor": "#0F0F0F"
       },
       "edgeToEdgeEnabled": true,
