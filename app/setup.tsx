@@ -520,10 +520,9 @@ const styles = StyleSheet.create({
   },
   weaponSelectorText: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 18,
     color: colors.text,
-    fontFamily: 'BigShouldersStencil_700Bold',
+    fontFamily: bodyFont,
   },
   stickyButtonContainer: {
     position: 'absolute',
