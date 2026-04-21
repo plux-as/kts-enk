@@ -55,6 +55,12 @@ module.exports = {
       rules: {
         'import/no-unresolved': 'off'
       }
+    },
+    {
+      files: ['scripts/**/*.js'],
+      env: {
+        node: true
+      }
     }
   ]
 };
