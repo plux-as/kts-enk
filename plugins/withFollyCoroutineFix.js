@@ -6,18 +6,20 @@ module.exports = function withFollyCoroutineFix(config) {
     const configurations = project.pbxXCBuildConfigurationSection();
     for (const key in configurations) {
       const buildConfig = configurations[key];
-      if (buildConfig.buildSettings) {
-        const existing = buildConfig.buildSettings['GCC_PREPROCESSOR_DEFINITIONS'];
+      if (buildConfig && buildConfig.buildSettings) {
+        const settings = buildConfig.buildSettings;
+        const existing = settings['GCC_PREPROCESSOR_DEFINITIONS'];
+        const newValue = '"FOLLY_CFG_NO_COROUTINES=1"';
         if (Array.isArray(existing)) {
-          if (!existing.includes('FOLLY_CFG_NO_COROUTINES=1')) {
-            existing.push('FOLLY_CFG_NO_COROUTINES=1');
+          if (!existing.includes(newValue)) {
+            existing.push(newValue);
           }
         } else if (typeof existing === 'string') {
-          if (!existing.includes('FOLLY_CFG_NO_COROUTINES=1')) {
-            buildConfig.buildSettings['GCC_PREPROCESSOR_DEFINITIONS'] = [existing, 'FOLLY_CFG_NO_COROUTINES=1'];
+          if (!existing.includes('FOLLY_CFG_NO_COROUTINES')) {
+            settings['GCC_PREPROCESSOR_DEFINITIONS'] = [existing, newValue];
           }
         } else {
-          buildConfig.buildSettings['GCC_PREPROCESSOR_DEFINITIONS'] = ['$(inherited)', 'FOLLY_CFG_NO_COROUTINES=1'];
+          settings['GCC_PREPROCESSOR_DEFINITIONS'] = ['"$(inherited)"', newValue];
         }
       }
     }
