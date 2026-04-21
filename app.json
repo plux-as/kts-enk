@@ -38,8 +38,7 @@
       "expo-font",
       "expo-router",
       "expo-web-browser",
-      "react-native-edge-to-edge",
-      "./plugins/withFollyCoroutineFix"
+      "react-native-edge-to-edge"
     ],
     "experiments": {
       "typedRoutes": true

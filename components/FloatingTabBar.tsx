@@ -8,14 +8,9 @@ import {
   StyleSheet,
   Platform,
   Dimensions,
+  Animated,
 } from 'react-native';
 import { useRouter, usePathname, useSegments } from 'expo-router';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  interpolate,
-} from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@react-navigation/native';
@@ -49,20 +44,20 @@ export default function FloatingTabBar({
   const getActiveIndex = () => {
     console.log('[FloatingTabBar] Current pathname:', pathname);
     console.log('[FloatingTabBar] Current segments:', segments);
-    
+
     // Check segments for more reliable matching
     const segmentString = segments.join('/');
     console.log('[FloatingTabBar] Segment string:', segmentString);
-    
+
     for (let i = 0; i < tabs.length; i++) {
       const tab = tabs[i];
       console.log(`[FloatingTabBar] Checking tab ${i}: ${tab.route}`);
-      
+
       // Special handling for home tab
       if (tab.route === '/(tabs)/(home)') {
         if (
-          pathname === '/(tabs)/(home)' || 
-          pathname === '/' || 
+          pathname === '/(tabs)/(home)' ||
+          pathname === '/' ||
           pathname.startsWith('/(tabs)/(home)') ||
           segmentString.includes('(tabs)/(home)') ||
           (segments.length >= 2 && segments[0] === '(tabs)' && segments[1] === '(home)')
@@ -74,7 +69,7 @@ export default function FloatingTabBar({
       // Check for log tab
       else if (tab.route === '/(tabs)/log') {
         if (
-          pathname === '/(tabs)/log' || 
+          pathname === '/(tabs)/log' ||
           pathname.includes('/log') ||
           segmentString.includes('(tabs)/log') ||
           (segments.length >= 2 && segments[0] === '(tabs)' && segments[1] === 'log')
@@ -86,7 +81,7 @@ export default function FloatingTabBar({
       // Check for app-settings tab
       else if (tab.route === '/(tabs)/app-settings') {
         if (
-          pathname === '/(tabs)/app-settings' || 
+          pathname === '/(tabs)/app-settings' ||
           pathname.includes('/app-settings') ||
           segmentString.includes('(tabs)/app-settings') ||
           (segments.length >= 2 && segments[0] === '(tabs)' && segments[1] === 'app-settings')
@@ -101,7 +96,7 @@ export default function FloatingTabBar({
         return i;
       }
     }
-    
+
     // Default to first tab if no match
     console.log('[FloatingTabBar] No match found, defaulting to index 0');
     return 0;
@@ -109,31 +104,19 @@ export default function FloatingTabBar({
 
   // Calculate active index directly from pathname
   const activeIndex = getActiveIndex();
-  const translateX = useSharedValue(activeIndex);
+  const translateX = React.useRef(new Animated.Value(activeIndex)).current;
 
   // Update animation whenever pathname, segments, or activeIndex changes
   React.useEffect(() => {
     console.log('[FloatingTabBar] Effect triggered - pathname:', pathname, 'activeIndex:', activeIndex);
-    translateX.value = withSpring(activeIndex, {
+    const itemWidth = containerWidth / tabs.length;
+    Animated.spring(translateX, {
+      toValue: itemWidth * activeIndex,
       damping: 20,
       stiffness: 90,
-    });
-  }, [pathname, segments, activeIndex, translateX]);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    const itemWidth = containerWidth / tabs.length;
-    return {
-      transform: [
-        {
-          translateX: interpolate(
-            translateX.value,
-            [0, tabs.length - 1],
-            [0, itemWidth * (tabs.length - 1)]
-          ),
-        },
-      ],
-    };
-  });
+      useNativeDriver: true,
+    }).start();
+  }, [pathname, segments, activeIndex]);
 
   const handleTabPress = (route: string) => {
     console.log('[FloatingTabBar] Tab pressed:', route);
@@ -146,7 +129,7 @@ export default function FloatingTabBar({
   const isAndroid = Platform.OS === 'android';
   const isWeb = Platform.OS === 'web';
   const containerBackgroundColor = (isAndroid || isWeb)
-    ? '#000000' 
+    ? '#000000'
     : (theme.dark ? 'rgba(28, 28, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)');
 
   console.log('[FloatingTabBar] Rendering with activeIndex:', activeIndex);
@@ -175,8 +158,8 @@ export default function FloatingTabBar({
               width: itemWidth - 20,
               backgroundColor: colors.primary,
               borderRadius: borderRadius - 5,
+              transform: [{ translateX }],
             },
-            animatedStyle,
           ]}
         />
 
