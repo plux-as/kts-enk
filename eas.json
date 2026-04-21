@@ -5,7 +5,7 @@
       "distribution": "internal",
       "autoIncrement": true,
       "ios": {
-        "image": "macos-sequoia-15.3-xcode-16.2"
+        "image": "macos-sequoia-15.4-xcode-16.3"
       }
     },
     "preview": {
@@ -15,13 +15,13 @@
       },
       "autoIncrement": true,
       "ios": {
-        "image": "macos-sequoia-15.3-xcode-16.2"
+        "image": "macos-sequoia-15.4-xcode-16.3"
       }
     },
     "production": {
       "autoIncrement": true,
       "ios": {
-        "image": "macos-sequoia-15.3-xcode-16.2"
+        "image": "macos-sequoia-15.4-xcode-16.3"
       }
     }
   }
