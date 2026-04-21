@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "KTS Enkelt",
-    "slug": "kts-enkelt",
+    "name": "KTS Alfa",
+    "slug": "kts-alfa",
     "version": "2.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/insta-logo-new.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
-    "scheme": "ktsenkelt",
+    "scheme": "ktsalfa",
     "splash": {
       "image": "./assets/images/insta-logo-new.png",
       "resizeMode": "contain",
