@@ -1,0 +1,219 @@
+'Log files:
+/expo-project/.npm/_logs/2026-04-28T08_32_55_715Z-debug-0.log
+
+# npm resolution error report
+
+While resolving: expo-router@4.0.22
+Found: expo-constants@18.0.13
+node_modules/expo-constants
+  expo-constants@"~18.0.12" from expo-asset@12.0.12
+  node_modules/expo-asset
+    expo-asset@"~12.0.12" from expo@54.0.33
+  expo-constants@"~18.0.13" from expo@54.0.33
+  expo-constants@"~18.0.12" from expo-linking@8.0.11
+  node_modules/expo-linking
+    expo-linking@"^8.0.7" from the root project
+  expo-constants@"~18.0.8" from the root project
+
+Could not resolve dependency:
+peer expo-constants@"~17.0.8" from expo-router@4.0.22
+node_modules/expo-router
+  peerOptional expo-router@"*" from @expo/cli@54.0.23
+  node_modules/@expo/cli
+    @expo/cli@"54.0.23" from expo@54.0.33
+    node_modules/expo
+      peerOptional expo@"*" from babel-preset-expo@54.0.10
+      node_modules/babel-preset-expo
+        babel-preset-expo@"~54.0.10" from expo@54.0.33
+      peer expo@"*" from expo-asset@12.0.12
+      node_modules/expo-asset
+        expo-asset@"~12.0.12" from expo@54.0.33
+      peer expo@"*" from expo-clipboard@8.0.8
+      node_modules/expo-clipboard
+        expo-clipboard@"^8.0.7" from the root project
+      peer expo@"*" from expo-blur@15.0.8
+      node_modules/expo-blur
+        expo-blur@"^15.0.6" from the root project
+      peer expo@"*" from expo-constants@18.0.13
+      node_modules/expo-constants
+        expo-constants@"~18.0.12" from expo-asset@12.0.12
+        node_modules/expo-asset
+          expo-asset@"~12.0.12" from expo@54.0.33
+        expo-constants@"~18.0.13" from expo@54.0.33
+        expo-constants@"~18.0.12" from expo-linking@8.0.11
+        node_modules/expo-linking
+          expo-linking@"^8.0.7" from the root project
+        expo-constants@"~18.0.8" from the root project
+      peer expo@"*" from expo-font@14.0.11
+      node_modules/expo-font
+        expo-font@"~14.0.11" from expo@54.0.33
+        peer expo-font@">=14.0.4" from @expo/vector-icons@15.1.1
+        node_modules/@expo/vector-icons
+          @expo/vector-icons@"^15.0.3" from expo@54.0.33
+          @expo/vector-icons@"^15.0.2" from the root project
+        expo-font@"^14.0.7" from the root project
+      peer expo@"*" from expo-glass-effect@0.1.9
+      node_modules/expo-glass-effect
+        expo-glass-effect@"^0.1.1" from the root project
+      peer expo@"*" from expo-file-system@19.0.21
+      node_modules/expo-file-system
+        expo-file-system@"~19.0.21" from expo@54.0.33
+      peer expo@"*" from expo-image-picker@17.0.10
+      node_modules/expo-image-picker
+        expo-image-picker@"^17.0.7" from the root project
+      peer expo@"*" from expo-haptics@15.0.8
+      node_modules/expo-haptics
+        expo-haptics@"^15.0.6" from the root project
+      peer expo@"*" from expo-image-loader@6.0.0
+      node_modules/expo-image-loader
+        expo-image-loader@"~6.0.0" from expo-image-picker@17.0.10
+        node_modules/expo-image-picker
+          expo-image-picker@"^17.0.7" from the root project
+      peer expo@"*" from expo-keep-awake@15.0.8
+      node_modules/expo-keep-awake
+        expo-keep-awake@"~15.0.8" from expo@54.0.33
+      peer expo@"*" from expo-linear-gradient@15.0.8
+      node_modules/expo-linear-gradient
+        expo-linear-gradient@"^15.0.6" from the root project
+      peer expo@"*" from expo-network@8.0.8
+      node_modules/expo-network
+        expo-network@"^8.0.7" from the root project
+      peer expo@"*" from expo-router@4.0.22
+      peer expo@"*" from expo-speech@14.0.8
+      node_modules/expo-speech
+        expo-speech@"^14.0.7" from the root project
+      peer expo@"*" from expo-system-ui@6.0.9
+      node_modules/expo-system-ui
+        expo-system-ui@"^6.0.7" from the root project
+      peer expo@"*" from expo-symbols@1.0.8
+      node_modules/expo-symbols
+        expo-symbols@"^1.0.6" from the root project
+      peer expo@"*" from expo-splash-screen@31.0.13
+      node_modules/expo-splash-screen
+        expo-splash-screen@"^31.0.8" from the root project
+      peer expo@"*" from expo-web-browser@15.0.10
+      node_modules/expo-web-browser
+        expo-web-browser@"^15.0.6" from the root project
+      peer expo@"*" from @expo/cli@54.0.23
+      peerOptional expo@"*" from @expo/metro-config@54.0.14
+      node_modules/@expo/metro-config
+        @expo/metro-config@"54.0.14" from expo@54.0.33
+        @expo/metro-config@"~54.0.14" from @expo/cli@54.0.23
+      peer expo@"*" from @expo/metro-runtime@6.1.2
+      node_modules/@expo/metro-runtime
+        peerOptional @expo/metro-runtime@"*" from expo@54.0.33
+        @expo/metro-runtime@"~6.1.1" from the root project
+      peer expo@"*" from @expo/prebuild-config@55.0.16
+      node_modules/@expo/prebuild-config
+      peerOptional expo@">=52.0.0" from @react-native-community/datetimepicker@8.6.0
+      node_modules/@react-native-community/datetimepicker
+        @react-native-community/datetimepicker@"^8.3.0" from the root project
+      expo@"~54.0.1" from the root project
+      peer expo@"*" from @expo/prebuild-config@54.0.8
+      node_modules/@expo/cli/node_modules/@expo/prebuild-config
+        @expo/prebuild-config@"^54.0.8" from @expo/cli@54.0.23
+  expo-router@"^4.0.22" from the root project
+
+Conflicting peer dependency: expo-constants@17.0.8
+node_modules/expo-constants
+  peer expo-constants@"~17.0.8" from expo-router@4.0.22
+  node_modules/expo-router
+    peerOptional expo-router@"*" from @expo/cli@54.0.23
+    node_modules/@expo/cli
+      @expo/cli@"54.0.23" from expo@54.0.33
+      node_modules/expo
+        peerOptional expo@"*" from babel-preset-expo@54.0.10
+        node_modules/babel-preset-expo
+          babel-preset-expo@"~54.0.10" from expo@54.0.33
+        peer expo@"*" from expo-asset@12.0.12
+        node_modules/expo-asset
+          expo-asset@"~12.0.12" from expo@54.0.33
+        peer expo@"*" from expo-clipboard@8.0.8
+        node_modules/expo-clipboard
+          expo-clipboard@"^8.0.7" from the root project
+        peer expo@"*" from expo-blur@15.0.8
+        node_modules/expo-blur
+          expo-blur@"^15.0.6" from the root project
+        peer expo@"*" from expo-constants@18.0.13
+        node_modules/expo-constants
+          expo-constants@"~18.0.12" from expo-asset@12.0.12
+          node_modules/expo-asset
+            expo-asset@"~12.0.12" from expo@54.0.33
+          expo-constants@"~18.0.13" from expo@54.0.33
+          expo-constants@"~18.0.12" from expo-linking@8.0.11
+          node_modules/expo-linking
+            expo-linking@"^8.0.7" from the root project
+          expo-constants@"~18.0.8" from the root project
+        peer expo@"*" from expo-font@14.0.11
+        node_modules/expo-font
+          expo-font@"~14.0.11" from expo@54.0.33
+          peer expo-font@">=14.0.4" from @expo/vector-icons@15.1.1
+          node_modules/@expo/vector-icons
+            @expo/vector-icons@"^15.0.3" from expo@54.0.33
+            @expo/vector-icons@"^15.0.2" from the root project
+          expo-font@"^14.0.7" from the root project
+        peer expo@"*" from expo-glass-effect@0.1.9
+        node_modules/expo-glass-effect
+          expo-glass-effect@"^0.1.1" from the root project
+        peer expo@"*" from expo-file-system@19.0.21
+        node_modules/expo-file-system
+          expo-file-system@"~19.0.21" from expo@54.0.33
+        peer expo@"*" from expo-image-picker@17.0.10
+        node_modules/expo-image-picker
+          expo-image-picker@"^17.0.7" from the root project
+        peer expo@"*" from expo-haptics@15.0.8
+        node_modules/expo-haptics
+          expo-haptics@"^15.0.6" from the root project
+        peer expo@"*" from expo-image-loader@6.0.0
+        node_modules/expo-image-loader
+          expo-image-loader@"~6.0.0" from expo-image-picker@17.0.10
+          node_modules/expo-image-picker
+            expo-image-picker@"^17.0.7" from the root project
+        peer expo@"*" from expo-keep-awake@15.0.8
+        node_modules/expo-keep-awake
+          expo-keep-awake@"~15.0.8" from expo@54.0.33
+        peer expo@"*" from expo-linear-gradient@15.0.8
+        node_modules/expo-linear-gradient
+          expo-linear-gradient@"^15.0.6" from the root project
+        peer expo@"*" from expo-network@8.0.8
+        node_modules/expo-network
+          expo-network@"^8.0.7" from the root project
+        peer expo@"*" from expo-router@4.0.22
+        peer expo@"*" from expo-speech@14.0.8
+        node_modules/expo-speech
+          expo-speech@"^14.0.7" from the root project
+        peer expo@"*" from expo-system-ui@6.0.9
+        node_modules/expo-system-ui
+          expo-system-ui@"^6.0.7" from the root project
+        peer expo@"*" from expo-symbols@1.0.8
+        node_modules/expo-symbols
+          expo-symbols@"^1.0.6" from the root project
+        peer expo@"*" from expo-splash-screen@31.0.13
+        node_modules/expo-splash-screen
+          expo-splash-screen@"^31.0.8" from the root project
+        peer expo@"*" from expo-web-browser@15.0.10
+        node_modules/expo-web-browser
+          expo-web-browser@"^15.0.6" from the root project
+        peer expo@"*" from @expo/cli@54.0.23
+        peerOptional expo@"*" from @expo/metro-config@54.0.14
+        node_modules/@expo/metro-config
+          @expo/metro-config@"54.0.14" from expo@54.0.33
+          @expo/metro-config@"~54.0.14" from @expo/cli@54.0.23
+        peer expo@"*" from @expo/metro-runtime@6.1.2
+        node_modules/@expo/metro-runtime
+          peerOptional @expo/metro-runtime@"*" from expo@54.0.33
+          @expo/metro-runtime@"~6.1.1" from the root project
+        peer expo@"*" from @expo/prebuild-config@55.0.16
+        node_modules/@expo/prebuild-config
+        peerOptional expo@">=52.0.0" from @react-native-community/datetimepicker@8.6.0
+        node_modules/@react-native-community/datetimepicker
+          @react-native-community/datetimepicker@"^8.3.0" from the root project
+        expo@"~54.0.1" from the root project
+        peer expo@"*" from @expo/prebuild-config@54.0.8
+        node_modules/@expo/cli/node_modules/@expo/prebuild-config
+          @expo/prebuild-config@"^54.0.8" from @expo/cli@54.0.23
+    expo-router@"^4.0.22" from the root project
+
+Fix the upstream dependency conflict, or retry
+this command with --force or --legacy-peer-deps
+to accept an incorrect (and potentially broken) dependency resolution.

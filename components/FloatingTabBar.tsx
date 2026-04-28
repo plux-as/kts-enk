@@ -42,16 +42,11 @@ export default function FloatingTabBar({
 
   // Find the active tab index based on the current pathname and segments
   const getActiveIndex = () => {
-    console.log('[FloatingTabBar] Current pathname:', pathname);
-    console.log('[FloatingTabBar] Current segments:', segments);
-
     // Check segments for more reliable matching
     const segmentString = segments.join('/');
-    console.log('[FloatingTabBar] Segment string:', segmentString);
 
     for (let i = 0; i < tabs.length; i++) {
       const tab = tabs[i];
-      console.log(`[FloatingTabBar] Checking tab ${i}: ${tab.route}`);
 
       // Special handling for home tab
       if (tab.route === '/(tabs)/(home)') {
@@ -62,7 +57,6 @@ export default function FloatingTabBar({
           segmentString.includes('(tabs)/(home)') ||
           (segments.length >= 2 && segments[0] === '(tabs)' && segments[1] === '(home)')
         ) {
-          console.log(`[FloatingTabBar] Matched home tab at index ${i}`);
           return i;
         }
       }
@@ -74,7 +68,6 @@ export default function FloatingTabBar({
           segmentString.includes('(tabs)/log') ||
           (segments.length >= 2 && segments[0] === '(tabs)' && segments[1] === 'log')
         ) {
-          console.log(`[FloatingTabBar] Matched log tab at index ${i}`);
           return i;
         }
       }
@@ -86,19 +79,16 @@ export default function FloatingTabBar({
           segmentString.includes('(tabs)/app-settings') ||
           (segments.length >= 2 && segments[0] === '(tabs)' && segments[1] === 'app-settings')
         ) {
-          console.log(`[FloatingTabBar] Matched app-settings tab at index ${i}`);
           return i;
         }
       }
       // Generic check for other tabs
       else if (pathname === tab.route || pathname.startsWith(tab.route + '/')) {
-        console.log(`[FloatingTabBar] Matched tab at index ${i}`);
         return i;
       }
     }
 
     // Default to first tab if no match
-    console.log('[FloatingTabBar] No match found, defaulting to index 0');
     return 0;
   };
 
@@ -108,7 +98,6 @@ export default function FloatingTabBar({
 
   // Update animation whenever pathname, segments, or activeIndex changes
   React.useEffect(() => {
-    console.log('[FloatingTabBar] Effect triggered - pathname:', pathname, 'activeIndex:', activeIndex);
     const itemWidth = containerWidth / tabs.length;
     Animated.spring(translateX, {
       toValue: itemWidth * activeIndex,
@@ -119,7 +108,6 @@ export default function FloatingTabBar({
   }, [pathname, segments, activeIndex]);
 
   const handleTabPress = (route: string) => {
-    console.log('[FloatingTabBar] Tab pressed:', route);
     router.push(route as any);
   };
 
@@ -131,8 +119,6 @@ export default function FloatingTabBar({
   const containerBackgroundColor = (isAndroid || isWeb)
     ? '#000000'
     : (theme.dark ? 'rgba(28, 28, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)');
-
-  console.log('[FloatingTabBar] Rendering with activeIndex:', activeIndex);
 
   return (
     <SafeAreaView

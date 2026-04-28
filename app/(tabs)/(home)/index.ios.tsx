@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
-  Alert,
   Image,
 } from "react-native";
 import { IconSymbol } from "@/components/IconSymbol";
@@ -52,12 +51,10 @@ export default function HomeScreen() {
   };
 
   const handleStartSession = () => {
-    console.log('User tapped Start KTS');
     router.push('/session');
   };
 
   const handleEditSquad = () => {
-    console.log('User tapped Edit Squad');
     router.push('/settings');
   };
 
