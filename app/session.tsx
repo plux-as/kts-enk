@@ -45,6 +45,62 @@ type SessionPhase =
 
 const BOTTOM_BUTTON_CONTAINER_HEIGHT = Platform.OS === 'android' ? 128 : 136;
 
+interface DescriptionModalProps {
+  visible: boolean;
+  descriptionText: string;
+  onChangeText: (text: string) => void;
+  onSave: () => void;
+  onClose: () => void;
+}
+
+function DescriptionModal({ visible, descriptionText, onChangeText, onSave, onClose }: DescriptionModalProps) {
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <KeyboardAvoidingView
+        style={styles.modalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Legg til beskrivelse</Text>
+            <Pressable onPress={onClose}>
+              <IconSymbol name="xmark" color={colors.error} size={24} />
+            </Pressable>
+          </View>
+          <TextInput
+            style={[styles.modalInput, { fontFamily: bodyFont }]}
+            value={descriptionText}
+            onChangeText={onChangeText}
+            placeholder="Beskriv problemet..."
+            placeholderTextColor={colors.textSecondary}
+            multiline
+            numberOfLines={4}
+          />
+          <View style={styles.modalButtons}>
+            <Pressable
+              style={[styles.modalButton, styles.modalButtonCancel]}
+              onPress={onClose}
+            >
+              <Text style={styles.modalButtonText}>Avbryt</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.modalButton, styles.modalButtonSave]}
+              onPress={onSave}
+            >
+              <Text style={styles.modalButtonTextSave}>Lagre</Text>
+            </Pressable>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
 export default function SessionScreen() {
   const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
   const [squadSettings, setSquadSettings] = useState<SquadSettings | null>(null);
@@ -598,51 +654,7 @@ export default function SessionScreen() {
     </Modal>
   );
 
-  const DescriptionModal = () => (
-    <Modal
-      visible={editingSoldierId !== null}
-      transparent
-      animationType="slide"
-      onRequestClose={() => setEditingSoldierId(null)}
-    >
-      <KeyboardAvoidingView
-        style={styles.modalOverlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Legg til beskrivelse</Text>
-            <Pressable onPress={() => setEditingSoldierId(null)}>
-              <IconSymbol name="xmark" color={colors.error} size={24} />
-            </Pressable>
-          </View>
-          <TextInput
-            style={[styles.modalInput, { fontFamily: bodyFont }]}
-            value={descriptionText}
-            onChangeText={setDescriptionText}
-            placeholder="Beskriv problemet..."
-            placeholderTextColor={colors.textSecondary}
-            multiline
-            numberOfLines={4}
-          />
-          <View style={styles.modalButtons}>
-            <Pressable
-              style={[styles.modalButton, styles.modalButtonCancel]}
-              onPress={() => setEditingSoldierId(null)}
-            >
-              <Text style={styles.modalButtonText}>Avbryt</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.modalButton, styles.modalButtonSave]}
-              onPress={handleSaveDescription}
-            >
-              <Text style={styles.modalButtonTextSave}>Lagre</Text>
-            </Pressable>
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
+
 
   if (loading) {
     return (
@@ -848,7 +860,13 @@ export default function SessionScreen() {
           </View>
         </View>
 
-        <DescriptionModal />
+        <DescriptionModal
+          visible={editingSoldierId !== null}
+          descriptionText={descriptionText}
+          onChangeText={setDescriptionText}
+          onSave={handleSaveDescription}
+          onClose={() => setEditingSoldierId(null)}
+        />
         <ExitDialog />
       </KeyboardAvoidingView>
     );
@@ -1001,7 +1019,13 @@ export default function SessionScreen() {
           </View>
         </View>
 
-        <DescriptionModal />
+        <DescriptionModal
+          visible={editingSoldierId !== null}
+          descriptionText={descriptionText}
+          onChangeText={setDescriptionText}
+          onSave={handleSaveDescription}
+          onClose={() => setEditingSoldierId(null)}
+        />
         <ExitDialog />
       </KeyboardAvoidingView>
     );
