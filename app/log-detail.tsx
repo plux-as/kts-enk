@@ -9,7 +9,6 @@ import {
   TextInput,
   Modal,
   Alert,
-  Image,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -295,11 +294,7 @@ export default function LogDetailScreen() {
 
           {!hasMissingItems && (
             <View style={styles.noIssuesCard}>
-              <Image
-                source={require('@/assets/images/f54512be-2d40-4d54-93d7-66c0b49c0292.png')}
-                style={styles.noIssuesIcon}
-                resizeMode="contain"
-              />
+              <IconSymbol name="checkmark.circle.fill" size={100} color={colors.primary} />
               <Text style={styles.noIssuesText}>Bravo zulu. Ingen feil eller mangler.</Text>
             </View>
           )}
@@ -453,11 +448,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
-  },
-  noIssuesIcon: {
-    width: 80,
-    height: 80,
-    marginBottom: 16,
   },
   noIssuesText: {
     fontSize: 24,
