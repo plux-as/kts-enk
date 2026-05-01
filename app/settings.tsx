@@ -139,7 +139,6 @@ const pickerStyles = StyleSheet.create({
   },
   optionText: {
     fontSize: 18,
-    fontWeight: '700',
     color: colors.text,
     fontFamily: bodyFont,
   },
@@ -560,7 +559,6 @@ const styles = StyleSheet.create({
   weaponSelectorText: {
     flex: 1,
     fontSize: 15,
-    fontWeight: '700',
     color: colors.text,
     fontFamily: bodyFont,
   },

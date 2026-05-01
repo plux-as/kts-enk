@@ -138,7 +138,6 @@ const pickerStyles = StyleSheet.create({
   },
   optionText: {
     fontSize: 18,
-    fontWeight: '700',
     color: colors.text,
     fontFamily: bodyFont,
   },
