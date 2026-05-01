@@ -140,7 +140,7 @@ const pickerStyles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: colors.text,
-    fontFamily: 'BigShouldersStencil_700Bold',
+    fontFamily: bodyFont,
   },
   optionTextSelected: {
     color: '#000',
