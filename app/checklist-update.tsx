@@ -65,6 +65,10 @@ export default function ChecklistUpdateScreen() {
   const diffSummary = [newCategoriesText, newItemsText].filter(Boolean).join(', ');
   const hasDiff = diff && (diff.newCategories > 0 || diff.newItems > 0);
 
+  // suppress unused-variable warnings — kept for logic parity
+  void diffSummary;
+  void hasDiff;
+
   async function handleMerge() {
     if (!storedChecklist) return;
     console.log('[ChecklistUpdate] User chose: Slå sammen');
@@ -130,70 +134,49 @@ export default function ChecklistUpdateScreen() {
         <Text style={styles.heading}>Oppdatert KTS-liste{'\n'}tilgjengelig</Text>
 
         <Text style={styles.subtext}>
-          En ny versjon av sjekklisten er tilgjengelig med oppdaterte kategorier og punkter.
+          En ny versjon av sjekklisten er tilgjengelig.
         </Text>
 
-        {hasDiff && diffSummary ? (
-          <View style={styles.diffBadge}>
-            <Text style={styles.diffBadgeText}>{diffSummary}</Text>
-          </View>
-        ) : (
-          <View style={styles.diffBadge}>
-            <Text style={styles.diffBadgeText}>Ingen nye punkter – kun strukturoppdatering</Text>
-          </View>
-        )}
-
         <View style={styles.optionsContainer}>
-          {/* Merge — recommended */}
+          {/* Replace — primary/highlighted */}
           <TouchableOpacity
             style={[styles.optionCard, styles.optionCardHighlighted]}
-            onPress={handleMerge}
-            disabled={applying || confirmation !== 'idle'}
-            activeOpacity={0.75}
-          >
-            <View style={styles.optionHeader}>
-              <Text style={styles.optionTitleHighlighted}>Slå sammen</Text>
-              <View style={styles.recommendedBadge}>
-                <Text style={styles.recommendedText}>ANBEFALT</Text>
-              </View>
-            </View>
-            <Text style={styles.optionDescHighlighted}>
-              Legger til nye kategorier og punkter i din eksisterende liste. Egne endringer beholdes.
-            </Text>
-          </TouchableOpacity>
-
-          {/* Replace — destructive */}
-          <TouchableOpacity
-            style={[styles.optionCard, styles.optionCardDestructive]}
             onPress={handleReplace}
             disabled={applying || confirmation !== 'idle'}
             activeOpacity={0.75}
           >
-            <View style={styles.optionHeader}>
-              <Text style={styles.optionTitleDestructive}>Erstatt alt</Text>
-              <Text style={styles.warningIcon}>⚠</Text>
-            </View>
-            <Text style={styles.optionDescDestructive}>
-              Erstatter hele listen med standardlisten. Alle egne endringer går tapt.
+            <Text style={styles.optionTitleHighlighted}>Erstatt alt</Text>
+            <Text style={styles.optionDescHighlighted}>
+              Erstatter hele listen med den nye standardlisten.
             </Text>
           </TouchableOpacity>
 
-          {/* Keep — neutral */}
+          {/* Merge — secondary with primary border */}
           <TouchableOpacity
             style={[styles.optionCard, styles.optionCardNeutral]}
-            onPress={handleKeep}
+            onPress={handleMerge}
             disabled={applying || confirmation !== 'idle'}
             activeOpacity={0.75}
           >
-            <Text style={styles.optionTitleNeutral}>Behold eksisterende</Text>
+            <Text style={styles.optionTitleNeutral}>Slå sammen</Text>
             <Text style={styles.optionDescNeutral}>
-              Ingen endringer gjøres. Du vil ikke bli spurt igjen.
-            </Text>
-            <Text style={styles.optionHintNeutral}>
-              Du kan alltid hente nye punkter senere via Tilbakestill app i innstillinger.
+              Legger til nye punkter og beholder egne endringer.
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Keep — plain text link */}
+        <TouchableOpacity
+          onPress={handleKeep}
+          disabled={applying || confirmation !== 'idle'}
+          activeOpacity={0.6}
+        >
+          <Text style={styles.keepLink}>Behold eksisterende</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.footerNote}>
+          Du kan alltid hente ny struktur og nye punkter ved å tilbakestille appen fra Innstillinger.
+        </Text>
 
         {applying && (
           <ActivityIndicator color={colors.primary} style={styles.spinner} />
@@ -248,26 +231,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
     fontFamily: bodyFont,
-    marginBottom: 16,
-  },
-  diffBadge: {
-    backgroundColor: colors.card,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
     marginBottom: 28,
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
-  },
-  diffBadgeText: {
-    color: colors.primary,
-    fontSize: 14,
-    fontWeight: '700',
-    fontFamily: bodyFont,
   },
   optionsContainer: {
     width: '100%',
     gap: 12,
+    marginBottom: 4,
   },
   optionCard: {
     borderRadius: 14,
@@ -277,33 +246,17 @@ const styles = StyleSheet.create({
   optionCardHighlighted: {
     backgroundColor: colors.primary,
   },
-  optionCardDestructive: {
-    backgroundColor: colors.card,
-    borderWidth: 1.5,
-    borderColor: colors.error,
-  },
   optionCardNeutral: {
     backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
-  },
-  optionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
   },
   optionTitleHighlighted: {
     fontSize: 18,
     fontWeight: '800',
     color: colors.backgroundTertiary,
     fontFamily: 'BigShouldersStencil_700Bold',
-  },
-  optionTitleDestructive: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: colors.error,
-    fontFamily: 'BigShouldersStencil_700Bold',
+    marginBottom: 6,
   },
   optionTitleNeutral: {
     fontSize: 18,
@@ -319,42 +272,27 @@ const styles = StyleSheet.create({
     fontFamily: bodyFont,
     opacity: 0.8,
   },
-  optionDescDestructive: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    lineHeight: 19,
-    fontFamily: bodyFont,
-  },
   optionDescNeutral: {
     fontSize: 13,
     color: colors.textSecondary,
     lineHeight: 19,
     fontFamily: bodyFont,
   },
-  optionHintNeutral: {
-    fontSize: 12,
+  keepLink: {
     color: colors.textSecondary,
-    lineHeight: 17,
-    fontFamily: bodyFont,
-    opacity: 0.65,
-    marginTop: 6,
-  },
-  recommendedBadge: {
-    backgroundColor: colors.backgroundTertiary,
-    borderRadius: 4,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-  },
-  recommendedText: {
-    color: colors.primary,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1,
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: 12,
     fontFamily: bodyFont,
   },
-  warningIcon: {
-    fontSize: 16,
-    color: colors.error,
+  footerNote: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    textAlign: 'center',
+    opacity: 0.6,
+    marginTop: 16,
+    lineHeight: 18,
+    fontFamily: bodyFont,
   },
   spinner: {
     marginTop: 20,
