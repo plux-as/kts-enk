@@ -21,6 +21,7 @@ export const colors = {
 export const bodyFont = Platform.select({
   ios: 'System',
   android: 'Roboto',
+  web: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
   default: 'System',
 });
 
