@@ -118,7 +118,7 @@ export default function FloatingTabBar({
   const isWeb = Platform.OS === 'web';
   const containerBackgroundColor = (isAndroid || isWeb)
     ? '#000000'
-    : (theme.dark ? 'rgba(28, 28, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)');
+    : (theme.dark ? 'rgba(10, 10, 12, 0.92)' : 'rgba(255, 255, 255, 0.8)');
 
   return (
     <SafeAreaView
@@ -134,6 +134,10 @@ export default function FloatingTabBar({
             width: containerWidth,
             borderRadius,
             backgroundColor: containerBackgroundColor,
+            ...(Platform.OS === 'ios' && {
+              borderWidth: 1,
+              borderColor: 'rgba(255, 255, 255, 0.12)',
+            }),
           },
         ]}
       >
@@ -207,10 +211,10 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 6,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
     elevation: 8,
     overflow: 'hidden',
   },
