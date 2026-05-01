@@ -39,11 +39,14 @@
       "expo-router",
       "expo-web-browser",
       "react-native-edge-to-edge",
-      ["expo-splash-screen", {
-        "backgroundColor": "#1D1D1E",
-        "image": "./assets/images/insta-logo-new.png",
-        "imageWidth": 100
-      }]
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#1D1D1E",
+          "image": "./assets/images/insta-logo-new.png",
+          "imageWidth": 100
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

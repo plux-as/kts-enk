@@ -724,6 +724,134 @@ export default function SessionScreen() {
   if (phase.type === 'parallelWeaponStep') {
     const { groupIndex, stepIndex } = phase;
     const group = weaponGroups[groupIndex];
+    const isSingleCategory = group.categories.length === 1;
+
+    // ── Single-category: render like the `item` phase ──────────────────────
+    if (isSingleCategory) {
+      const singleCategory = group.categories[0];
+      const singleItem = stepIndex < singleCategory.items.length ? singleCategory.items[stepIndex] : null;
+      const singleCurrentData = singleItem
+        ? sessionData.find(d => d.categoryId === singleCategory.id && d.itemId === singleItem.id)
+        : null;
+      const allSoldiers = squadSettings?.soldiers ?? [];
+
+      return (
+        <KeyboardAvoidingView
+          style={[styles.container, { paddingTop: insets.top }]}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
+          <View style={commonStyles.modalNavBar}>
+            <View style={{ width: 24 }} />
+            <Text style={commonStyles.modalNavBarTitle}>KTS</Text>
+            <Pressable onPress={handleExit} style={styles.exitButton}>
+              <IconSymbol name="xmark" color={colors.error} size={24} />
+            </Pressable>
+          </View>
+
+          <View style={styles.progressBarContainer}>
+            <View style={[styles.progressBar, { width: `${getProgressPercentage()}%` }]} />
+          </View>
+
+          <ScrollView ref={scrollViewRef} contentContainerStyle={styles.scrollContent}>
+            <Text style={styles.itemCategory}>{singleCategory.name}</Text>
+            <Text style={[styles.itemName, { fontFamily: bodyFont }]}>{singleItem?.name ?? ''}</Text>
+
+            <View style={styles.soldiersList}>
+              {allSoldiers.map(soldier => {
+                const status = singleCurrentData?.statuses.find(s => s.soldierId === soldier.id);
+                const isChecked = showAllOkAnimation || status?.status === 'fulfilled';
+                return (
+                  <View key={soldier.id} style={styles.soldierItem}>
+                    <View style={styles.soldierInfo}>
+                      <Text style={styles.soldierName}>{soldier.name}</Text>
+                      {soldier.role ? (
+                        <Text style={[styles.soldierRole, { fontFamily: bodyFont }]}>{soldier.role}</Text>
+                      ) : null}
+                    </View>
+                    <View style={styles.soldierActions}>
+                      <Pressable
+                        style={[styles.statusButton, isChecked && styles.statusButtonActive]}
+                        onPress={() => {
+                          console.log('[parallelWeaponStep single] handleStatusChange fulfilled', { categoryId: singleCategory.id, itemId: singleItem?.id, soldierId: soldier.id });
+                          if (singleItem) handleStatusChange(singleCategory.id, singleItem.id, soldier.id, 'fulfilled');
+                        }}
+                      >
+                        <IconSymbol
+                          name="checkmark"
+                          color={isChecked ? colors.checkmark : colors.primary}
+                          size={24}
+                        />
+                      </Pressable>
+                      <Pressable
+                        style={[
+                          styles.statusButton,
+                          styles.statusButtonMissing,
+                          status?.status === 'missing' && styles.statusButtonMissingActive,
+                        ]}
+                        onPress={() => {
+                          console.log('[parallelWeaponStep single] handleStatusChange missing', { categoryId: singleCategory.id, itemId: singleItem?.id, soldierId: soldier.id });
+                          if (singleItem) handleStatusChange(singleCategory.id, singleItem.id, soldier.id, 'missing');
+                        }}
+                      >
+                        <IconSymbol
+                          name="xmark"
+                          color={status?.status === 'missing' ? colors.checkmark : colors.error}
+                          size={24}
+                        />
+                      </Pressable>
+                      {status?.status === 'missing' && (
+                        <Pressable
+                          style={styles.descButton}
+                          onPress={() => {
+                            console.log('[parallelWeaponStep single] handleAddDescription', { categoryId: singleCategory.id, itemId: singleItem?.id, soldierId: soldier.id });
+                            if (singleItem) handleAddDescription(singleCategory.id, singleItem.id, soldier.id);
+                          }}
+                        >
+                          <IconSymbol name="pencil" color={colors.accent} size={20} />
+                        </Pressable>
+                      )}
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </ScrollView>
+
+          <View style={styles.bottomContainer}>
+            <Pressable
+              style={styles.allOkButton}
+              onPress={() => {
+                console.log('[parallelWeaponStep single] handleAllOkParallel', { groupLabel: group.label, stepIndex });
+                handleAllOkParallel(group, stepIndex);
+              }}
+            >
+              <IconSymbol name="checkmark.circle.fill" color="#000" size={24} />
+              <Text style={styles.allOkButtonText}>Alle ok</Text>
+            </Pressable>
+            <View style={styles.bottomButtons}>
+              <Pressable style={styles.navButton} onPress={handlePrevious}>
+                <Text style={styles.navButtonText}>Forrige</Text>
+              </Pressable>
+              <Pressable style={[styles.navButton, styles.navButtonPrimary]} onPress={handleNext}>
+                <Text style={styles.navButtonTextPrimary}>Neste</Text>
+              </Pressable>
+            </View>
+          </View>
+
+          <DescriptionModal
+            visible={editingSoldierId !== null}
+            descriptionText={descriptionText}
+            onChangeText={setDescriptionText}
+            onSave={handleSaveDescription}
+            onClose={() => setEditingSoldierId(null)}
+          />
+          <ExitDialog />
+        </KeyboardAvoidingView>
+      );
+    }
+
+    // ── Multi-category: existing parallel card layout ──────────────────────
 
     // Sort weapon cards: active (not exhausted) first, exhausted last.
     // Within each group, preserve original edit-screen order.
