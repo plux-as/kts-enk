@@ -269,7 +269,7 @@ export default function LogDetailScreen() {
                             handleMarkAsOk(soldier.id, item.categoryId, item.itemId)
                           }
                         >
-                          <IconSymbol name="checkmark.circle" color={colors.primary} size={20} />
+                          <IconSymbol name="checkmark.circle" color={colors.primary} size={28} />
                         </Pressable>
                         <Pressable
                           style={styles.actionButton}
@@ -444,12 +444,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   resolveButton: {
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    padding: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 4,
   },
   noIssuesCard: {
     backgroundColor: colors.card,
