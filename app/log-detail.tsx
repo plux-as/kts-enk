@@ -253,7 +253,9 @@ export default function LogDetailScreen() {
                     <View key={item.itemId} style={styles.missingItem}>
                       <View style={styles.missingItemHeader}>
                         <View style={styles.missingItemIconContainer}>
-                          <IconSymbol name="xmark" color={colors.error} size={20} />
+                          <View style={{ opacity: 0.5 }}>
+                            <IconSymbol name="xmark" color={colors.error} size={20} />
+                          </View>
                         </View>
                         <View style={styles.missingItemText}>
                           <Text style={[styles.missingItemName, { fontFamily: bodyFont }]}>{checklistItem.name}</Text>
