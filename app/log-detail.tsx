@@ -253,7 +253,7 @@ export default function LogDetailScreen() {
                     <View key={item.itemId} style={styles.missingItem}>
                       <View style={styles.missingItemHeader}>
                         <View style={styles.missingItemIconContainer}>
-                          <View style={{ opacity: 0.6 }}>
+                          <View style={{ opacity: 0.75 }}>
                             <IconSymbol name="xmark" color={colors.error} size={20} />
                           </View>
                         </View>
