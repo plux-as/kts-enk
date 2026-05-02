@@ -266,12 +266,12 @@ export default function LogDetailScreen() {
                       </View>
                       <View style={styles.itemActions}>
                         <Pressable
-                          style={styles.actionButton}
+                          style={styles.resolveButton}
                           onPress={() =>
                             handleMarkAsOk(soldier.id, item.categoryId, item.itemId)
                           }
                         >
-                          <IconSymbol name="checkmark.circle.fill" color={colors.primary} size={36} />
+                          <IconSymbol name="checkmark.circle" color={colors.primary} size={28} />
                         </Pressable>
                         <Pressable
                           style={styles.actionButton}
@@ -421,6 +421,7 @@ const styles = StyleSheet.create({
   },
   missingItemIconContainer: {
     paddingTop: 2,
+    opacity: 0.45,
   },
   missingItemText: {
     flex: 1,
@@ -439,8 +440,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',
+    marginLeft: 12,
   },
   actionButton: {
+    padding: 4,
+  },
+  resolveButton: {
     padding: 4,
   },
   noIssuesCard: {
