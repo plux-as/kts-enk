@@ -733,7 +733,13 @@ export default function SessionScreen() {
       const singleCurrentData = singleItem
         ? sessionData.find(d => d.categoryId === singleCategory.id && d.itemId === singleItem.id)
         : null;
-      const allSoldiers = squadSettings?.soldiers ?? [];
+      const isSecondaryGroupCat = secondaryWeaponCategories.some(c => c.id === singleCategory.id)
+        && !primaryWeaponCategories.some(c => c.id === singleCategory.id);
+      const assignedSoldiers = squadSettings?.soldiers.filter(s =>
+        isSecondaryGroupCat
+          ? s.sekundærVåpenCategoryId === singleCategory.id
+          : s.personligVapenCategoryId === singleCategory.id
+      ) ?? [];
 
       return (
         <KeyboardAvoidingView
@@ -758,63 +764,69 @@ export default function SessionScreen() {
             <Text style={[styles.itemName, { fontFamily: bodyFont }]}>{singleItem?.name ?? ''}</Text>
 
             <View style={styles.soldiersList}>
-              {allSoldiers.map(soldier => {
-                const status = singleCurrentData?.statuses.find(s => s.soldierId === soldier.id);
-                const isChecked = showAllOkAnimation || status?.status === 'fulfilled';
-                return (
-                  <View key={soldier.id} style={styles.soldierItem}>
-                    <View style={styles.soldierInfo}>
-                      <Text style={styles.soldierName}>{soldier.name}</Text>
-                      {soldier.role ? (
-                        <Text style={[styles.soldierRole, { fontFamily: bodyFont }]}>{soldier.role}</Text>
-                      ) : null}
-                    </View>
-                    <View style={styles.soldierActions}>
-                      <Pressable
-                        style={[styles.statusButton, isChecked && styles.statusButtonActive]}
-                        onPress={() => {
-                          console.log('[parallelWeaponStep single] handleStatusChange fulfilled', { categoryId: singleCategory.id, itemId: singleItem?.id, soldierId: soldier.id });
-                          if (singleItem) handleStatusChange(singleCategory.id, singleItem.id, soldier.id, 'fulfilled');
-                        }}
-                      >
-                        <IconSymbol
-                          name="checkmark"
-                          color={isChecked ? colors.checkmark : colors.primary}
-                          size={24}
-                        />
-                      </Pressable>
-                      <Pressable
-                        style={[
-                          styles.statusButton,
-                          styles.statusButtonMissing,
-                          status?.status === 'missing' && styles.statusButtonMissingActive,
-                        ]}
-                        onPress={() => {
-                          console.log('[parallelWeaponStep single] handleStatusChange missing', { categoryId: singleCategory.id, itemId: singleItem?.id, soldierId: soldier.id });
-                          if (singleItem) handleStatusChange(singleCategory.id, singleItem.id, soldier.id, 'missing');
-                        }}
-                      >
-                        <IconSymbol
-                          name="xmark"
-                          color={status?.status === 'missing' ? colors.checkmark : colors.error}
-                          size={24}
-                        />
-                      </Pressable>
-                      {status?.status === 'missing' && (
+              {assignedSoldiers.length === 0 ? (
+                <Text style={[styles.noSoldiersText, { fontFamily: bodyFont }]}>
+                  Ingen soldater tildelt dette våpenet
+                </Text>
+              ) : (
+                assignedSoldiers.map(soldier => {
+                  const status = singleCurrentData?.statuses.find(s => s.soldierId === soldier.id);
+                  const isChecked = showAllOkAnimation || status?.status === 'fulfilled';
+                  return (
+                    <View key={soldier.id} style={styles.soldierItem}>
+                      <View style={styles.soldierInfo}>
+                        <Text style={styles.soldierName}>{soldier.name}</Text>
+                        {soldier.role ? (
+                          <Text style={[styles.soldierRole, { fontFamily: bodyFont }]}>{soldier.role}</Text>
+                        ) : null}
+                      </View>
+                      <View style={styles.soldierActions}>
                         <Pressable
-                          style={styles.descButton}
+                          style={[styles.statusButton, isChecked && styles.statusButtonActive]}
                           onPress={() => {
-                            console.log('[parallelWeaponStep single] handleAddDescription', { categoryId: singleCategory.id, itemId: singleItem?.id, soldierId: soldier.id });
-                            if (singleItem) handleAddDescription(singleCategory.id, singleItem.id, soldier.id);
+                            console.log('[parallelWeaponStep single] handleStatusChange fulfilled', { categoryId: singleCategory.id, itemId: singleItem?.id, soldierId: soldier.id });
+                            if (singleItem) handleStatusChange(singleCategory.id, singleItem.id, soldier.id, 'fulfilled');
                           }}
                         >
-                          <IconSymbol name="pencil" color={colors.accent} size={20} />
+                          <IconSymbol
+                            name="checkmark"
+                            color={isChecked ? colors.checkmark : colors.primary}
+                            size={24}
+                          />
                         </Pressable>
-                      )}
+                        <Pressable
+                          style={[
+                            styles.statusButton,
+                            styles.statusButtonMissing,
+                            status?.status === 'missing' && styles.statusButtonMissingActive,
+                          ]}
+                          onPress={() => {
+                            console.log('[parallelWeaponStep single] handleStatusChange missing', { categoryId: singleCategory.id, itemId: singleItem?.id, soldierId: soldier.id });
+                            if (singleItem) handleStatusChange(singleCategory.id, singleItem.id, soldier.id, 'missing');
+                          }}
+                        >
+                          <IconSymbol
+                            name="xmark"
+                            color={status?.status === 'missing' ? colors.checkmark : colors.error}
+                            size={24}
+                          />
+                        </Pressable>
+                        {status?.status === 'missing' && (
+                          <Pressable
+                            style={styles.descButton}
+                            onPress={() => {
+                              console.log('[parallelWeaponStep single] handleAddDescription', { categoryId: singleCategory.id, itemId: singleItem?.id, soldierId: soldier.id });
+                              if (singleItem) handleAddDescription(singleCategory.id, singleItem.id, soldier.id);
+                            }}
+                          >
+                            <IconSymbol name="pencil" color={colors.accent} size={20} />
+                          </Pressable>
+                        )}
+                      </View>
                     </View>
-                  </View>
-                );
-              })}
+                  );
+                })
+              )}
             </View>
           </ScrollView>
 
