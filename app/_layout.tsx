@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import { useFonts } from "expo-font";
 import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { SystemBars } from "react-native-edge-to-edge";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useColorScheme } from "react-native";
 import {
@@ -133,7 +132,6 @@ export default function RootLayout() {
                 }}
               />
             </Stack>
-            <SystemBars style={"light"} />
           </GestureHandlerRootView>
         </WidgetProvider>
       </ThemeProvider>
