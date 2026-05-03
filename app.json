@@ -26,7 +26,6 @@
         "foregroundImage": "./assets/images/insta-logo-new.png",
         "backgroundColor": "#0F0F0F"
       },
-      "edgeToEdgeEnabled": true,
       "package": "com.plux.ktsalfa",
       "userInterfaceStyle": "dark"
     },
@@ -36,10 +35,19 @@
     },
     "plugins": [
       "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "minSdkVersion": 24
+          }
+        }
+      ],
       "expo-router",
       "expo-image-picker",
       "expo-web-browser",
-      "react-native-edge-to-edge",
       [
         "expo-splash-screen",
         {
