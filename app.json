@@ -27,7 +27,8 @@
         "backgroundColor": "#0F0F0F"
       },
       "package": "com.plux.ktsalfa",
-      "userInterfaceStyle": "dark"
+      "userInterfaceStyle": "dark",
+      "jsEngine": "hermes"
     },
     "web": {
       "favicon": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
@@ -42,7 +43,8 @@
           "android": {
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
-            "minSdkVersion": 24
+            "minSdkVersion": 24,
+            "kotlinVersion": "1.9.24"
           }
         }
       ],
