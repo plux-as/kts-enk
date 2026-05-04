@@ -41,6 +41,7 @@
       "bundler": "metro"
     },
     "plugins": [
+      "./plugins/withSecureStoreXml",
       "./plugins/withGradleProperties",
       "./plugins/withImagePickerFix",
       "expo-font",
