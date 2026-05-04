@@ -26,7 +26,7 @@
         "foregroundImage": "./assets/images/insta-logo-new.png",
         "backgroundColor": "#0F0F0F"
       },
-      "package": "com.pluxas.ktsalfa",
+      "package": "com.plux.ktsalfa",
       "userInterfaceStyle": "dark",
       "jsEngine": "hermes"
     },
@@ -45,8 +45,7 @@
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
             "minSdkVersion": 24,
-            "kotlinVersion": "1.9.24",
-            "extraMavenRepos": []
+            "kotlinVersion": "1.9.24"
           }
         }
       ],
@@ -67,6 +66,9 @@
     },
     "extra": {
       "router": {}
+    },
+    "autolinking": {
+      "exclude": ["expo-glass-effect"]
     }
   }
 }
