@@ -30,7 +30,7 @@
       "userInterfaceStyle": "dark",
       "jsEngine": "hermes",
       "autolinking": {
-        "exclude": ["expo-glass-effect"]
+        "exclude": ["expo-glass-effect", "@bacons/apple-targets"]
       }
     },
     "web": {
