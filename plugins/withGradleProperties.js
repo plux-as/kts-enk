@@ -2,16 +2,23 @@ const { withGradleProperties } = require('@expo/config-plugins');
 
 module.exports = function withCustomGradleProperties(config) {
   return withGradleProperties(config, (config) => {
-    const props = config.modResults;
+    const keysToSet = [
+      { key: 'org.gradle.jvmargs', value: '-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError' },
+      { key: 'org.gradle.warning.mode', value: 'none' },
+      { key: 'android.useAndroidX', value: 'true' },
+      { key: 'android.enableJetifier', value: 'true' },
+    ];
 
-    // Remove existing org.gradle.jvmargs if present
-    const filtered = props.filter(p => !(p.type === 'property' && p.key === 'org.gradle.jvmargs'));
+    const keysToReplace = new Set(keysToSet.map(e => e.key));
 
-    filtered.push({
-      type: 'property',
-      key: 'org.gradle.jvmargs',
-      value: '-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError',
-    });
+    // Remove any existing entries for keys we are about to set
+    const filtered = config.modResults.filter(
+      p => !(p.type === 'property' && keysToReplace.has(p.key))
+    );
+
+    for (const entry of keysToSet) {
+      filtered.push({ type: 'property', key: entry.key, value: entry.value });
+    }
 
     config.modResults = filtered;
     return config;
