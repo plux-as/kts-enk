@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "KTS Alfa",
-    "slug": "kts-enk",
+    "slug": "kts-alfa",
     "version": "2.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/insta-logo-new.png",
@@ -28,7 +28,10 @@
       },
       "package": "com.plux.ktsalfa",
       "userInterfaceStyle": "dark",
-      "jsEngine": "hermes"
+      "jsEngine": "hermes",
+      "autolinking": {
+        "exclude": ["expo-glass-effect"]
+      }
     },
     "web": {
       "favicon": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
@@ -66,9 +69,6 @@
     },
     "extra": {
       "router": {}
-    },
-    "autolinking": {
-      "exclude": ["expo-glass-effect"]
     }
   }
 }
