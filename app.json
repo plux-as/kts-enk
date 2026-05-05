@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "KTS Alfa",
-    "slug": "kts-enk",
+    "slug": "kts-alfa",
     "version": "2.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/insta-logo-new.png",
@@ -23,7 +23,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/insta-logo-new.png",
+        "foregroundImage": "./assets/images/adaptive-icon-foreground.png",
         "backgroundColor": "#0F0F0F"
       },
       "package": "com.plux.ktsalfa",
