@@ -73,6 +73,9 @@
     },
     "extra": {
       "router": {}
+    },
+    "notification": {
+      "icon": "./assets/notification-icon.png"
     }
   }
 }
