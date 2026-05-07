@@ -7,16 +7,18 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
+  Alert,
   Image,
 } from "react-native";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors, commonStyles, bodyFont } from "@/styles/commonStyles";
 import { storage } from "@/utils/storage";
-import { SquadSettings } from "@/types/checklist";
+import { SquadSettings, ChecklistCategory } from "@/types/checklist";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const [squadSettings, setSquadSettings] = useState<SquadSettings | null>(null);
+  const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
   const [isSetupComplete, setIsSetupComplete] = useState(false);
   const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
@@ -25,6 +27,7 @@ export default function HomeScreen() {
     loadData();
   }, []);
 
+  // Reload data whenever the screen comes into focus
   useFocusEffect(
     useCallback(() => {
       loadData();
@@ -41,8 +44,12 @@ export default function HomeScreen() {
         return;
       }
 
-      const settings = await storage.getSquadSettings();
+      const [settings, checklistData] = await Promise.all([
+        storage.getSquadSettings(),
+        storage.getChecklist(),
+      ]);
       setSquadSettings(settings);
+      setChecklist(checklistData);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -50,8 +57,27 @@ export default function HomeScreen() {
     }
   };
 
+  const weaponCategories = checklist.filter(c => c.categoryRole === 'weapon');
+  const hasMissingWeapon =
+    weaponCategories.length > 0 &&
+    !!squadSettings?.soldiers.some(
+      s => !s.personligVapenCategoryId || !weaponCategories.find(c => c.id === s.personligVapenCategoryId)
+    );
+
   const handleStartSession = () => {
-    router.push('/session');
+    console.log('User tapped Start KTS, hasMissingWeapon:', hasMissingWeapon);
+    if (hasMissingWeapon) {
+      Alert.alert(
+        'Advarsel',
+        'En eller flere soldater har ikke blitt tildelt primærvåpen. Vil du likevel fortsette?',
+        [
+          { text: 'Nei, avslutt', style: 'cancel' },
+          { text: 'Ja, fortsett', onPress: () => router.push('/session') },
+        ]
+      );
+    } else {
+      router.push('/session');
+    }
   };
 
   const handleEditSquad = () => {
@@ -65,9 +91,6 @@ export default function HomeScreen() {
       </View>
     );
   }
-
-  const soldierCount = squadSettings ? squadSettings.soldiers.length : 0;
-  const soldierLabel = soldierCount + ' soldater';
 
   return (
     <>
@@ -86,7 +109,14 @@ export default function HomeScreen() {
             {squadSettings && (
               <Pressable style={styles.squadInfo} onPress={handleEditSquad}>
                 <Text style={styles.squadName}>{squadSettings.squadName}</Text>
-                <Text style={styles.squadDetail}>{soldierLabel}</Text>
+                <View style={styles.squadDetailRow}>
+                  <Text style={styles.squadDetail}>
+                    {squadSettings.soldiers.length} soldater
+                  </Text>
+                  {hasMissingWeapon && (
+                    <IconSymbol name="exclamationmark.triangle.fill" color={colors.error} size={18} />
+                  )}
+                </View>
                 <Text style={styles.editLabel}>Trykk for å endre</Text>
               </Pressable>
             )}
@@ -148,11 +178,16 @@ const styles = StyleSheet.create({
     fontFamily: 'BigShouldersStencil_700Bold',
     marginBottom: 4,
   },
+  squadDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
   squadDetail: {
     fontSize: 18,
     color: colors.textSecondary,
     fontFamily: bodyFont,
-    marginBottom: 8,
   },
   editLabel: {
     fontSize: 14,
