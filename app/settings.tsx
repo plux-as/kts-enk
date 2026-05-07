@@ -373,6 +373,9 @@ export default function SettingsScreen() {
               const secondaryName = soldier.sekundærVåpenCategoryId
                 ? (weaponCategories.find(c => c.id === soldier.sekundærVåpenCategoryId)?.name ?? 'Velg...')
                 : 'Ingen';
+              const isPrimaryMissing =
+                weaponCategories.length > 0 &&
+                (!soldier.personligVapenCategoryId || !weaponCategories.find(c => c.id === soldier.personligVapenCategoryId));
 
               return (
                 <View key={soldier.id} style={styles.soldierCard}>
@@ -406,7 +409,12 @@ export default function SettingsScreen() {
                   {weaponCategories.length > 0 && (
                     <View style={styles.weaponRow}>
                       <View style={styles.weaponCol}>
-                        <Text style={styles.weaponColLabel}>Primærvåpen</Text>
+                        <View style={styles.weaponColLabelRow}>
+                          <Text style={styles.weaponColLabelText}>Primærvåpen</Text>
+                          {isPrimaryMissing && (
+                            <IconSymbol name="exclamationmark.triangle.fill" color={colors.error} size={14} style={{ marginLeft: 4 }} />
+                          )}
+                        </View>
                         <Pressable
                           style={styles.weaponSelector}
                           onPress={() => openPicker(index, 'primary')}
@@ -535,6 +543,18 @@ const styles = StyleSheet.create({
   },
   weaponCol: {
     flex: 1,
+  },
+  weaponColLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  weaponColLabelText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    fontFamily: 'BigShouldersStencil_700Bold',
+    letterSpacing: 0.5,
   },
   weaponColLabel: {
     fontSize: 14,
