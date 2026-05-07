@@ -20,7 +20,12 @@ export function mergeChecklists(
   const deletedCatSet = new Set(deletedIds.categoryIds);
   const deletedItemSet = new Set(deletedIds.itemIds);
   const storedIds = new Set(stored.map(c => c.id));
-  const merged = [...stored];
+  const merged = stored
+    .filter(c => !deletedCatSet.has(c.id))
+    .map(c => ({
+      ...c,
+      items: c.items.filter(i => !deletedItemSet.has(i.id)),
+    }));
 
   for (const incomingCat of incoming) {
     // Skip categories the user has explicitly deleted
