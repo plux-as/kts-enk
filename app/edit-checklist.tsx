@@ -129,29 +129,57 @@ export default function EditChecklistScreen() {
     }
   };
 
-  const handleDeleteCategory = (categoryId: string) => {
+  const handleDeleteCategory = async (categoryId: string) => {
     console.log('User tapped Delete Category:', categoryId);
-    Alert.alert(
-      'Bekreft sletting',
-      'Er du sikker på at du vil slette denne kategorien og alle dens elementer?',
-      [
-        { text: 'Avbryt', style: 'cancel' },
-        {
-          text: 'Slett',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const updatedChecklist = checklist.filter(c => c.id !== categoryId);
-              await storage.saveChecklist(updatedChecklist);
-              setChecklist(updatedChecklist);
-            } catch (error) {
-              console.error('Error deleting category:', error);
-              Alert.alert('Feil', 'Kunne ikke slette kategorien');
+    const category = checklist.find(c => c.id === categoryId);
+    const isWeapon = (category?.categoryRole ?? 'general') === 'weapon';
+
+    let weaponSoldierCount = 0;
+    if (isWeapon) {
+      try {
+        const squadSettings = await storage.getSquadSettings();
+        if (squadSettings) {
+          weaponSoldierCount = squadSettings.soldiers.filter(
+            s =>
+              s.personligVapenCategoryId === categoryId ||
+              s.sekundærVåpenCategoryId === categoryId,
+          ).length;
+        }
+      } catch (error) {
+        console.error('Error loading squad settings for delete check:', error);
+      }
+    }
+
+    let message =
+      'Er du sikker på at du vil slette denne kategorien og alle dens elementer? Dette vil også fjerne relaterte oppføringer fra loggen.';
+    if (isWeapon && weaponSoldierCount > 0) {
+      message +=
+        ' Soldater som er tildelt dette våpenet vil få våpenvalget sitt fjernet.';
+    }
+
+    Alert.alert('Bekreft sletting', message, [
+      { text: 'Avbryt', style: 'cancel' },
+      {
+        text: 'Slett',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            console.log('Confirmed delete category:', categoryId);
+            await storage.addDeletedCategoryId(categoryId);
+            await storage.purgeCategoryFromSessions(categoryId);
+            if (isWeapon) {
+              await storage.clearWeaponCategoryFromSquad(categoryId);
             }
-          },
+            const updatedChecklist = checklist.filter(c => c.id !== categoryId);
+            await storage.saveChecklist(updatedChecklist);
+            setChecklist(updatedChecklist);
+          } catch (error) {
+            console.error('Error deleting category:', error);
+            Alert.alert('Feil', 'Kunne ikke slette kategorien');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleAddItem = (categoryId: string) => {
@@ -212,7 +240,7 @@ export default function EditChecklistScreen() {
     console.log('User tapped Delete Item:', itemId, 'from category:', categoryId);
     Alert.alert(
       'Bekreft sletting',
-      'Er du sikker på at du vil slette dette elementet?',
+      'Er du sikker på at du vil slette dette elementet? Dette vil også fjerne relaterte oppføringer fra loggen.',
       [
         { text: 'Avbryt', style: 'cancel' },
         {
@@ -220,13 +248,16 @@ export default function EditChecklistScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              let updatedChecklist = [...checklist];
+              console.log('Confirmed delete item:', itemId);
+              await storage.addDeletedItemId(itemId);
+              await storage.purgeItemFromSessions(itemId);
+              const updatedChecklist = [...checklist];
               const categoryIndex = updatedChecklist.findIndex(c => c.id === categoryId);
-
               if (categoryIndex !== -1) {
-                updatedChecklist[categoryIndex].items = updatedChecklist[
-                  categoryIndex
-                ].items.filter(i => i.id !== itemId);
+                updatedChecklist[categoryIndex] = {
+                  ...updatedChecklist[categoryIndex],
+                  items: updatedChecklist[categoryIndex].items.filter(i => i.id !== itemId),
+                };
                 await storage.saveChecklist(updatedChecklist);
                 setChecklist(updatedChecklist);
               }
