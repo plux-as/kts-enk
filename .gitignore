@@ -47,3 +47,5 @@ build/
 bun.lockb
 yarn.lock
 next-env.d.ts
+
+bun.lock
