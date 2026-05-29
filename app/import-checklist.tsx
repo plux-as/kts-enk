@@ -87,7 +87,7 @@ function ConflictCard({ resolution, onChange }: ConflictCardProps) {
 
       <View style={styles.choiceRow}>
         <Pressable
-          style={[styles.choiceButton, choice === 'replace' && styles.choiceButtonReplace]}
+          style={[styles.choiceButton, choice === 'replace' && styles.choiceButtonSelected]}
           onPress={() => {
             if (choice === 'replace') return;
             Alert.alert(
@@ -112,7 +112,7 @@ function ConflictCard({ resolution, onChange }: ConflictCardProps) {
           </Text>
         </Pressable>
         <Pressable
-          style={[styles.choiceButton, choice === 'keep' && styles.choiceButtonKeep]}
+          style={[styles.choiceButton, choice === 'keep' && styles.choiceButtonSelected]}
           onPress={() => {
             console.log('[Import] Conflict choice: keep for', incoming.name);
             onChange('keep');
@@ -123,14 +123,14 @@ function ConflictCard({ resolution, onChange }: ConflictCardProps) {
           </Text>
         </Pressable>
         <Pressable
-          style={[styles.choiceButton, choice === 'rename' && styles.choiceButtonRename]}
+          style={[styles.choiceButton, choice === 'rename' && styles.choiceButtonSelected]}
           onPress={() => {
             console.log('[Import] Conflict choice: rename for', incoming.name);
             onChange('rename');
           }}
         >
           <Text style={[styles.choiceButtonText, choice === 'rename' && styles.choiceButtonTextSelected]}>
-            Kopi
+            Lag kopi
           </Text>
         </Pressable>
       </View>
@@ -413,22 +413,22 @@ export default function ImportChecklistScreen() {
             <Text style={styles.bulkLabel}>Bruk på alle:</Text>
             <View style={styles.bulkButtons}>
               <Pressable
-                style={[styles.bulkButton, styles.bulkButtonReplace]}
+                style={styles.bulkButton}
                 onPress={() => handleBulkChoice('replace')}
               >
                 <Text style={styles.bulkButtonText}>Erstatt</Text>
               </Pressable>
               <Pressable
-                style={[styles.bulkButton, styles.bulkButtonKeep]}
+                style={styles.bulkButton}
                 onPress={() => handleBulkChoice('keep')}
               >
                 <Text style={styles.bulkButtonText}>Behold</Text>
               </Pressable>
               <Pressable
-                style={[styles.bulkButton, styles.bulkButtonRename]}
+                style={styles.bulkButton}
                 onPress={() => handleBulkChoice('rename')}
               >
-                <Text style={styles.bulkButtonText}>Kopi</Text>
+                <Text style={styles.bulkButtonText}>Lag kopi</Text>
               </Pressable>
             </View>
           </View>
@@ -783,20 +783,14 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingVertical: 8,
     alignItems: 'center',
-  },
-  bulkButtonReplace: {
-    backgroundColor: colors.error,
-  },
-  bulkButtonKeep: {
-    backgroundColor: '#475569',
-  },
-  bulkButtonRename: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.card,
+    borderWidth: 2,
+    borderColor: colors.primary,
   },
   bulkButtonText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#fff',
+    color: colors.primary,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   conflictCard: {
@@ -846,30 +840,22 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: colors.card,
     borderWidth: 2,
-    borderColor: colors.inputBorder,
+    borderColor: colors.primary,
   },
-  choiceButtonReplace: {
-    backgroundColor: colors.error,
-    borderColor: colors.error,
-  },
-  choiceButtonKeep: {
-    backgroundColor: '#475569',
-    borderColor: '#475569',
-  },
-  choiceButtonRename: {
+  choiceButtonSelected: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
   choiceButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.textSecondary,
+    color: colors.primary,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
   choiceButtonTextSelected: {
-    color: '#fff',
+    color: colors.backgroundTertiary,
   },
   // Replace warning
   warningCard: {
