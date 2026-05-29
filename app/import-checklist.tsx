@@ -142,7 +142,8 @@ function ConflictCard({ resolution, onChange }: ConflictCardProps) {
 
 export default function ImportChecklistScreen() {
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ fileUri?: string }>();
+  const params = useLocalSearchParams<{ fileUri?: string; cold?: string }>();
+  const isColdLaunch = params.cold === '1';
   const [stage, setStage] = useState<Stage>({ name: 'idle' });
   const [existingChecklist, setExistingChecklist] = useState<ChecklistCategory[]>([]);
 
@@ -161,6 +162,15 @@ export default function ImportChecklistScreen() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.fileUri]);
+
+  const exitImporter = useCallback(() => {
+    console.log('[ImportScreen] exitImporter called, isColdLaunch:', isColdLaunch);
+    if (isColdLaunch) {
+      router.replace('/(tabs)');
+    } else {
+      router.back();
+    }
+  }, [isColdLaunch]);
 
   const handleLoadFromUri = useCallback(async (uri: string) => {
     setStage({ name: 'loading' });
@@ -311,7 +321,7 @@ export default function ImportChecklistScreen() {
           <IconSymbol name="exclamationmark.triangle.fill" color={colors.error} size={48} />
           <Text style={styles.invalidTitle}>Filen er ugyldig</Text>
           <Text style={styles.invalidReason}>{stage.reason}</Text>
-          <Pressable style={styles.secondaryButton} onPress={() => router.back()}>
+          <Pressable style={styles.secondaryButton} onPress={exitImporter}>
             <Text style={styles.secondaryButtonText}>Lukk</Text>
           </Pressable>
         </View>
@@ -365,7 +375,7 @@ export default function ImportChecklistScreen() {
               style={[styles.secondaryButton, styles.actionButton]}
               onPress={() => {
                 console.log('[ImportScreen] User tapped Avbryt from preview');
-                router.back();
+                exitImporter();
               }}
             >
               <Text style={styles.secondaryButtonText}>Avbryt</Text>
@@ -538,7 +548,7 @@ export default function ImportChecklistScreen() {
             style={styles.primaryButton}
             onPress={() => {
               console.log('[ImportScreen] User tapped Lukk from done');
-              router.back();
+              exitImporter();
             }}
           >
             <Text style={styles.primaryButtonText}>Lukk</Text>
@@ -560,7 +570,7 @@ export default function ImportChecklistScreen() {
           <Pressable
             onPress={() => {
               console.log('[ImportScreen] User tapped close (X)');
-              router.back();
+              exitImporter();
             }}
           >
             <IconSymbol name="xmark" color={colors.error} size={24} />

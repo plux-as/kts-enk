@@ -60,7 +60,7 @@ export default function RootLayout() {
       pendingImportUrl.current = url;
       return;
     }
-    router.push({ pathname: '/import-checklist', params: { fileUri: url } });
+    router.push({ pathname: '/import-checklist', params: { fileUri: url, cold: '1' } });
   };
 
   useEffect(() => {
@@ -88,7 +88,7 @@ export default function RootLayout() {
         const deferred = pendingImportUrl.current;
         pendingImportUrl.current = null;
         console.log('[DeepLink] Draining deferred .kts import:', deferred);
-        router.push({ pathname: '/import-checklist', params: { fileUri: deferred } });
+        router.push({ pathname: '/import-checklist', params: { fileUri: deferred, cold: '1' } });
       }
     }
     checkMigration();
