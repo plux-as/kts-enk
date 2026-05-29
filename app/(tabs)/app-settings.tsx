@@ -81,6 +81,25 @@ export default function AppSettingsScreen() {
             <IconSymbol name="chevron.right" color={colors.textSecondary} size={24} />
           </Pressable>
 
+          <Pressable
+            style={styles.optionCard}
+            onPress={() => {
+              console.log('[AppSettings] User tapped Importer sjekkliste');
+              router.push('/import-checklist');
+            }}
+          >
+            <View style={styles.optionIcon}>
+              <IconSymbol name="square.and.arrow.down" color={colors.primary} size={32} />
+            </View>
+            <View style={styles.optionContent}>
+              <Text style={styles.optionTitle}>Importer sjekkliste</Text>
+              <Text style={[styles.optionDescription, { fontFamily: bodyFont }]}>
+                Importer en KTS-fil sendt fra en annen enhet
+              </Text>
+            </View>
+            <IconSymbol name="chevron.right" color={colors.textSecondary} size={24} />
+          </Pressable>
+
           <Pressable style={styles.optionCard} onPress={() => setShowAboutModal(true)}>
             <View style={styles.optionIcon}>
               <IconSymbol name="info.circle.fill" color={colors.primary} size={32} />
