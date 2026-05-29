@@ -8,7 +8,7 @@ import {
 } from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { ChecklistCategory } from '@/types/checklist';
-import { KTS_MIME_TYPE, KTS_UTI, KTS_FILE_EXTENSION } from '@/types/share';
+import { KTS_UTI, KTS_FILE_EXTENSION } from '@/types/share';
 import { buildSharedFile, serializeSharedFile, slugifyForFilename } from './shareFile';
 
 async function shareCategories(opts: {
@@ -34,8 +34,12 @@ async function shareCategories(opts: {
   await writeAsStringAsync(uri, json, { encoding: EncodingType.UTF8 });
 
   console.log('[Export] Opening share sheet for:', filename);
+  // Use standard application/json MIME for the share-sheet hand-off so that
+  // receiver apps with strict allowlists (e.g. Gmail iOS) accept the
+  // attachment. iOS dispatch back to KTS Alfa keys off the UTI, not the
+  // MIME, so AirDrop / Open-In routing is unaffected.
   await Sharing.shareAsync(uri, {
-    mimeType: KTS_MIME_TYPE,
+    mimeType: 'application/json',
     UTI: KTS_UTI,
     dialogTitle: 'Del sjekkliste',
   });
