@@ -209,28 +209,35 @@ export default function ImportChecklistScreen() {
     setStage({ name: 'preview', file: result.file, newerSchema: isNewerSchemaVersion(result.file) });
   };
 
-  const handlePreviewImport = () => {
+  const handlePreviewImport = async () => {
     if (stage.name !== 'preview') return;
     console.log('[ImportScreen] User tapped Importer from preview');
+    // Show loading while we read the latest stored checklist — avoids a race
+    // where existingChecklist state is still the initial [] on cold-launch.
+    const previewStage = stage; // capture before stage transition
+    setStage({ name: 'loading' });
+    const fresh = await storage.getChecklist();
+    setExistingChecklist(fresh);
+    console.log('[ImportScreen] Fresh existing read for conflict detection — categories:', fresh.length);
+
     const { conflicts, freshCategories } = detectConflicts(
-      stage.file.payload.categories,
-      existingChecklist,
+      previewStage.file.payload.categories,
+      fresh,
     );
 
     if (conflicts.length === 0) {
-      // No conflicts — go straight to replace warning check (none) or done
-      proceedWithImport(stage.file, [], freshCategories);
+      // No conflicts — proceed with import using the fresh existing list
+      proceedWithImport(previewStage.file, [], freshCategories, fresh);
       return;
     }
 
-    // Default choice: keep
     const resolutions: ConflictResolution[] = conflicts.map(c => ({
       incoming: c.incoming,
       existing: c.existing,
       choice: 'keep' as ConflictChoice,
     }));
 
-    setStage({ name: 'conflicts', file: stage.file, resolutions, freshCategories });
+    setStage({ name: 'conflicts', file: previewStage.file, resolutions, freshCategories });
   };
 
   const handleBulkChoice = (choice: ConflictChoice) => {
@@ -247,14 +254,16 @@ export default function ImportChecklistScreen() {
     setStage({ ...stage, resolutions: updated });
   };
 
-  const handleConflictContinue = () => {
+  const handleConflictContinue = async () => {
     if (stage.name !== 'conflicts') return;
     console.log('[ImportScreen] User tapped Fortsett from conflicts');
     const hasReplace = stage.resolutions.some(r => r.choice === 'replace');
     if (hasReplace) {
       setStage({ name: 'replaceWarning', file: stage.file, resolutions: stage.resolutions, freshCategories: stage.freshCategories });
     } else {
-      proceedWithImport(stage.file, stage.resolutions, stage.freshCategories);
+      const fresh = await storage.getChecklist();
+      setExistingChecklist(fresh);
+      proceedWithImport(stage.file, stage.resolutions, stage.freshCategories, fresh);
     }
   };
 
@@ -262,16 +271,17 @@ export default function ImportChecklistScreen() {
     file: SharedChecklistFile,
     resolutions: ConflictResolution[],
     freshCategories: ChecklistCategory[],
+    existing: ChecklistCategory[],
   ) => {
-    console.log('[ImportScreen] Proceeding with import');
+    console.log('[ImportScreen] Proceeding with import — existing categories:', existing.length, 'fresh:', freshCategories.length, 'conflicts:', resolutions.length);
     setStage({ name: 'loading' });
     try {
       const summary = await applyImport({
         freshCategories,
         conflictResolutions: resolutions,
-        existing: existingChecklist,
+        existing,
       });
-      // Refresh local checklist state
+      // Refresh local checklist state for any subsequent UI
       const updated = await storage.getChecklist();
       setExistingChecklist(updated);
       setStage({ name: 'done', summary });
@@ -282,10 +292,12 @@ export default function ImportChecklistScreen() {
     }
   };
 
-  const handleConfirmReplace = () => {
+  const handleConfirmReplace = async () => {
     if (stage.name !== 'replaceWarning') return;
     console.log('[ImportScreen] User confirmed replace warning');
-    proceedWithImport(stage.file, stage.resolutions, stage.freshCategories);
+    const fresh = await storage.getChecklist();
+    setExistingChecklist(fresh);
+    proceedWithImport(stage.file, stage.resolutions, stage.freshCategories, fresh);
   };
 
   // ─── Render stages ──────────────────────────────────────────────────────────

@@ -98,16 +98,12 @@ export default function RootLayout() {
       const storedVersion = await storage.getChecklistVersion();
       console.log('[Migration] Stored checklist version:', storedVersion, '| Current:', CHECKLIST_VERSION);
 
-      // Suppress migration prompt entirely during a cold-launch .kts import session
       if (coldLaunchImport.current) {
         console.log('[Migration] Cold-launch import in progress — skipping migration check this session');
       } else if (storedVersion < CHECKLIST_VERSION) {
-        // Compare stored against new default to see if there's anything actually new
         const stored = await storage.getChecklist();
         const diff = hasNewContent(stored, defaultChecklist);
-
         if (!diff) {
-          // User already has all content from the new default — silently bump version, no prompt
           console.log('[Migration] No new content vs new default — silently bumping version to', CHECKLIST_VERSION);
           await storage.saveChecklistVersion(CHECKLIST_VERSION);
         } else {
@@ -125,17 +121,27 @@ export default function RootLayout() {
         router.push({ pathname: '/import-checklist', params: { fileUri: deferred, cold: '1' } });
       }
     }
-    checkMigration();
+
+    // FIRST: process any cold-launch URL so coldLaunchImport.current is set
+    // before checkMigration() reads it.
+    (async () => {
+      try {
+        const initialUrl = await Linking.getInitialURL();
+        if (initialUrl) {
+          await handleIncomingUrl(initialUrl);
+        }
+      } catch (e) {
+        console.warn('[DeepLink] getInitialURL failed:', e);
+      }
+      // THEN: run the migration check (which now sees the correct flag)
+      await checkMigration();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded]);
 
-  // Deep-link handler
+  // Listen for subsequent URL events (file shared while app already running)
   useEffect(() => {
     if (!loaded) return;
-    // Check initial URL (app opened via file)
-    Linking.getInitialURL().then(url => {
-      handleIncomingUrl(url);
-    });
-    // Listen for subsequent URL events
     const subscription = Linking.addEventListener('url', ({ url }) => {
       handleIncomingUrl(url);
     });
