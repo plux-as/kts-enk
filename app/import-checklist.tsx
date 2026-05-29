@@ -348,7 +348,7 @@ export default function ImportChecklistScreen() {
 
           <View style={styles.actionRow}>
             <Pressable
-              style={styles.secondaryButton}
+              style={[styles.secondaryButton, styles.actionButton]}
               onPress={() => {
                 console.log('[ImportScreen] User tapped Avbryt from preview');
                 router.back();
@@ -356,7 +356,7 @@ export default function ImportChecklistScreen() {
             >
               <Text style={styles.secondaryButtonText}>Avbryt</Text>
             </Pressable>
-            <Pressable style={styles.primaryButton} onPress={handlePreviewImport}>
+            <Pressable style={[styles.primaryButton, styles.actionButton]} onPress={handlePreviewImport}>
               <Text style={styles.primaryButtonText}>Importer</Text>
             </Pressable>
           </View>
@@ -427,7 +427,7 @@ export default function ImportChecklistScreen() {
 
           <View style={styles.actionRow}>
             <Pressable
-              style={styles.secondaryButton}
+              style={[styles.secondaryButton, styles.actionButton]}
               onPress={() => {
                 console.log('[ImportScreen] User tapped Tilbake from conflicts');
                 if (stage.name === 'conflicts') {
@@ -437,7 +437,7 @@ export default function ImportChecklistScreen() {
             >
               <Text style={styles.secondaryButtonText}>Tilbake</Text>
             </Pressable>
-            <Pressable style={styles.primaryButton} onPress={handleConflictContinue}>
+            <Pressable style={[styles.primaryButton, styles.actionButton]} onPress={handleConflictContinue}>
               <Text style={styles.primaryButtonText}>Fortsett</Text>
             </Pressable>
           </View>
@@ -464,7 +464,7 @@ export default function ImportChecklistScreen() {
 
           <View style={styles.actionRow}>
             <Pressable
-              style={styles.secondaryButton}
+              style={[styles.secondaryButton, styles.actionButton]}
               onPress={() => {
                 console.log('[ImportScreen] User tapped Avbryt from replace warning');
                 if (stage.name === 'replaceWarning') {
@@ -474,7 +474,7 @@ export default function ImportChecklistScreen() {
             >
               <Text style={styles.secondaryButtonText}>Avbryt</Text>
             </Pressable>
-            <Pressable style={[styles.primaryButton, styles.dangerButton]} onPress={handleConfirmReplace}>
+            <Pressable style={[styles.primaryButton, styles.dangerButton, styles.actionButton]} onPress={handleConfirmReplace}>
               <Text style={styles.primaryButtonText}>Bekreft og importer</Text>
             </Pressable>
           </View>
@@ -896,7 +896,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minHeight: 52,
     justifyContent: 'center',
-    flex: 1,
   },
   dangerButton: {
     backgroundColor: colors.error,
@@ -917,6 +916,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: colors.primary,
+  },
+  actionButton: {
     flex: 1,
   },
   secondaryButtonText: {
