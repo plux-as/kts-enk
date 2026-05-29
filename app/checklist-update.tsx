@@ -51,7 +51,19 @@ export default function ChecklistUpdateScreen() {
   }, [navigation]);
 
   useEffect(() => {
-    storage.getChecklist().then(setStoredChecklist);
+    let cancelled = false;
+    storage.getChecklist().then(async stored => {
+      if (cancelled) return;
+      const safetyDiff = computeDiff(stored, defaultChecklist);
+      if (safetyDiff.newCategories === 0 && safetyDiff.newItems === 0) {
+        console.log('[ChecklistUpdate] Opened with no real diff — silently bumping version and dismissing');
+        await storage.saveChecklistVersion(CHECKLIST_VERSION);
+        router.back();
+        return;
+      }
+      setStoredChecklist(stored);
+    });
+    return () => { cancelled = true; };
   }, []);
 
   const diff = storedChecklist ? computeDiff(storedChecklist, defaultChecklist) : null;
@@ -65,9 +77,7 @@ export default function ChecklistUpdateScreen() {
   const diffSummary = [newCategoriesText, newItemsText].filter(Boolean).join(', ');
   const hasDiff = diff && (diff.newCategories > 0 || diff.newItems > 0);
 
-  // suppress unused-variable warnings — kept for logic parity
-  void diffSummary;
-  void hasDiff;
+
 
   async function handleMerge() {
     if (!storedChecklist) return;
@@ -136,6 +146,11 @@ export default function ChecklistUpdateScreen() {
         <Text style={styles.subtext}>
           En ny versjon av sjekklisten er tilgjengelig.
         </Text>
+        {diffSummary ? (
+          <Text style={[styles.subtext, { marginTop: -16, fontWeight: '600' }]}>
+            {diffSummary}
+          </Text>
+        ) : null}
 
         <View style={styles.optionsContainer}>
           {/* Replace — primary/highlighted */}

@@ -15,6 +15,7 @@ import {
 import { router } from 'expo-router';
 import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
+import { CHECKLIST_VERSION } from '@/data/defaultChecklist';
 import { Soldier, ChecklistCategory } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
 
@@ -268,6 +269,7 @@ export default function SetupScreen() {
         squadName: squadName.trim(),
         soldiers,
       });
+      await storage.saveChecklistVersion(CHECKLIST_VERSION);
       await storage.setSetupComplete(true);
       router.replace('/(tabs)/(home)');
     } catch (error) {

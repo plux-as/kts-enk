@@ -18,11 +18,26 @@ import {
 } from '@expo-google-fonts/big-shoulders-stencil';
 import { colors } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
-import { CHECKLIST_VERSION } from '@/data/defaultChecklist';
+import { CHECKLIST_VERSION, defaultChecklist } from '@/data/defaultChecklist';
 import * as Linking from 'expo-linking';
 import { KTS_FILE_EXTENSION } from '@/types/share';
 
 SplashScreen.preventAutoHideAsync();
+
+function hasNewContent(
+  stored: { id: string; items: { id: string }[] }[],
+  incoming: { id: string; items: { id: string }[] }[],
+): boolean {
+  const storedById = new Map(stored.map(c => [c.id, new Set(c.items.map(i => i.id))]));
+  for (const cat of incoming) {
+    const storedItems = storedById.get(cat.id);
+    if (!storedItems) return true;
+    for (const item of cat.items) {
+      if (!storedItems.has(item.id)) return true;
+    }
+  }
+  return false;
+}
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -40,6 +55,8 @@ export default function RootLayout() {
   const lastHandledUrl = useRef<string | null>(null);
   // Deferred import URL — set when setup is not yet complete
   const pendingImportUrl = useRef<string | null>(null);
+  // Flag: this session was cold-launched via a .kts deep-link — suppress migration prompt
+  const coldLaunchImport = useRef<boolean>(false);
 
   const handleIncomingUrl = async (url: string | null) => {
     if (!url) return;
@@ -60,6 +77,7 @@ export default function RootLayout() {
       pendingImportUrl.current = url;
       return;
     }
+    coldLaunchImport.current = true;
     router.push({ pathname: '/import-checklist', params: { fileUri: url, cold: '1' } });
   };
 
@@ -79,14 +97,30 @@ export default function RootLayout() {
       }
       const storedVersion = await storage.getChecklistVersion();
       console.log('[Migration] Stored checklist version:', storedVersion, '| Current:', CHECKLIST_VERSION);
-      if (storedVersion < CHECKLIST_VERSION) {
-        console.log('[Migration] Version mismatch — navigating to checklist-update modal');
-        router.push('/checklist-update');
+
+      // Suppress migration prompt entirely during a cold-launch .kts import session
+      if (coldLaunchImport.current) {
+        console.log('[Migration] Cold-launch import in progress — skipping migration check this session');
+      } else if (storedVersion < CHECKLIST_VERSION) {
+        // Compare stored against new default to see if there's anything actually new
+        const stored = await storage.getChecklist();
+        const diff = hasNewContent(stored, defaultChecklist);
+
+        if (!diff) {
+          // User already has all content from the new default — silently bump version, no prompt
+          console.log('[Migration] No new content vs new default — silently bumping version to', CHECKLIST_VERSION);
+          await storage.saveChecklistVersion(CHECKLIST_VERSION);
+        } else {
+          console.log('[Migration] Real diff found — showing update modal');
+          router.push('/checklist-update');
+        }
       }
+
       // Drain any deferred deep-link import that was blocked by incomplete setup
       if (pendingImportUrl.current) {
         const deferred = pendingImportUrl.current;
         pendingImportUrl.current = null;
+        coldLaunchImport.current = true;
         console.log('[DeepLink] Draining deferred .kts import:', deferred);
         router.push({ pathname: '/import-checklist', params: { fileUri: deferred, cold: '1' } });
       }
