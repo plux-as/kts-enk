@@ -24,17 +24,26 @@
             "CFBundleTypeName": "KTS Alfa-sjekkliste",
             "LSHandlerRank": "Owner",
             "CFBundleTypeRole": "Editor",
-            "LSItemContentTypes": ["app.ktsalfa.checklist"]
+            "LSItemContentTypes": [
+              "app.ktsalfa.checklist"
+            ]
           }
         ],
         "UTExportedTypeDeclarations": [
           {
             "UTTypeIdentifier": "app.ktsalfa.checklist",
             "UTTypeDescription": "KTS Alfa-sjekkliste",
-            "UTTypeConformsTo": ["public.json", "public.data"],
+            "UTTypeConformsTo": [
+              "public.json",
+              "public.data"
+            ],
             "UTTypeTagSpecification": {
-              "public.filename-extension": ["kts"],
-              "public.mime-type": ["application/vnd.ktsalfa.checklist+json"]
+              "public.filename-extension": [
+                "kts"
+              ],
+              "public.mime-type": [
+                "application/vnd.ktsalfa.checklist+json"
+              ]
             }
           }
         ]
@@ -51,11 +60,23 @@
       "intentFilters": [
         {
           "action": "VIEW",
-          "category": ["DEFAULT", "BROWSABLE"],
+          "category": [
+            "DEFAULT",
+            "BROWSABLE"
+          ],
           "data": [
-            { "scheme": "file", "pathPattern": ".*\\.kts" },
-            { "scheme": "content", "mimeType": "application/vnd.ktsalfa.checklist+json" },
-            { "mimeType": "*/*", "pathPattern": ".*\\.kts" }
+            {
+              "scheme": "file",
+              "pathPattern": ".*\\.kts"
+            },
+            {
+              "scheme": "content",
+              "mimeType": "application/vnd.ktsalfa.checklist+json"
+            },
+            {
+              "mimeType": "*/*",
+              "pathPattern": ".*\\.kts"
+            }
           ]
         }
       ],
