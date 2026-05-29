@@ -38,8 +38,10 @@ export default function RootLayout() {
 
   // Deep-link dedup ref — track last handled URL to avoid re-triggering
   const lastHandledUrl = useRef<string | null>(null);
+  // Deferred import URL — set when setup is not yet complete
+  const pendingImportUrl = useRef<string | null>(null);
 
-  const handleIncomingUrl = (url: string | null) => {
+  const handleIncomingUrl = async (url: string | null) => {
     if (!url) return;
     if (url === lastHandledUrl.current) return;
     // Decode and check for .kts extension
@@ -52,6 +54,12 @@ export default function RootLayout() {
     if (!decoded.toLowerCase().endsWith(`.${KTS_FILE_EXTENSION}`)) return;
     lastHandledUrl.current = url;
     console.log('[DeepLink] Detected .kts file URL:', url);
+    const setupComplete = await storage.isSetupComplete();
+    if (!setupComplete) {
+      console.log('[DeepLink] Setup not complete — deferring .kts import until setup finishes');
+      pendingImportUrl.current = url;
+      return;
+    }
     router.push({ pathname: '/import-checklist', params: { fileUri: url } });
   };
 
@@ -74,6 +82,13 @@ export default function RootLayout() {
       if (storedVersion < CHECKLIST_VERSION) {
         console.log('[Migration] Version mismatch — navigating to checklist-update modal');
         router.push('/checklist-update');
+      }
+      // Drain any deferred deep-link import that was blocked by incomplete setup
+      if (pendingImportUrl.current) {
+        const deferred = pendingImportUrl.current;
+        pendingImportUrl.current = null;
+        console.log('[DeepLink] Draining deferred .kts import:', deferred);
+        router.push({ pathname: '/import-checklist', params: { fileUri: deferred } });
       }
     }
     checkMigration();

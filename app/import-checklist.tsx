@@ -89,8 +89,22 @@ function ConflictCard({ resolution, onChange }: ConflictCardProps) {
         <Pressable
           style={[styles.choiceButton, choice === 'replace' && styles.choiceButtonReplace]}
           onPress={() => {
-            console.log('[Import] Conflict choice: replace for', incoming.name);
-            onChange('replace');
+            if (choice === 'replace') return;
+            Alert.alert(
+              'Erstatt kategori?',
+              `Erstatt vil overskrive «${incoming.name}» og fjerne tilknyttede loggoppføringer og soldat-tildelinger. Dette kan ikke angres.`,
+              [
+                { text: 'Avbryt', style: 'cancel' },
+                {
+                  text: 'Erstatt',
+                  style: 'destructive',
+                  onPress: () => {
+                    console.log('[Import] Conflict choice: replace for', incoming.name);
+                    onChange('replace');
+                  },
+                },
+              ],
+            );
           }}
         >
           <Text style={[styles.choiceButtonText, choice === 'replace' && styles.choiceButtonTextSelected]}>

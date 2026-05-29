@@ -60,23 +60,26 @@
       "intentFilters": [
         {
           "action": "VIEW",
-          "category": [
-            "DEFAULT",
-            "BROWSABLE"
-          ],
+          "category": ["DEFAULT", "BROWSABLE"],
           "data": [
-            {
-              "scheme": "file",
-              "pathPattern": ".*\\.kts"
-            },
-            {
-              "scheme": "content",
-              "mimeType": "application/vnd.ktsalfa.checklist+json"
-            },
-            {
-              "mimeType": "*/*",
-              "pathPattern": ".*\\.kts"
-            }
+            { "scheme": "file", "pathPattern": ".*\\.kts" },
+            { "scheme": "content", "pathPattern": ".*\\.kts" }
+          ]
+        },
+        {
+          "action": "VIEW",
+          "category": ["DEFAULT", "BROWSABLE"],
+          "data": [
+            { "scheme": "content", "mimeType": "application/vnd.ktsalfa.checklist+json" },
+            { "scheme": "content", "mimeType": "application/octet-stream", "pathPattern": ".*\\.kts" },
+            { "scheme": "content", "mimeType": "application/json", "pathPattern": ".*\\.kts" }
+          ]
+        },
+        {
+          "action": "VIEW",
+          "category": ["DEFAULT", "BROWSABLE"],
+          "data": [
+            { "scheme": "file", "mimeType": "application/octet-stream", "pathPattern": ".*\\.kts" }
           ]
         }
       ],
