@@ -404,7 +404,9 @@ export default function EditChecklistScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
         <View style={commonStyles.modalNavBar}>
-          <View style={{ width: 24 }} />
+          <Pressable onPress={() => { console.log('[Edit] User tapped share-in-titlebar'); handleExportFull(); }}>
+            <IconSymbol name="square.and.arrow.up" color={colors.primary} size={24} />
+          </Pressable>
           <Text style={commonStyles.modalNavBarTitle}>Rediger KTS-liste</Text>
           <Pressable onPress={() => router.back()}>
             <IconSymbol name="xmark" color={colors.error} size={24} />
