@@ -18,7 +18,26 @@
       "bundleIdentifier": "com.pluxas.ktsalfa",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UIUserInterfaceStyle": "Dark"
+        "UIUserInterfaceStyle": "Dark",
+        "CFBundleDocumentTypes": [
+          {
+            "CFBundleTypeName": "KTS Alfa-sjekkliste",
+            "LSHandlerRank": "Owner",
+            "CFBundleTypeRole": "Editor",
+            "LSItemContentTypes": ["app.ktsalfa.checklist"]
+          }
+        ],
+        "UTExportedTypeDeclarations": [
+          {
+            "UTTypeIdentifier": "app.ktsalfa.checklist",
+            "UTTypeDescription": "KTS Alfa-sjekkliste",
+            "UTTypeConformsTo": ["public.json", "public.data"],
+            "UTTypeTagSpecification": {
+              "public.filename-extension": ["kts"],
+              "public.mime-type": ["application/vnd.ktsalfa.checklist+json"]
+            }
+          }
+        ]
       }
     },
     "android": {
@@ -29,6 +48,17 @@
       "package": "com.plux.ktsalfa",
       "userInterfaceStyle": "dark",
       "jsEngine": "hermes",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "category": ["DEFAULT", "BROWSABLE"],
+          "data": [
+            { "scheme": "file", "pathPattern": ".*\\.kts" },
+            { "scheme": "content", "mimeType": "application/vnd.ktsalfa.checklist+json" },
+            { "mimeType": "*/*", "pathPattern": ".*\\.kts" }
+          ]
+        }
+      ],
       "autolinking": {
         "exclude": [
           "expo-glass-effect",

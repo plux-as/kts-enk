@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useFonts } from "expo-font";
 import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -7,7 +7,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useColorScheme } from "react-native";
 import {
   DarkTheme,
-  DefaultTheme,
   Theme,
   ThemeProvider,
 } from "@react-navigation/native";
@@ -20,6 +19,8 @@ import {
 import { colors } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
 import { CHECKLIST_VERSION } from '@/data/defaultChecklist';
+import * as Linking from 'expo-linking';
+import { KTS_FILE_EXTENSION } from '@/types/share';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,6 +35,25 @@ export default function RootLayout() {
     BigShouldersStencil_400Regular,
     BigShouldersStencil_700Bold,
   });
+
+  // Deep-link dedup ref — track last handled URL to avoid re-triggering
+  const lastHandledUrl = useRef<string | null>(null);
+
+  const handleIncomingUrl = (url: string | null) => {
+    if (!url) return;
+    if (url === lastHandledUrl.current) return;
+    // Decode and check for .kts extension
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(url);
+    } catch {
+      decoded = url;
+    }
+    if (!decoded.toLowerCase().endsWith(`.${KTS_FILE_EXTENSION}`)) return;
+    lastHandledUrl.current = url;
+    console.log('[DeepLink] Detected .kts file URL:', url);
+    router.push({ pathname: '/import-checklist', params: { fileUri: url } });
+  };
 
   useEffect(() => {
     if (loaded) {
@@ -57,6 +77,21 @@ export default function RootLayout() {
       }
     }
     checkMigration();
+  }, [loaded]);
+
+  // Deep-link handler
+  useEffect(() => {
+    if (!loaded) return;
+    // Check initial URL (app opened via file)
+    Linking.getInitialURL().then(url => {
+      handleIncomingUrl(url);
+    });
+    // Listen for subsequent URL events
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      handleIncomingUrl(url);
+    });
+    return () => subscription.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded]);
 
   if (!loaded) {
@@ -129,6 +164,14 @@ export default function RootLayout() {
                   presentation: "modal",
                   headerShown: false,
                   gestureEnabled: false,
+                }}
+              />
+              <Stack.Screen
+                name="import-checklist"
+                options={{
+                  presentation: "fullScreenModal",
+                  headerShown: false,
+                  animation: "slide_from_bottom",
                 }}
               />
             </Stack>

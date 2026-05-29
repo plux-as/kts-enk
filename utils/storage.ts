@@ -349,6 +349,26 @@ export const storage = {
     }
   },
 
+  // Last export author
+  async getLastExportAuthor(): Promise<string> {
+    try {
+      const data = await AsyncStorage.getItem('@last_export_author');
+      return data ?? '';
+    } catch (error) {
+      console.error('Error getting last export author:', error);
+      return '';
+    }
+  },
+
+  async setLastExportAuthor(name: string): Promise<void> {
+    try {
+      await AsyncStorage.setItem('@last_export_author', name);
+      console.log('Last export author saved:', name);
+    } catch (error) {
+      console.error('Error saving last export author:', error);
+    }
+  },
+
   // Clear all data (for testing)
   async clearAll(): Promise<void> {
     try {

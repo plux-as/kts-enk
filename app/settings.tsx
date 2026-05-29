@@ -269,6 +269,11 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleImportChecklist = () => {
+    console.log('[Settings] User tapped Importer sjekkliste');
+    router.push('/import-checklist');
+  };
+
   const handleSave = async () => {
     console.log('User tapped Save in settings');
     if (!squadName.trim()) {
@@ -449,6 +454,11 @@ export default function SettingsScreen() {
             </Pressable>
           </View>
 
+          <Pressable style={styles.importButton} onPress={handleImportChecklist}>
+            <IconSymbol name="square.and.arrow.down" color={colors.primary} size={22} />
+            <Text style={styles.importButtonText}>Importer sjekkliste</Text>
+          </Pressable>
+
           <Pressable style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.saveButtonText}>Ferdig</Text>
           </Pressable>
@@ -595,6 +605,24 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   addSoldierText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.primary,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  importButton: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    marginBottom: 16,
+  },
+  importButtonText: {
     fontSize: 20,
     fontWeight: '700',
     color: colors.primary,

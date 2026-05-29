@@ -18,6 +18,8 @@ import { storage } from '@/utils/storage';
 import { ChecklistCategory, ChecklistItem } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ExportMetaModal } from '@/components/ExportMetaModal';
+import { exportSingleCategory, exportFullChecklist } from '@/utils/exportChecklist';
 
 type CategoryRole = 'general' | 'weapon';
 
@@ -59,18 +61,59 @@ export default function EditChecklistScreen() {
   const [itemName, setItemName] = useState('');
   const insets = useSafeAreaInsets();
 
+  // Export state
+  const [exportModal, setExportModal] = useState<{
+    visible: boolean;
+    mode: 'single' | 'full';
+    category: ChecklistCategory | null;
+    initialTitle: string;
+  }>({ visible: false, mode: 'single', category: null, initialTitle: '' });
+  const [lastAuthor, setLastAuthor] = useState('');
+
   useEffect(() => {
     loadChecklist();
   }, []);
 
   const loadChecklist = async () => {
     try {
-      const data = await storage.getChecklist();
+      const [data, author] = await Promise.all([
+        storage.getChecklist(),
+        storage.getLastExportAuthor(),
+      ]);
       setChecklist(data);
+      setLastAuthor(author);
     } catch (error) {
       console.error('Error loading checklist:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportCategory = (category: ChecklistCategory) => {
+    console.log('[Edit] User tapped export for category:', category.name);
+    setExportModal({ visible: true, mode: 'single', category, initialTitle: category.name });
+  };
+
+  const handleExportFull = () => {
+    console.log('[Edit] User tapped Del hele sjekklisten');
+    setExportModal({ visible: true, mode: 'full', category: null, initialTitle: 'Hele sjekklisten' });
+  };
+
+  const handleExportSubmit = async ({ title, author }: { title: string; author: string }) => {
+    setExportModal(prev => ({ ...prev, visible: false }));
+    console.log('[Edit] Export submit — mode:', exportModal.mode, 'title:', title, 'author:', author);
+    // Persist last-used author
+    await storage.setLastExportAuthor(author);
+    setLastAuthor(author);
+    try {
+      if (exportModal.mode === 'single' && exportModal.category) {
+        await exportSingleCategory(exportModal.category, title, author);
+      } else if (exportModal.mode === 'full') {
+        await exportFullChecklist(checklist, title, author);
+      }
+    } catch (error) {
+      console.error('[Edit] Export failed:', error);
+      Alert.alert('Feil', 'Deling mislyktes. Prøv igjen.');
     }
   };
 
@@ -315,6 +358,9 @@ export default function EditChecklistScreen() {
             )}
           </View>
           <View style={styles.categoryActions}>
+            <Pressable onPress={() => handleExportCategory(category)}>
+              <IconSymbol name="square.and.arrow.up" color={colors.primary} size={20} />
+            </Pressable>
             <Pressable onPress={() => handleEditCategory(category)}>
               <IconSymbol name="pencil" color={colors.accent} size={20} />
             </Pressable>
@@ -382,6 +428,11 @@ export default function EditChecklistScreen() {
             <Pressable style={styles.addCategoryButton} onPress={handleAddCategory}>
               <IconSymbol name="plus" color={colors.primary} size={24} />
               <Text style={styles.addCategoryText}>Legg til kategori</Text>
+            </Pressable>
+
+            <Pressable style={styles.shareFullButton} onPress={handleExportFull}>
+              <IconSymbol name="square.and.arrow.up" color={colors.primary} size={22} />
+              <Text style={styles.shareFullButtonText}>Del hele sjekklisten</Text>
             </Pressable>
           </View>
 
@@ -503,6 +554,18 @@ export default function EditChecklistScreen() {
             </View>
           </KeyboardAvoidingView>
         </Modal>
+
+        {/* Export meta modal */}
+        <ExportMetaModal
+          visible={exportModal.visible}
+          initialTitle={exportModal.initialTitle}
+          initialAuthor={lastAuthor}
+          onSubmit={handleExportSubmit}
+          onClose={() => {
+            console.log('[Edit] ExportMetaModal closed');
+            setExportModal(prev => ({ ...prev, visible: false }));
+          }}
+        />
       </View>
     </>
   );
@@ -634,6 +697,24 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   addCategoryText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.primary,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  shareFullButton: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    marginTop: 12,
+  },
+  shareFullButtonText: {
     fontSize: 20,
     fontWeight: '700',
     color: colors.primary,
