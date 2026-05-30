@@ -5,6 +5,7 @@ import { ChecklistCategory } from '@/types/checklist';
 import { SharedChecklistFile, KTS_MIME_TYPE, KTS_FILE_EXTENSION } from '@/types/share';
 import { validateSharedFile, regenerateCategoryIds } from './shareFile';
 import { storage } from './storage';
+import { readSecurityScopedFile, isAvailable as isNativeReaderAvailable } from 'kts-secure-reader';
 
 // ─── File reading ─────────────────────────────────────────────────────────────
 
@@ -56,23 +57,45 @@ export async function readKtsFromUri(
   const errors: string[] = [];
   let rawText: string | undefined;
 
-  // ── Strategy A — File.text() directly (SDK 54 new API, handles Inbox/security-scoped URIs) ──
-  try {
-    console.log('[Import] Strategy A attempting:', uri);
-    const f = new File(uri);
-    const txt = await f.text();
-    if (txt.length >= 2) {
-      rawText = txt;
-      console.log('[Import] Strategy A succeeded, read', rawText.length, 'chars');
-    } else {
-      const msg = 'A: suspiciously short body (' + txt.length + ' chars)';
-      console.warn('[Import]', msg);
+  // ── Strategy 0 — Native security-scoped reader (iOS only) ──
+  if (isNativeReaderAvailable()) {
+    try {
+      console.log('[Import] Strategy 0 (native) attempting:', uri);
+      const txt = await readSecurityScopedFile(uri);
+      if (txt.length >= 2) {
+        rawText = txt;
+        console.log('[Import] Strategy 0 succeeded, read', rawText.length, 'chars');
+      } else {
+        const msg = '0: suspiciously short body (' + txt.length + ' chars)';
+        console.warn('[Import]', msg);
+        errors.push(msg);
+      }
+    } catch (e) {
+      const msg = '0: ' + String(e);
+      console.warn('[Import] Strategy 0 failed:', e);
       errors.push(msg);
     }
-  } catch (e) {
-    const msg = 'A: ' + String(e);
-    console.warn('[Import] Strategy A failed:', e);
-    errors.push(msg);
+  }
+
+  // ── Strategy A — File.text() directly (SDK 54 new API, handles Inbox/security-scoped URIs) ──
+  if (rawText === undefined) {
+    try {
+      console.log('[Import] Strategy A attempting:', uri);
+      const f = new File(uri);
+      const txt = await f.text();
+      if (txt.length >= 2) {
+        rawText = txt;
+        console.log('[Import] Strategy A succeeded, read', rawText.length, 'chars');
+      } else {
+        const msg = 'A: suspiciously short body (' + txt.length + ' chars)';
+        console.warn('[Import]', msg);
+        errors.push(msg);
+      }
+    } catch (e) {
+      const msg = 'A: ' + String(e);
+      console.warn('[Import] Strategy A failed:', e);
+      errors.push(msg);
+    }
   }
 
   // ── Strategy B — File.copy() to cache then read ────────────────────────────

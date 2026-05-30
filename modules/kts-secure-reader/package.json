@@ -1,0 +1,7 @@
+{
+  "name": "kts-secure-reader",
+  "version": "1.0.0",
+  "description": "Reads iOS security-scoped file URIs from share-sheet handoff",
+  "main": "index.ts",
+  "private": true
+}

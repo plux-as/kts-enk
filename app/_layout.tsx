@@ -22,6 +22,7 @@ import { CHECKLIST_VERSION, defaultChecklist } from '@/data/defaultChecklist';
 import * as Linking from 'expo-linking';
 import { File } from 'expo-file-system';
 import { KTS_FILE_EXTENSION } from '@/types/share';
+import { readSecurityScopedFile, isAvailable as isNativeReaderAvailable } from 'kts-secure-reader';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -81,10 +82,15 @@ export default function RootLayout() {
     coldLaunchImport.current = true;
     let inlineContents: string | undefined;
     try {
-      const f = new File(url);
-      const txt = await f.text();
-      inlineContents = txt;
-      console.log('[DeepLink] Pre-read', txt.length, 'chars from cold-launch URL');
+      if (isNativeReaderAvailable()) {
+        inlineContents = await readSecurityScopedFile(url);
+        console.log('[DeepLink] Pre-read (native)', inlineContents.length, 'chars from cold-launch URL');
+      } else {
+        const f = new File(url);
+        const txt = await f.text();
+        inlineContents = txt;
+        console.log('[DeepLink] Pre-read (File API)', inlineContents.length, 'chars from cold-launch URL');
+      }
     } catch (e) {
       console.warn('[DeepLink] Pre-read failed, will fall back to URI-based read in import screen:', e);
     }
@@ -137,10 +143,15 @@ export default function RootLayout() {
         console.log('[DeepLink] Draining deferred .kts import:', deferred);
         let deferredInline: string | undefined;
         try {
-          const f = new File(deferred);
-          const txt = await f.text();
-          deferredInline = txt;
-          console.log('[DeepLink] Pre-read (deferred)', txt.length, 'chars');
+          if (isNativeReaderAvailable()) {
+            deferredInline = await readSecurityScopedFile(deferred);
+            console.log('[DeepLink] Pre-read (deferred, native)', deferredInline.length, 'chars');
+          } else {
+            const f = new File(deferred);
+            const txt = await f.text();
+            deferredInline = txt;
+            console.log('[DeepLink] Pre-read (deferred, File API)', deferredInline.length, 'chars');
+          }
         } catch (e) {
           console.warn('[DeepLink] Pre-read (deferred) failed, falling back to URI-based read:', e);
         }
