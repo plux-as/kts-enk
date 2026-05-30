@@ -51,47 +51,69 @@ export async function readKtsFromUri(
 ): Promise<{ ok: true; file: SharedChecklistFile } | { ok: false; reason: string }> {
   console.log('[Import] readKtsFromUri:', uri);
 
-  const isAlreadyCached = !!cacheDirectory && uri.startsWith(cacheDirectory);
+  let rawText: string | undefined;
 
-  let text: string;
-  let cachePath: string | null = null;
-
+  // ── Primary path: fetch() ──────────────────────────────────────────────────
+  // iOS "Open in app" handoff from the Files app delivers a security-scoped URI
+  // (file:///private/var/mobile/Library/Mobile Documents/... or shareddocuments://).
+  // expo-file-system goes through NSFileManager and cannot access these URIs without
+  // calling URL.startAccessingSecurityScopedResource() first, which it does not do.
+  // React Native's built-in fetch() uses NSURLSession, which handles security-scoped
+  // URIs transparently — so we try fetch() first before falling back to FileSystem.
   try {
-    if (isAlreadyCached) {
-      console.log('[Import] URI is already in cache directory, reading directly');
-      try {
-        text = await readAsStringAsync(uri, { encoding: EncodingType.UTF8 });
-      } catch (e) {
-        console.error('[Import] Could not read cached file:', e);
-        return { ok: false, reason: 'Kunne ikke lese filen' };
-      }
-    } else {
-      cachePath = `${cacheDirectory}kts-import-${Date.now()}.kts`;
-      console.log('[Import] Copying to cache:', cachePath);
-      try {
-        await copyAsync({ from: uri, to: cachePath });
-      } catch (e) {
-        console.error('[Import] Copy to cache failed:', e);
-        return { ok: false, reason: 'Kunne ikke lese filen' };
-      }
-      try {
-        text = await readAsStringAsync(cachePath, { encoding: EncodingType.UTF8 });
-        console.log('[Import] Read', text.length, 'chars from cache copy');
-      } catch (e) {
-        console.error('[Import] Could not read cache copy:', e);
-        return { ok: false, reason: 'Kunne ikke lese filen' };
-      }
+    console.log('[Import] Attempting fetch() read');
+    const res = await fetch(uri);
+    if (!res.ok) {
+      throw new Error('fetch status ' + res.status);
     }
-  } finally {
-    if (cachePath) {
-      console.log('[Import] Cache copy cleanup:', cachePath);
-      deleteAsync(cachePath, { idempotent: true }).catch(e => {
-        console.warn('[Import] Could not delete cache copy:', e);
-      });
+    const candidate = await res.text();
+    if (candidate.length >= 2) {
+      rawText = candidate;
+      console.log('[Import] fetch() succeeded, read', rawText.length, 'chars');
+    } else {
+      console.warn('[Import] fetch() returned suspiciously short body (', candidate.length, 'chars), falling through to copy fallback');
+    }
+  } catch (fetchErr) {
+    console.warn('[Import] fetch() failed, falling through to copy fallback:', fetchErr);
+  }
+
+  // ── Fallback path: copy to cache then read ─────────────────────────────────
+  let cachePath: string | null = null;
+  if (rawText === undefined) {
+    cachePath = `${cacheDirectory}kts-import-${Date.now()}.kts`;
+    try {
+      const isAlreadyCached = !!cacheDirectory && uri.startsWith(cacheDirectory);
+      if (isAlreadyCached) {
+        console.log('[Import] URI is already in cache directory, reading directly');
+        rawText = await readAsStringAsync(uri, { encoding: EncodingType.UTF8 });
+        console.log('[Import] Read', rawText.length, 'chars from cached URI');
+      } else {
+        console.log('[Import] Copying to cache:', cachePath);
+        await copyAsync({ from: uri, to: cachePath });
+        rawText = await readAsStringAsync(cachePath, { encoding: EncodingType.UTF8 });
+        console.log('[Import] Read', rawText.length, 'chars from cache copy');
+      }
+    } catch (copyErr) {
+      console.error('[Import] Copy/read fallback failed:', copyErr);
+      if (cachePath) {
+        deleteAsync(cachePath, { idempotent: true }).catch(() => {});
+      }
+      return { ok: false, reason: 'read_failed' };
+    } finally {
+      if (cachePath && !uri.startsWith(cacheDirectory ?? '')) {
+        deleteAsync(cachePath, { idempotent: true }).catch(e => {
+          console.warn('[Import] Could not delete cache copy:', e);
+        });
+      }
     }
   }
 
-  const result = validateSharedFile(text);
+  if (rawText === undefined) {
+    console.error('[Import] Both read strategies failed');
+    return { ok: false, reason: 'read_failed' };
+  }
+
+  const result = validateSharedFile(rawText);
   if (!result.ok) {
     console.warn('[Import] Validation failed:', result.reason);
     return { ok: false, reason: result.reason };
