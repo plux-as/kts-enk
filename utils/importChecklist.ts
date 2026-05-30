@@ -1,6 +1,6 @@
 
 import * as DocumentPicker from 'expo-document-picker';
-import { readAsStringAsync, copyAsync, deleteAsync, cacheDirectory, EncodingType } from 'expo-file-system/legacy';
+import { File, Paths } from 'expo-file-system';
 import { ChecklistCategory } from '@/types/checklist';
 import { SharedChecklistFile, KTS_MIME_TYPE, KTS_FILE_EXTENSION } from '@/types/share';
 import { validateSharedFile, regenerateCategoryIds } from './shareFile';
@@ -43,7 +43,9 @@ export async function pickAndReadKtsFile(): Promise<
   }
 
   console.log('[Import] Reading file:', asset.uri);
-  return readKtsFromUri(asset.uri);
+  const readResult = await readKtsFromUri(asset.uri);
+  if (!readResult.ok) return readResult;
+  return { ok: true, file: readResult.file, sourceUri: asset.uri };
 }
 
 export async function readKtsFromUri(
@@ -51,66 +53,80 @@ export async function readKtsFromUri(
 ): Promise<{ ok: true; file: SharedChecklistFile } | { ok: false; reason: string }> {
   console.log('[Import] readKtsFromUri:', uri);
 
+  const errors: string[] = [];
   let rawText: string | undefined;
 
-  // ── Primary path: fetch() ──────────────────────────────────────────────────
-  // iOS "Open in app" handoff from the Files app delivers a security-scoped URI
-  // (file:///private/var/mobile/Library/Mobile Documents/... or shareddocuments://).
-  // expo-file-system goes through NSFileManager and cannot access these URIs without
-  // calling URL.startAccessingSecurityScopedResource() first, which it does not do.
-  // React Native's built-in fetch() uses NSURLSession, which handles security-scoped
-  // URIs transparently — so we try fetch() first before falling back to FileSystem.
+  // ── Strategy A — File.text() directly (SDK 54 new API, handles Inbox/security-scoped URIs) ──
   try {
-    console.log('[Import] Attempting fetch() read');
-    const res = await fetch(uri);
-    if (!res.ok) {
-      throw new Error('fetch status ' + res.status);
-    }
-    const candidate = await res.text();
-    if (candidate.length >= 2) {
-      rawText = candidate;
-      console.log('[Import] fetch() succeeded, read', rawText.length, 'chars');
+    console.log('[Import] Strategy A attempting:', uri);
+    const f = new File(uri);
+    const txt = await f.text();
+    if (txt.length >= 2) {
+      rawText = txt;
+      console.log('[Import] Strategy A succeeded, read', rawText.length, 'chars');
     } else {
-      console.warn('[Import] fetch() returned suspiciously short body (', candidate.length, 'chars), falling through to copy fallback');
+      const msg = 'A: suspiciously short body (' + txt.length + ' chars)';
+      console.warn('[Import]', msg);
+      errors.push(msg);
     }
-  } catch (fetchErr) {
-    console.warn('[Import] fetch() failed, falling through to copy fallback:', fetchErr);
+  } catch (e) {
+    const msg = 'A: ' + String(e);
+    console.warn('[Import] Strategy A failed:', e);
+    errors.push(msg);
   }
 
-  // ── Fallback path: copy to cache then read ─────────────────────────────────
-  let cachePath: string | null = null;
+  // ── Strategy B — File.copy() to cache then read ────────────────────────────
   if (rawText === undefined) {
-    cachePath = `${cacheDirectory}kts-import-${Date.now()}.kts`;
+    const dst = new File(Paths.cache, 'kts-import-' + Date.now() + '.kts');
     try {
-      const isAlreadyCached = !!cacheDirectory && uri.startsWith(cacheDirectory);
-      if (isAlreadyCached) {
-        console.log('[Import] URI is already in cache directory, reading directly');
-        rawText = await readAsStringAsync(uri, { encoding: EncodingType.UTF8 });
-        console.log('[Import] Read', rawText.length, 'chars from cached URI');
+      console.log('[Import] Strategy B attempting:', uri);
+      const src = new File(uri);
+      src.copy(dst);
+      const txt = await dst.text();
+      if (txt.length >= 2) {
+        rawText = txt;
+        console.log('[Import] Strategy B succeeded, read', rawText.length, 'chars');
       } else {
-        console.log('[Import] Copying to cache:', cachePath);
-        await copyAsync({ from: uri, to: cachePath });
-        rawText = await readAsStringAsync(cachePath, { encoding: EncodingType.UTF8 });
-        console.log('[Import] Read', rawText.length, 'chars from cache copy');
+        const msg = 'B: suspiciously short body (' + txt.length + ' chars)';
+        console.warn('[Import]', msg);
+        errors.push(msg);
       }
-    } catch (copyErr) {
-      console.error('[Import] Copy/read fallback failed:', copyErr);
-      if (cachePath) {
-        deleteAsync(cachePath, { idempotent: true }).catch(() => {});
-      }
-      return { ok: false, reason: 'read_failed' };
+    } catch (e) {
+      const msg = 'B: ' + String(e);
+      console.warn('[Import] Strategy B failed:', e);
+      errors.push(msg);
     } finally {
-      if (cachePath && !uri.startsWith(cacheDirectory ?? '')) {
-        deleteAsync(cachePath, { idempotent: true }).catch(e => {
-          console.warn('[Import] Could not delete cache copy:', e);
-        });
+      try { dst.delete(); } catch {}
+    }
+  }
+
+  // ── Strategy C — fetch() fallback ─────────────────────────────────────────
+  if (rawText === undefined) {
+    try {
+      console.log('[Import] Strategy C attempting:', uri);
+      const res = await fetch(uri);
+      if (!res.ok) {
+        throw new Error('fetch status ' + res.status);
       }
+      const txt = await res.text();
+      if (txt.length >= 2) {
+        rawText = txt;
+        console.log('[Import] Strategy C succeeded, read', rawText.length, 'chars');
+      } else {
+        const msg = 'C: suspiciously short body (' + txt.length + ' chars)';
+        console.warn('[Import]', msg);
+        errors.push(msg);
+      }
+    } catch (e) {
+      const msg = 'C: ' + String(e);
+      console.warn('[Import] Strategy C failed:', e);
+      errors.push(msg);
     }
   }
 
   if (rawText === undefined) {
-    console.error('[Import] Both read strategies failed');
-    return { ok: false, reason: 'read_failed' };
+    console.error('[Import] All strategies failed:', errors.join(' | '));
+    return { ok: false, reason: 'Kunne ikke lese filen: ' + errors.join(' | ') };
   }
 
   const result = validateSharedFile(rawText);

@@ -20,6 +20,7 @@ import { colors } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
 import { CHECKLIST_VERSION, defaultChecklist } from '@/data/defaultChecklist';
 import * as Linking from 'expo-linking';
+import { File } from 'expo-file-system';
 import { KTS_FILE_EXTENSION } from '@/types/share';
 
 SplashScreen.preventAutoHideAsync();
@@ -78,7 +79,23 @@ export default function RootLayout() {
       return;
     }
     coldLaunchImport.current = true;
-    router.push({ pathname: '/import-checklist', params: { fileUri: url, cold: '1' } });
+    let inlineContents: string | undefined;
+    try {
+      const f = new File(url);
+      const txt = await f.text();
+      inlineContents = txt;
+      console.log('[DeepLink] Pre-read', txt.length, 'chars from cold-launch URL');
+    } catch (e) {
+      console.warn('[DeepLink] Pre-read failed, will fall back to URI-based read in import screen:', e);
+    }
+    router.push({
+      pathname: '/import-checklist',
+      params: {
+        fileUri: url,
+        cold: '1',
+        ...(inlineContents !== undefined ? { inline: inlineContents } : {}),
+      },
+    });
   };
 
   useEffect(() => {
@@ -118,7 +135,23 @@ export default function RootLayout() {
         pendingImportUrl.current = null;
         coldLaunchImport.current = true;
         console.log('[DeepLink] Draining deferred .kts import:', deferred);
-        router.push({ pathname: '/import-checklist', params: { fileUri: deferred, cold: '1' } });
+        let deferredInline: string | undefined;
+        try {
+          const f = new File(deferred);
+          const txt = await f.text();
+          deferredInline = txt;
+          console.log('[DeepLink] Pre-read (deferred)', txt.length, 'chars');
+        } catch (e) {
+          console.warn('[DeepLink] Pre-read (deferred) failed, falling back to URI-based read:', e);
+        }
+        router.push({
+          pathname: '/import-checklist',
+          params: {
+            fileUri: deferred,
+            cold: '1',
+            ...(deferredInline !== undefined ? { inline: deferredInline } : {}),
+          },
+        });
       }
     }
 

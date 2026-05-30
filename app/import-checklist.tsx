@@ -15,7 +15,7 @@ import { colors, bodyFont, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { ChecklistCategory } from '@/types/checklist';
 import { SharedChecklistFile } from '@/types/share';
-import { isNewerSchemaVersion } from '@/utils/shareFile';
+import { isNewerSchemaVersion, validateSharedFile } from '@/utils/shareFile';
 import { formatNorwegianDate } from '@/utils/dateFormat';
 import {
   pickAndReadKtsFile,
@@ -142,7 +142,7 @@ function ConflictCard({ resolution, onChange }: ConflictCardProps) {
 
 export default function ImportChecklistScreen() {
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ fileUri?: string; cold?: string }>();
+  const params = useLocalSearchParams<{ fileUri?: string; cold?: string; inline?: string }>();
   const isColdLaunch = params.cold === '1';
   const [stage, setStage] = useState<Stage>({ name: 'idle' });
   const [existingChecklist, setExistingChecklist] = useState<ChecklistCategory[]>([]);
@@ -154,14 +154,18 @@ export default function ImportChecklistScreen() {
     });
   }, []);
 
-  // If launched with a fileUri param, start loading immediately
+  // If launched with a fileUri (or inline contents) param, start loading immediately
   useEffect(() => {
-    if (params.fileUri && stage.name === 'idle') {
+    if (stage.name !== 'idle') return;
+    if (params.inline) {
+      console.log('[ImportScreen] Launched with inline contents, length:', params.inline.length);
+      handleLoadFromInlineContents(params.inline);
+    } else if (params.fileUri) {
       console.log('[ImportScreen] Launched with fileUri:', params.fileUri);
       handleLoadFromUri(params.fileUri);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.fileUri]);
+  }, [params.fileUri, params.inline]);
 
   const exitImporter = useCallback(() => {
     console.log('[ImportScreen] exitImporter called, isColdLaunch:', isColdLaunch);
@@ -176,6 +180,23 @@ export default function ImportChecklistScreen() {
     setStage({ name: 'loading' });
     const result = await readKtsFromUri(uri);
     if (!result.ok) {
+      setStage({ name: 'invalid', reason: result.reason });
+      return;
+    }
+    if (isNewerSchemaVersion(result.file)) {
+      Alert.alert(
+        'Nyere filversjon',
+        'Filen ble laget med en nyere versjon av KTS Alfa — noen funksjoner kan mangle.',
+      );
+    }
+    setStage({ name: 'preview', file: result.file, newerSchema: isNewerSchemaVersion(result.file) });
+  }, []);
+
+  const handleLoadFromInlineContents = useCallback(async (rawText: string) => {
+    setStage({ name: 'loading' });
+    const result = validateSharedFile(rawText);
+    if (!result.ok) {
+      console.warn('[ImportScreen] Inline validation failed:', result.reason);
       setStage({ name: 'invalid', reason: result.reason });
       return;
     }
@@ -647,11 +668,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   invalidReason: {
-    fontSize: 16,
+    fontSize: 14,
     color: colors.textSecondary,
     fontFamily: bodyFont,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 20,
+    flexShrink: 1,
   },
   // Meta card
   metaCard: {
