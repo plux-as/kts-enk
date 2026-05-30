@@ -147,7 +147,7 @@ export const defaultChecklist: ChecklistCategory[] = [
     categoryRole: 'general',
     items: [
       { id: 'item-7-1', name: 'Normalt 7 magasiner. Rene og uten skader. Viktige sjekkpunkter er leppene og låsesporet. Lar seg feste i våpenet. Fylt og merket.', categoryId: 'cat-7' },
-      { id: 'item-7-2', name: 'Normalt 2. Rene og uten skader. Riktig type. Fester i våpenet, sjekk at varsleren hekter opp glidestykket. Fylt og merket.', categoryId: 'cat-7' },
+      { id: 'item-7-2', name: 'Normalt 2 pistolmagasiner. Rene og uten skader. Riktig type. Fester i våpenet, sjekk at varsleren hekter opp glidestykket. Fylt og merket.', categoryId: 'cat-7' },
       { id: 'item-7-3', name: 'Bajonett fri for rust, lar seg feste på våpenet og lett oljet inn.', categoryId: 'cat-7' },
       { id: 'item-7-4', name: 'Kontroller alle granater visuelt. Tenner skrudd fast, splint festet, korrekt plassert i granatlommen, sikringsarm inn mot kroppen. ', categoryId: 'cat-7' },
       { id: 'item-7-5', name: 'Samband funksjonstestes på relevante nett. Sjekk batteristatus.', categoryId: 'cat-7' },
