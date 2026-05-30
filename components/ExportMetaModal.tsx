@@ -18,7 +18,7 @@ interface ExportMetaModalProps {
   visible: boolean;
   initialTitle: string;
   initialAuthor: string;
-  onSubmit: (opts: { title: string; author: string }) => void;
+  onSubmit: (opts: { title: string; author: string; format: 'kts' | 'json' }) => void;
   onClose: () => void;
 }
 
@@ -31,11 +31,13 @@ export function ExportMetaModal({
 }: ExportMetaModalProps) {
   const [title, setTitle] = useState(initialTitle);
   const [author, setAuthor] = useState(initialAuthor);
+  const [format, setFormat] = useState<'kts' | 'json'>('kts');
 
   useEffect(() => {
     if (visible) {
       setTitle(initialTitle);
       setAuthor(initialAuthor);
+      setFormat('kts');
     }
   }, [visible, initialTitle, initialAuthor]);
 
@@ -44,8 +46,8 @@ export function ExportMetaModal({
     if (!trimmedTitle) {
       return; // Button is disabled when empty
     }
-    console.log('[ExportMetaModal] User submitted export meta — title:', trimmedTitle, 'author:', author.trim());
-    onSubmit({ title: trimmedTitle, author: author.trim() });
+    console.log('[ExportMetaModal] User submitted export meta — title:', trimmedTitle, 'author:', author.trim(), 'format:', format);
+    onSubmit({ title: trimmedTitle, author: author.trim(), format });
   };
 
   const titleValid = title.trim().length > 0;
@@ -90,6 +92,38 @@ export function ExportMetaModal({
             returnKeyType="done"
             onSubmitEditing={handleSubmit}
           />
+
+          <Text style={styles.label}>Format</Text>
+          <View style={styles.formatRow}>
+            <Pressable
+              style={[styles.formatButton, format === 'kts' && styles.formatButtonSelected]}
+              onPress={() => {
+                console.log('[ExportMetaModal] Format selected: kts');
+                setFormat('kts');
+              }}
+            >
+              <Text style={[styles.formatButtonText, format === 'kts' && styles.formatButtonTextSelected]}>
+                .kts (anbefalt)
+              </Text>
+              <Text style={[styles.formatButtonHint, format === 'kts' && styles.formatButtonHintSelected]}>
+                AirDrop, Filer, Meldinger
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.formatButton, format === 'json' && styles.formatButtonSelected]}
+              onPress={() => {
+                console.log('[ExportMetaModal] Format selected: json');
+                setFormat('json');
+              }}
+            >
+              <Text style={[styles.formatButtonText, format === 'json' && styles.formatButtonTextSelected]}>
+                .kts.json (for e-post)
+              </Text>
+              <Text style={[styles.formatButtonHint, format === 'json' && styles.formatButtonHintSelected]}>
+                Gmail og andre e-post-apper
+              </Text>
+            </Pressable>
+          </View>
 
           <View style={styles.buttons}>
             <Pressable
@@ -194,5 +228,46 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#000',
     fontFamily: 'BigShouldersStencil_700Bold',
+  },
+  formatRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  formatButton: {
+    flex: 1,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 64,
+  },
+  formatButtonSelected: {
+    backgroundColor: colors.primary,
+  },
+  formatButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.primary,
+    fontFamily: 'BigShouldersStencil_700Bold',
+    marginBottom: 2,
+    textAlign: 'center',
+  },
+  formatButtonTextSelected: {
+    color: '#000',
+  },
+  formatButtonHint: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    fontFamily: bodyFont,
+  },
+  formatButtonHintSelected: {
+    color: '#000',
+    opacity: 0.75,
   },
 });

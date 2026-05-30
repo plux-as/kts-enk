@@ -1,6 +1,6 @@
 
 import * as DocumentPicker from 'expo-document-picker';
-import { readAsStringAsync, EncodingType } from 'expo-file-system/legacy';
+import { readAsStringAsync, copyAsync, deleteAsync, cacheDirectory, EncodingType } from 'expo-file-system/legacy';
 import { ChecklistCategory } from '@/types/checklist';
 import { SharedChecklistFile, KTS_MIME_TYPE, KTS_FILE_EXTENSION } from '@/types/share';
 import { validateSharedFile, regenerateCategoryIds } from './shareFile';
@@ -50,12 +50,45 @@ export async function readKtsFromUri(
   uri: string,
 ): Promise<{ ok: true; file: SharedChecklistFile } | { ok: false; reason: string }> {
   console.log('[Import] readKtsFromUri:', uri);
+
+  const isAlreadyCached = !!cacheDirectory && uri.startsWith(cacheDirectory);
+
   let text: string;
+  let cachePath: string | null = null;
+
   try {
-    text = await readAsStringAsync(uri, { encoding: EncodingType.UTF8 });
-  } catch (e) {
-    console.error('[Import] Could not read file:', e);
-    return { ok: false, reason: 'Kunne ikke lese filen' };
+    if (isAlreadyCached) {
+      console.log('[Import] URI is already in cache directory, reading directly');
+      try {
+        text = await readAsStringAsync(uri, { encoding: EncodingType.UTF8 });
+      } catch (e) {
+        console.error('[Import] Could not read cached file:', e);
+        return { ok: false, reason: 'Kunne ikke lese filen' };
+      }
+    } else {
+      cachePath = `${cacheDirectory}kts-import-${Date.now()}.kts`;
+      console.log('[Import] Copying to cache:', cachePath);
+      try {
+        await copyAsync({ from: uri, to: cachePath });
+      } catch (e) {
+        console.error('[Import] Copy to cache failed:', e);
+        return { ok: false, reason: 'Kunne ikke lese filen' };
+      }
+      try {
+        text = await readAsStringAsync(cachePath, { encoding: EncodingType.UTF8 });
+        console.log('[Import] Read', text.length, 'chars from cache copy');
+      } catch (e) {
+        console.error('[Import] Could not read cache copy:', e);
+        return { ok: false, reason: 'Kunne ikke lese filen' };
+      }
+    }
+  } finally {
+    if (cachePath) {
+      console.log('[Import] Cache copy cleanup:', cachePath);
+      deleteAsync(cachePath, { idempotent: true }).catch(e => {
+        console.warn('[Import] Could not delete cache copy:', e);
+      });
+    }
   }
 
   const result = validateSharedFile(text);
