@@ -99,16 +99,16 @@ export default function EditChecklistScreen() {
     setExportModal({ visible: true, mode: 'full', category: null, initialTitle: 'Hele sjekklisten' });
   };
 
-  const handleExportSubmit = async ({ title, author, format }: { title: string; author: string; format: 'kts' | 'json' }) => {
+  const handleExportSubmit = async ({ title, author }: { title: string; author: string }) => {
     setExportModal(prev => ({ ...prev, visible: false }));
-    console.log('[Edit] Export submit — mode:', exportModal.mode, 'title:', title, 'author:', author, 'format:', format);
+    console.log('[Edit] Export submit — mode:', exportModal.mode, 'title:', title, 'author:', author);
     await storage.setLastExportAuthor(author);
     setLastAuthor(author);
     try {
       if (exportModal.mode === 'single' && exportModal.category) {
-        await exportSingleCategory(exportModal.category, title, author, format);
+        await exportSingleCategory(exportModal.category, title, author);
       } else if (exportModal.mode === 'full') {
-        await exportFullChecklist(checklist, title, author, format);
+        await exportFullChecklist(checklist, title, author);
       }
     } catch (error) {
       console.error('[Edit] Export failed:', error);
