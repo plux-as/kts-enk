@@ -5,7 +5,7 @@ import { ChecklistCategory } from '@/types/checklist';
 import { SharedChecklistFile, KTS_MIME_TYPE, KTS_FILE_EXTENSION } from '@/types/share';
 import { validateSharedFile, regenerateCategoryIds } from './shareFile';
 import { storage } from './storage';
-import { readSecurityScopedFile, isAvailable as isNativeReaderAvailable } from 'kts-secure-reader';
+import { readSecurityScopedFile, isAvailable as isNativeReaderAvailable, getNativeLoadError } from 'kts-secure-reader';
 
 // ─── File reading ─────────────────────────────────────────────────────────────
 
