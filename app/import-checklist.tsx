@@ -532,7 +532,7 @@ export default function ImportChecklistScreen() {
               <Text style={styles.secondaryButtonText}>Avbryt</Text>
             </Pressable>
             <Pressable style={[styles.primaryButton, styles.dangerButton, styles.actionButton]} onPress={handleConfirmReplace}>
-              <Text style={styles.primaryButtonText}>Bekreft og importer</Text>
+              <Text style={styles.primaryButtonText}>Bekreft</Text>
             </Pressable>
           </View>
         </View>
