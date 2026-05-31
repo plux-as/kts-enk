@@ -329,15 +329,11 @@ export default function ImportChecklistScreen() {
         <View style={styles.centeredContent}>
           <IconSymbol name="square.and.arrow.down" color={colors.primary} size={56} />
           <Text style={styles.idleTitle}>Importer sjekkliste</Text>
-          <Text style={styles.idleSubtitle}>
-            Velg en .kts-fil fra enheten din for å importere.
+          <Text style={styles.idleSubtitle}>Velg en .kts-fil fra enheten din for å importere.
           </Text>
           <Pressable style={styles.primaryButton} onPress={handlePickFile}>
             <Text style={styles.primaryButtonText}>Velg fil</Text>
           </Pressable>
-					<Text style={styles.idleSubtitle}>
-            Andre kan dele sjekklister med deg som kan importeres her. 
-          </Text>
         </View>
       );
     }
