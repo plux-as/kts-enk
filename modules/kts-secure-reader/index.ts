@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 
 interface KtsSecureReaderModuleType {
   readSecurityScopedFile(uri: string): Promise<string>;
+  getPendingImportPath(): Promise<string | null>;
 }
 
 let nativeModule: KtsSecureReaderModuleType | null = null;
@@ -20,31 +21,25 @@ if (Platform.OS === 'ios') {
 }
 
 /**
- * Reads a (possibly security-scoped) file URI on iOS using the documented
- * Apple `startAccessingSecurityScopedResource` handshake. Returns the file
- * contents as a UTF-8 string. Throws a descriptive Error if the native
- * module isn't available — callers MUST catch this and add it to their
- * diagnostic chain rather than silently ignoring it.
+ * Returns the tmp file path written by KtsFileHandlerSubscriber at app launch,
+ * or null if no pending import exists. Clears the stored path after reading.
+ * Call this FIRST on cold launch — if non-null, read from this path instead of
+ * the original security-scoped URI.
  */
+export async function getPendingImportPath(): Promise<string | null> {
+  if (!nativeModule) return null;
+  return nativeModule.getPendingImportPath();
+}
+
 export async function readSecurityScopedFile(uri: string): Promise<string> {
   if (!nativeModule) {
     throw new Error(
       'native module unavailable — ' + (loadError ?? 'unknown reason') +
-      ' (this means the iOS build did not include modules/kts-secure-reader/ios/*; check .gitignore and pod install logs)'
+      ' (check .gitignore and pod install logs)'
     );
   }
   return nativeModule.readSecurityScopedFile(uri);
 }
 
-/**
- * Always returns true — callers should ALWAYS attempt Strategy 0 and let it
- * throw if the native module is missing. Returning false would cause the
- * import flow to silently skip Strategy 0, which is exactly the bug that
- * shipped 8 times. The function is kept for source-compat but its semantic
- * is now "this strategy is reachable" rather than "the native module is
- * loaded". If you need to know whether the module loaded, call
- * `getNativeLoadError()`.
- */
 export const isAvailable = (): boolean => true;
-
 export const getNativeLoadError = (): string | null => loadError;
