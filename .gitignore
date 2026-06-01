@@ -49,6 +49,5 @@ yarn.lock
 next-env.d.ts
 
 bun.lock
-
 android/
 ios/
