@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "KTS Alfa",
-    "slug": "kts-alfa",
+    "slug": "kts-enk",
     "version": "2.0.5",
     "orientation": "portrait",
     "icon": "./assets/images/insta-logo-new.png",
@@ -55,7 +55,7 @@
         "foregroundImage": "./assets/images/027acabb-73f0-4281-8df1-61855fcb20b3.png",
         "backgroundColor": "#0F0F0F"
       },
-      "package": "com.pluxas.ktsalfa",
+      "package": "com.plux.ktsalfa",
       "userInterfaceStyle": "dark",
       "jsEngine": "hermes",
       "intentFilters": [
