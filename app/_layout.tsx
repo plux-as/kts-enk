@@ -81,27 +81,42 @@ export default function RootLayout() {
     }
     coldLaunchImport.current = true;
     let inlineContents: string | undefined;
+    
+    // Strategy 0: read the tmp copy written by KtsFileHandlerSubscriber in the
+    // AppDelegate — this fires before JS starts while the security scope is valid.
     try {
-      if (isNativeReaderAvailable()) {
-        inlineContents = await readSecurityScopedFile(url);
-        console.log('[DeepLink] Pre-read (native)', inlineContents.length, 'chars from cold-launch URL');
-      } else {
-        const f = new File(url);
+      const { getPendingImportPath } = await import('kts-secure-reader');
+      const tmpPath = await getPendingImportPath();
+      if (tmpPath) {
+        const f = new File('file://' + tmpPath);
         const txt = await f.text();
-        inlineContents = txt;
-        console.log('[DeepLink] Pre-read (File API)', inlineContents.length, 'chars from cold-launch URL');
+        if (txt.length >= 2) {
+          inlineContents = txt;
+          console.log('[DeepLink] Read from AppDelegate tmp copy:', inlineContents.length, 'chars');
+        }
       }
     } catch (e) {
-      console.warn('[DeepLink] Pre-read failed, will fall back to URI-based read in import screen:', e);
+      console.warn('[DeepLink] AppDelegate tmp read failed, trying native scope:', e);
     }
-    router.push({
-      pathname: '/import-checklist',
-      params: {
-        fileUri: url,
-        cold: '1',
-        ...(inlineContents !== undefined ? { inline: inlineContents } : {}),
-      },
-    });
+    
+    // Strategy 1: native security-scoped read (fallback if subscriber didn't fire)
+    if (inlineContents === undefined) {
+      try {
+        inlineContents = await readSecurityScopedFile(url);
+        console.log('[DeepLink] Pre-read (native security-scoped):', inlineContents.length, 'chars');
+      } catch (e) {
+        console.warn('[DeepLink] Pre-read failed, import screen will try remaining strategies:', e);
+      }
+}
+
+router.push({
+  pathname: '/import-checklist',
+  params: {
+    fileUri: url,
+    cold: '1',
+    ...(inlineContents !== undefined ? { inline: inlineContents } : {}),
+  },
+});
   };
 
   useEffect(() => {
