@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,10 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ExportMetaModal } from '@/components/ExportMetaModal';
 import { exportSingleCategory, exportFullChecklist } from '@/utils/exportChecklist';
+import DraggableFlatList, {
+  ScaleDecorator,
+  RenderItemParams,
+} from 'react-native-draggable-flatlist';
 
 type CategoryRole = 'general' | 'weapon';
 
@@ -46,6 +50,8 @@ function sortedCategories(checklist: ChecklistCategory[]): ChecklistCategory[] {
 export default function EditChecklistScreen() {
   const [checklist, setChecklist] = useState<ChecklistCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reorderMode, setReorderMode] = useState(false);
+  const [reorderChecklist, setReorderChecklist] = useState<ChecklistCategory[]>([]);
   const [editingCategory, setEditingCategory] = useState<{
     id: string;
     name: string;
@@ -87,6 +93,24 @@ export default function EditChecklistScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEnterReorder = () => {
+    console.log('[Edit] User tapped Sorter — entering reorder mode');
+    setReorderChecklist([...checklist]);
+    setReorderMode(true);
+  };
+
+  const handleExitReorder = async () => {
+    console.log('[Edit] User tapped Ferdig — exiting reorder mode, saving new order');
+    try {
+      await storage.saveChecklist(reorderChecklist);
+      setChecklist(reorderChecklist);
+    } catch (error) {
+      console.error('[Edit] Error saving reordered checklist:', error);
+      Alert.alert('Feil', 'Kunne ikke lagre ny rekkefølge');
+    }
+    setReorderMode(false);
   };
 
   const handleExportCategory = (category: ChecklistCategory) => {
@@ -318,29 +342,107 @@ export default function EditChecklistScreen() {
     router.back();
   };
 
-  if (loading) {
-    return (
-      <>
-        <Stack.Screen options={{ headerShown: false }} />
-        <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
-          <View style={commonStyles.modalNavBar}>
-            <View style={{ width: 24 }} />
-            <Text style={commonStyles.modalNavBarTitle}>Rediger KTS-liste</Text>
-            <Pressable onPress={() => router.back()}>
-              <IconSymbol name="xmark" color={colors.error} size={24} />
-            </Pressable>
-          </View>
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text style={[styles.text, { fontFamily: bodyFont }]}>Laster...</Text>
-          </View>
-        </View>
-      </>
-    );
-  }
+  // ── Reorder helpers ──────────────────────────────────────────────────────────
 
-  const sorted = sortedCategories(checklist);
-  const weaponCats = sorted.filter(c => (c.categoryRole ?? 'general') === 'weapon');
-  const generalCats = sorted.filter(c => (c.categoryRole ?? 'general') === 'general');
+  const handleCategoryReorder = useCallback(
+    (role: CategoryRole, newData: ChecklistCategory[]) => {
+      console.log('[Edit] Category reorder in section:', role, '— new order:', newData.map(c => c.name));
+      setReorderChecklist(prev => {
+        // Keep categories of the OTHER role in their original positions, replace this role's slice
+        const otherRole = role === 'weapon' ? 'general' : 'weapon';
+        const others = prev.filter(c => (c.categoryRole ?? 'general') === otherRole);
+        // Preserve original array order for others, put this role's new order after/before
+        if (role === 'weapon') {
+          return [...newData, ...others];
+        } else {
+          return [...others, ...newData];
+        }
+      });
+    },
+    [],
+  );
+
+  const handleItemReorder = useCallback(
+    (categoryId: string, newItems: ChecklistItem[]) => {
+      console.log('[Edit] Item reorder in category:', categoryId, '— new order:', newItems.map(i => i.name));
+      setReorderChecklist(prev =>
+        prev.map(cat =>
+          cat.id === categoryId ? { ...cat, items: newItems } : cat,
+        ),
+      );
+    },
+    [],
+  );
+
+  // ── Render helpers ───────────────────────────────────────────────────────────
+
+  const renderReorderItemRow = useCallback(
+    (categoryId: string) =>
+      ({ item, drag, isActive }: RenderItemParams<ChecklistItem>) => {
+        return (
+          <ScaleDecorator>
+            <View style={[styles.itemRow, isActive && styles.itemRowActive]}>
+              <Pressable
+                onLongPress={drag}
+                style={styles.dragHandle}
+                hitSlop={8}
+              >
+                <IconSymbol name="line.3.horizontal" color={colors.textSecondary} size={22} />
+              </Pressable>
+              <Text style={[styles.itemName, { fontFamily: bodyFont }]} numberOfLines={2}>
+                {item.name}
+              </Text>
+            </View>
+          </ScaleDecorator>
+        );
+      },
+    [],
+  );
+
+  const renderReorderCategory = useCallback(
+    (role: CategoryRole) =>
+      ({ item: category, drag, isActive }: RenderItemParams<ChecklistCategory>) => {
+        const catRole = (category.categoryRole ?? 'general') as CategoryRole;
+        const badge = getRoleBadge(catRole);
+        const catItems = reorderChecklist.find(c => c.id === category.id)?.items ?? category.items;
+
+        return (
+          <ScaleDecorator>
+            <View style={[styles.categoryCard, isActive && styles.categoryCardActive]}>
+              <View style={styles.categoryHeader}>
+                <Pressable
+                  onLongPress={drag}
+                  style={styles.dragHandle}
+                  hitSlop={8}
+                >
+                  <IconSymbol name="line.3.horizontal" color={colors.textSecondary} size={22} />
+                </Pressable>
+                <View style={styles.categoryNameRow}>
+                  <Text style={styles.categoryName}>{category.name}</Text>
+                  {badge && (
+                    <View style={[styles.roleBadge, { backgroundColor: badge.bg }]}>
+                      <Text style={[styles.roleBadgeText, { color: badge.text }]}>{badge.label}</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.itemsContainer}>
+                <DraggableFlatList
+                  data={catItems}
+                  keyExtractor={i => i.id}
+                  onDragEnd={({ data }) => handleItemReorder(category.id, data)}
+                  renderItem={renderReorderItemRow(category.id)}
+                  scrollEnabled={false}
+                  activationDistance={5}
+                />
+              </View>
+            </View>
+          </ScaleDecorator>
+        );
+      },
+    [reorderChecklist, handleItemReorder, renderReorderItemRow],
+  );
 
   const renderCategory = (category: ChecklistCategory) => {
     const role = (category.categoryRole ?? 'general') as CategoryRole;
@@ -398,13 +500,93 @@ export default function EditChecklistScreen() {
     );
   };
 
+  if (loading) {
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
+          <View style={commonStyles.modalNavBar}>
+            <View style={{ width: 24 }} />
+            <Text style={commonStyles.modalNavBarTitle}>Rediger KTS-liste</Text>
+            <Pressable onPress={() => router.back()}>
+              <IconSymbol name="xmark" color={colors.error} size={24} />
+            </Pressable>
+          </View>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={[styles.text, { fontFamily: bodyFont }]}>Laster...</Text>
+          </View>
+        </View>
+      </>
+    );
+  }
+
+  const sorted = sortedCategories(checklist);
+  const weaponCats = sorted.filter(c => (c.categoryRole ?? 'general') === 'weapon');
+  const generalCats = sorted.filter(c => (c.categoryRole ?? 'general') === 'general');
+
+  const reorderSorted = sortedCategories(reorderChecklist);
+  const reorderWeaponCats = reorderSorted.filter(c => (c.categoryRole ?? 'general') === 'weapon');
+  const reorderGeneralCats = reorderSorted.filter(c => (c.categoryRole ?? 'general') === 'general');
+
+  // ── Reorder mode layout ──────────────────────────────────────────────────────
+  if (reorderMode) {
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
+          <View style={commonStyles.modalNavBar}>
+            <Pressable onPress={handleExitReorder}>
+              <Text style={styles.navTextButton}>Ferdig</Text>
+            </Pressable>
+            <Text style={commonStyles.modalNavBarTitle}>Rediger KTS-liste</Text>
+            <Pressable onPress={() => { console.log('[Edit] User tapped X close in reorder mode'); router.back(); }}>
+              <IconSymbol name="xmark" color={colors.error} size={24} />
+            </Pressable>
+          </View>
+
+          <ScrollView contentContainerStyle={styles.scrollContent} scrollEnabled={true}>
+            <View style={styles.section}>
+              {reorderWeaponCats.length > 0 && (
+                <>
+                  <Text style={styles.sectionHeader}>VÅPENKATEGORIER</Text>
+                  <DraggableFlatList
+                    data={reorderWeaponCats}
+                    keyExtractor={c => c.id}
+                    onDragEnd={({ data }) => handleCategoryReorder('weapon', data)}
+                    renderItem={renderReorderCategory('weapon')}
+                    scrollEnabled={false}
+                    activationDistance={5}
+                  />
+                </>
+              )}
+              {reorderGeneralCats.length > 0 && (
+                <>
+                  <Text style={styles.sectionHeader}>GENERELLE KATEGORIER</Text>
+                  <DraggableFlatList
+                    data={reorderGeneralCats}
+                    keyExtractor={c => c.id}
+                    onDragEnd={({ data }) => handleCategoryReorder('general', data)}
+                    renderItem={renderReorderCategory('general')}
+                    scrollEnabled={false}
+                    activationDistance={5}
+                  />
+                </>
+              )}
+            </View>
+          </ScrollView>
+        </View>
+      </>
+    );
+  }
+
+  // ── Normal mode layout ───────────────────────────────────────────────────────
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
         <View style={commonStyles.modalNavBar}>
-          <Pressable onPress={() => { console.log('[Edit] User tapped share-in-titlebar'); handleExportFull(); }}>
-            <IconSymbol name="square.and.arrow.up" color={colors.primary} size={24} />
+          <Pressable onPress={handleEnterReorder}>
+            <Text style={styles.navTextButton}>Sorter</Text>
           </Pressable>
           <Text style={commonStyles.modalNavBarTitle}>Rediger KTS-liste</Text>
           <Pressable onPress={() => router.back()}>
@@ -597,6 +779,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
+  navTextButton: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.primary,
+    fontFamily: 'BigShouldersStencil_700Bold',
+  },
   categoryCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
@@ -604,6 +792,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
     elevation: 3,
+  },
+  categoryCardActive: {
+    opacity: 0.95,
+    boxShadow: '0px 6px 20px rgba(0, 0, 0, 0.5)',
+    elevation: 8,
   },
   categoryHeader: {
     flexDirection: 'row',
@@ -643,6 +836,12 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     paddingTop: 2,
   },
+  dragHandle: {
+    paddingRight: 12,
+    paddingTop: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   itemsContainer: {
     gap: 8,
   },
@@ -654,6 +853,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     backgroundColor: colors.background,
     borderRadius: 8,
+  },
+  itemRowActive: {
+    opacity: 0.9,
   },
   itemName: {
     fontSize: 16,
