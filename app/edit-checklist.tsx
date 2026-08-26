@@ -387,7 +387,7 @@ export default function EditChecklistScreen() {
                 style={styles.dragHandle}
                 hitSlop={8}
               >
-                <IconSymbol name="line.3.horizontal" color={colors.textSecondary} size={22} />
+                <IconSymbol name="line.3.horizontal" color={colors.primary} size={22} />
               </Pressable>
               <Text style={[styles.itemName, { fontFamily: bodyFont }]} numberOfLines={2}>
                 {item.name}
@@ -415,7 +415,7 @@ export default function EditChecklistScreen() {
                   style={styles.dragHandle}
                   hitSlop={8}
                 >
-                  <IconSymbol name="line.3.horizontal" color={colors.textSecondary} size={22} />
+                  <IconSymbol name="line.3.horizontal" color={colors.primary} size={22} />
                 </Pressable>
                 <View style={styles.categoryNameRow}>
                   <Text style={styles.categoryName}>{category.name}</Text>
