@@ -387,7 +387,7 @@ export default function EditChecklistScreen() {
                 style={styles.dragHandle}
                 hitSlop={8}
               >
-                <IconSymbol name="line.3.horizontal" color={colors.textSecondary} size={22} />
+                <IconSymbol name="line.3.horizontal" color={colors.primary} size={22} />
               </Pressable>
               <Text style={[styles.itemName, { fontFamily: bodyFont }]} numberOfLines={2}>
                 {item.name}
@@ -415,7 +415,7 @@ export default function EditChecklistScreen() {
                   style={styles.dragHandle}
                   hitSlop={8}
                 >
-                  <IconSymbol name="line.3.horizontal" color={colors.textSecondary} size={22} />
+                  <IconSymbol name="line.3.horizontal" color={colors.primary} size={22} />
                 </Pressable>
                 <View style={styles.categoryNameRow}>
                   <Text style={styles.categoryName}>{category.name}</Text>
@@ -837,10 +837,13 @@ const styles = StyleSheet.create({
     paddingTop: 2,
   },
   dragHandle: {
-    paddingRight: 12,
-    paddingTop: 2,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(188, 241, 53, 0.08)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    marginRight: 4,
   },
   itemsContainer: {
     gap: 8,
@@ -853,6 +856,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     backgroundColor: colors.background,
     borderRadius: 8,
+    marginBottom: 8,
   },
   itemRowActive: {
     opacity: 0.9,
