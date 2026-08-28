@@ -11,6 +11,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  Switch,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
@@ -528,102 +529,116 @@ export default function EditChecklistScreen() {
   const reorderWeaponCats = reorderSorted.filter(c => (c.categoryRole ?? 'general') === 'weapon');
   const reorderGeneralCats = reorderSorted.filter(c => (c.categoryRole ?? 'general') === 'general');
 
-  // ── Reorder mode layout ──────────────────────────────────────────────────────
-  if (reorderMode) {
-    return (
-      <>
-        <Stack.Screen options={{ headerShown: false }} />
-        <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
-          <View style={commonStyles.modalNavBar}>
-            <Pressable onPress={handleExitReorder}>
-              <Text style={styles.navTextButton}>Ferdig</Text>
-            </Pressable>
-            <Text style={commonStyles.modalNavBarTitle}>Rediger KTS-liste</Text>
-            <Pressable onPress={() => { console.log('[Edit] User tapped X close in reorder mode'); router.back(); }}>
-              <IconSymbol name="xmark" color={colors.error} size={24} />
-            </Pressable>
-          </View>
-
-          <ScrollView contentContainerStyle={styles.scrollContent} scrollEnabled={true}>
-            <View style={styles.section}>
-              {reorderWeaponCats.length > 0 && (
-                <>
-                  <Text style={styles.sectionHeader}>VÅPENKATEGORIER</Text>
-                  <DraggableFlatList
-                    data={reorderWeaponCats}
-                    keyExtractor={c => c.id}
-                    onDragEnd={({ data }) => handleCategoryReorder('weapon', data)}
-                    renderItem={renderReorderCategory('weapon')}
-                    scrollEnabled={false}
-                    activationDistance={5}
-                  />
-                </>
-              )}
-              {reorderGeneralCats.length > 0 && (
-                <>
-                  <Text style={styles.sectionHeader}>GENERELLE KATEGORIER</Text>
-                  <DraggableFlatList
-                    data={reorderGeneralCats}
-                    keyExtractor={c => c.id}
-                    onDragEnd={({ data }) => handleCategoryReorder('general', data)}
-                    renderItem={renderReorderCategory('general')}
-                    scrollEnabled={false}
-                    activationDistance={5}
-                  />
-                </>
-              )}
-            </View>
-          </ScrollView>
-        </View>
-      </>
-    );
-  }
-
-  // ── Normal mode layout ───────────────────────────────────────────────────────
+  // ── Unified layout ───────────────────────────────────────────────────────────
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
         <View style={commonStyles.modalNavBar}>
-          <Pressable onPress={() => { console.log('[edit-checklist] Share icon pressed'); handleExportFull(); }}>
-            <IconSymbol name="square.and.arrow.up" color={colors.primary} size={24} />
-          </Pressable>
-          <Text style={commonStyles.modalNavBarTitle}>Rediger KTS-liste</Text>
-          <Pressable onPress={() => router.back()}>
-            <IconSymbol name="xmark" color={colors.error} size={24} />
-          </Pressable>
-        </View>
-        <Pressable style={styles.sortStrip} onPress={() => { console.log('[edit-checklist] Sort strip pressed'); handleEnterReorder(); }}>
-          <IconSymbol name="arrow.up.arrow.down" color={colors.primary} size={18} />
-          <Text style={styles.sortStripText}>Sorter rekkefølge</Text>
-          <IconSymbol name="chevron.right" color={colors.textSecondary} size={16} />
-        </Pressable>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.section}>
-            {weaponCats.length > 0 && (
-              <>
-                <Text style={styles.sectionHeader}>VÅPENKATEGORIER</Text>
-                {weaponCats.map(renderCategory)}
-              </>
-            )}
-            {generalCats.length > 0 && (
-              <>
-                <Text style={styles.sectionHeader}>GENERELLE KATEGORIER</Text>
-                {generalCats.map(renderCategory)}
-              </>
-            )}
-
-            <Pressable style={styles.addCategoryButton} onPress={handleAddCategory}>
-              <IconSymbol name="plus" color={colors.primary} size={24} />
-              <Text style={styles.addCategoryText}>Legg til kategori</Text>
+          {/* Share icon — hidden in reorder mode */}
+          {!reorderMode ? (
+            <Pressable onPress={() => { console.log('[edit-checklist] Share icon pressed'); handleExportFull(); }}>
+              <IconSymbol name="square.and.arrow.up" color={colors.primary} size={24} />
             </Pressable>
+          ) : (
+            <View style={{ width: 24 }} />
+          )}
+          <Text style={commonStyles.modalNavBarTitle}>Rediger KTS-liste</Text>
+          {/* Close icon — hidden in reorder mode */}
+          {!reorderMode ? (
+            <Pressable onPress={() => router.back()}>
+              <IconSymbol name="xmark" color={colors.error} size={24} />
+            </Pressable>
+          ) : (
+            <View style={{ width: 24 }} />
+          )}
+        </View>
 
+        {/* Sort toggle strip — always visible */}
+        <Pressable
+          style={styles.sortStrip}
+          onPress={() => {
+            if (reorderMode) {
+              handleExitReorder();
+            } else {
+              handleEnterReorder();
+            }
+          }}
+        >
+          <IconSymbol name="arrow.up.arrow.down" color={colors.primary} size={18} />
+          <Text style={styles.sortStripText}>Endre rekkefølge</Text>
+          <Switch
+            value={reorderMode}
+            onValueChange={(val) => {
+              if (val) {
+                handleEnterReorder();
+              } else {
+                handleExitReorder();
+              }
+            }}
+            trackColor={{ false: '#334155', true: colors.primary }}
+            thumbColor="#fff"
+          />
+        </Pressable>
 
+        <ScrollView contentContainerStyle={styles.scrollContent} scrollEnabled={true}>
+          <View style={styles.section}>
+            {reorderMode ? (
+              <>
+                {reorderWeaponCats.length > 0 && (
+                  <>
+                    <Text style={styles.sectionHeader}>VÅPENKATEGORIER</Text>
+                    <DraggableFlatList
+                      data={reorderWeaponCats}
+                      keyExtractor={c => c.id}
+                      onDragEnd={({ data }) => handleCategoryReorder('weapon', data)}
+                      renderItem={renderReorderCategory('weapon')}
+                      scrollEnabled={false}
+                      activationDistance={5}
+                    />
+                  </>
+                )}
+                {reorderGeneralCats.length > 0 && (
+                  <>
+                    <Text style={styles.sectionHeader}>GENERELLE KATEGORIER</Text>
+                    <DraggableFlatList
+                      data={reorderGeneralCats}
+                      keyExtractor={c => c.id}
+                      onDragEnd={({ data }) => handleCategoryReorder('general', data)}
+                      renderItem={renderReorderCategory('general')}
+                      scrollEnabled={false}
+                      activationDistance={5}
+                    />
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                {weaponCats.length > 0 && (
+                  <>
+                    <Text style={styles.sectionHeader}>VÅPENKATEGORIER</Text>
+                    {weaponCats.map(renderCategory)}
+                  </>
+                )}
+                {generalCats.length > 0 && (
+                  <>
+                    <Text style={styles.sectionHeader}>GENERELLE KATEGORIER</Text>
+                    {generalCats.map(renderCategory)}
+                  </>
+                )}
+                <Pressable style={styles.addCategoryButton} onPress={handleAddCategory}>
+                  <IconSymbol name="plus" color={colors.primary} size={24} />
+                  <Text style={styles.addCategoryText}>Legg til kategori</Text>
+                </Pressable>
+              </>
+            )}
           </View>
 
-          <Pressable style={styles.finishButton} onPress={handleFinish}>
-            <Text style={styles.finishButtonText}>Ferdig</Text>
-          </Pressable>
+          {!reorderMode && (
+            <Pressable style={styles.finishButton} onPress={handleFinish}>
+              <Text style={styles.finishButtonText}>Ferdig</Text>
+            </Pressable>
+          )}
         </ScrollView>
 
         {/* Category edit modal */}
