@@ -585,14 +585,19 @@ export default function EditChecklistScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <View style={[styles.fullScreenModal, { paddingTop: insets.top }]}>
         <View style={commonStyles.modalNavBar}>
-          <Pressable onPress={handleEnterReorder}>
-            <Text style={styles.navTextButton}>Sorter</Text>
+          <Pressable onPress={() => { console.log('[edit-checklist] Share icon pressed'); handleExportFull(); }}>
+            <IconSymbol name="square.and.arrow.up" color={colors.primary} size={24} />
           </Pressable>
           <Text style={commonStyles.modalNavBarTitle}>Rediger KTS-liste</Text>
           <Pressable onPress={() => router.back()}>
             <IconSymbol name="xmark" color={colors.error} size={24} />
           </Pressable>
         </View>
+        <Pressable style={styles.sortStrip} onPress={() => { console.log('[edit-checklist] Sort strip pressed'); handleEnterReorder(); }}>
+          <IconSymbol name="arrow.up.arrow.down" color={colors.primary} size={18} />
+          <Text style={styles.sortStripText}>Sorter rekkefølge</Text>
+          <IconSymbol name="chevron.right" color={colors.textSecondary} size={16} />
+        </Pressable>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.section}>
             {weaponCats.length > 0 && (
@@ -613,10 +618,7 @@ export default function EditChecklistScreen() {
               <Text style={styles.addCategoryText}>Legg til kategori</Text>
             </Pressable>
 
-            <Pressable style={styles.shareFullButton} onPress={handleExportFull}>
-              <IconSymbol name="square.and.arrow.up" color={colors.primary} size={22} />
-              <Text style={styles.shareFullButtonText}>Del hele sjekklisten</Text>
-            </Pressable>
+
           </View>
 
           <Pressable style={styles.finishButton} onPress={handleFinish}>
@@ -906,21 +908,20 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
-  shareFullButton: {
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
+  sortStrip: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    marginTop: 12,
+    backgroundColor: colors.card,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  shareFullButtonText: {
-    fontSize: 20,
-    fontWeight: '700',
+  sortStripText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
     color: colors.primary,
     fontFamily: 'BigShouldersStencil_700Bold',
   },
