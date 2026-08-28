@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "KTS Alfa",
-    "slug": "kts-alfa",
-    "version": "2.0.6",
+    "slug": "kts-enk",
+    "version": "1.0.17",
     "orientation": "portrait",
     "icon": "./assets/images/insta-logo-new.png",
     "userInterfaceStyle": "dark",
@@ -119,7 +119,8 @@
           "expo-glass-effect",
           "@bacons/apple-targets"
         ]
-      }
+      },
+      "versionCode": 18
     },
     "web": {
       "favicon": "./assets/images/cb4a90ce-1db4-45c1-8f2d-ee549a6461df.png",
