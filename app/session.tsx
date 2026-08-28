@@ -703,7 +703,7 @@ export default function SessionScreen() {
         </View>
 
         <View style={styles.stickyBottomButtons}>
-          <View style={styles.bottomButtons}>
+          <View style={[styles.bottomButtons, { paddingBottom: insets.bottom }]}>
             {!isFirstScreen && (
               <Pressable style={styles.navButton} onPress={handlePrevious}>
                 <Text style={styles.navButtonText}>Forrige</Text>
@@ -841,7 +841,7 @@ export default function SessionScreen() {
               <IconSymbol name="checkmark.circle.fill" color="#000" size={24} />
               <Text style={styles.allOkButtonText}>Alle ok</Text>
             </Pressable>
-            <View style={styles.bottomButtons}>
+            <View style={[styles.bottomButtons, { paddingBottom: insets.bottom }]}>
               <Pressable style={styles.navButton} onPress={handlePrevious}>
                 <Text style={styles.navButtonText}>Forrige</Text>
               </Pressable>
@@ -990,7 +990,7 @@ export default function SessionScreen() {
             <IconSymbol name="checkmark.circle.fill" color="#000" size={24} />
             <Text style={styles.allOkButtonText}>Alle ok</Text>
           </Pressable>
-          <View style={styles.bottomButtons}>
+          <View style={[styles.bottomButtons, { paddingBottom: insets.bottom }]}>
             <Pressable style={styles.navButton} onPress={handlePrevious}>
               <Text style={styles.navButtonText}>Forrige</Text>
             </Pressable>
@@ -1039,7 +1039,7 @@ export default function SessionScreen() {
         </View>
 
         <View style={styles.stickyBottomButtons}>
-          <View style={styles.bottomButtons}>
+          <View style={[styles.bottomButtons, { paddingBottom: insets.bottom }]}>
             {!isFirstScreen && (
               <Pressable style={styles.navButton} onPress={handlePrevious}>
                 <Text style={styles.navButtonText}>Forrige</Text>
@@ -1147,7 +1147,7 @@ export default function SessionScreen() {
             <IconSymbol name="checkmark.circle.fill" color="#000" size={24} />
             <Text style={styles.allOkButtonText}>Alle ok</Text>
           </Pressable>
-          <View style={styles.bottomButtons}>
+          <View style={[styles.bottomButtons, { paddingBottom: insets.bottom }]}>
             <Pressable style={styles.navButton} onPress={handlePrevious}>
               <Text style={styles.navButtonText}>Forrige</Text>
             </Pressable>

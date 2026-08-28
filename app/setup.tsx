@@ -13,6 +13,7 @@ import {
   Modal,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
 import { CHECKLIST_VERSION } from '@/data/defaultChecklist';
@@ -150,6 +151,7 @@ const pickerStyles = StyleSheet.create({
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function SetupScreen() {
+  const insets = useSafeAreaInsets();
   const [squadName, setSquadName] = useState('');
   const [numberOfSoldiers, setNumberOfSoldiers] = useState('');
   const [soldiers, setSoldiers] = useState<Soldier[]>([]);
@@ -403,7 +405,7 @@ export default function SetupScreen() {
         })}
       </ScrollView>
 
-      <View style={styles.stickyButtonContainer}>
+      <View style={[styles.stickyButtonContainer, { paddingBottom: 40 + insets.bottom }]}>
         <View style={styles.buttonRow}>
           <Pressable
             style={[styles.button, styles.secondaryButton]}
@@ -534,7 +536,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.textSecondary + '40',
     padding: 20,
-    paddingBottom: 40,
   },
   buttonRow: {
     flexDirection: 'row',
