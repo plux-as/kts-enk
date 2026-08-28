@@ -11,13 +11,13 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  Switch,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { colors, commonStyles, bodyFont } from '@/styles/commonStyles';
 import { storage } from '@/utils/storage';
 import { ChecklistCategory, ChecklistItem } from '@/types/checklist';
 import { IconSymbol } from '@/components/IconSymbol';
-import { ToggleSwitch } from '@/components/ToggleSwitch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ExportMetaModal } from '@/components/ExportMetaModal';
 import { exportSingleCategory, exportFullChecklist } from '@/utils/exportChecklist';
@@ -567,7 +567,7 @@ export default function EditChecklistScreen() {
         >
           <IconSymbol name="arrow.up.arrow.down" color={colors.primary} size={18} />
           <Text style={styles.sortStripText}>Endre rekkefølge</Text>
-          <ToggleSwitch
+          <Switch
             value={reorderMode}
             onValueChange={(val) => {
               if (val) {
@@ -576,6 +576,8 @@ export default function EditChecklistScreen() {
                 handleExitReorder();
               }
             }}
+            trackColor={{ false: '#334155', true: colors.primary }}
+            thumbColor="#fff"
           />
         </Pressable>
 
