@@ -170,6 +170,7 @@ const MAPPING = {
   // Lists & Bullets
   "list.bullet": "list",
   "list.bullet.circle": "list-alt",
+  "line.3.horizontal": "drag-handle",
 
   // Security & Protection
   "shield": "shield",
