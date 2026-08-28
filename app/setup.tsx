@@ -9,7 +9,6 @@ import {
   Pressable,
   Alert,
   KeyboardAvoidingView,
-  Platform,
   Modal,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -296,9 +295,9 @@ export default function SetupScreen() {
     return (
       <KeyboardAvoidingView
         style={commonStyles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Oppsett av Lag</Text>
           <Text style={[styles.subtitle, { fontFamily: bodyFont }]}>Definer lagets detaljer</Text>
 
@@ -336,9 +335,9 @@ export default function SetupScreen() {
   return (
     <KeyboardAvoidingView
       style={commonStyles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior="padding"
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Soldater</Text>
         <Text style={[styles.subtitle, { fontFamily: bodyFont }]}>Definer navn og rolle for hver soldat</Text>
 
@@ -403,10 +402,8 @@ export default function SetupScreen() {
             </View>
           );
         })}
-      </ScrollView>
 
-      <View style={[styles.stickyButtonContainer, { paddingBottom: 40 + insets.bottom }]}>
-        <View style={styles.buttonRow}>
+        <View style={[styles.buttonRow, { paddingBottom: 20 + insets.bottom }]}>
           <Pressable
             style={[styles.button, styles.secondaryButton]}
             onPress={() => {
@@ -423,7 +420,7 @@ export default function SetupScreen() {
             <Text style={styles.primaryButtonText}>Fullfør</Text>
           </Pressable>
         </View>
-      </View>
+      </ScrollView>
 
       <WeaponPickerModal
         visible={pickerSoldierIndex !== null && pickerSlot !== null}
@@ -526,16 +523,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.text,
     fontFamily: bodyFont,
-  },
-  stickyButtonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.background,
-    borderTopWidth: 1,
-    borderTopColor: colors.textSecondary + '40',
-    padding: 20,
   },
   buttonRow: {
     flexDirection: 'row',
