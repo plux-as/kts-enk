@@ -577,7 +577,7 @@ export default function EditChecklistScreen() {
               }
             }}
             trackColor={{ false: '#334155', true: colors.primary }}
-            thumbColor="#fff"
+            thumbColor={reorderMode ? '#ffffff' : '#ffffff'}
           />
         </Pressable>
 
